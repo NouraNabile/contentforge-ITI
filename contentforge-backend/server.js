@@ -1,5 +1,7 @@
 // backend/server.js
 require('dotenv').config()
+// require('dotenv').config({ path: require('path').resolve(__dirname, '.env') })
+// const uri = 'mongodb+srv://Noura:db_iti_123@cluster0.vs4ijdg.mongodb.net/?appName=Cluster0'
 require('express-async-errors')
 
 const express   = require('express')
@@ -7,6 +9,7 @@ const cors      = require('cors')
 const connectDB = require('./config/db')
 
 const app = express()
+
 
 // ── Connect to MongoDB Atlas ──────────────────────────────────────────────────
 connectDB()

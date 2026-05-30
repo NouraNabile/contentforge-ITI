@@ -16,7 +16,7 @@ import LoginPage        from './views/LoginPage.vue'
 const router = createRouter({
   history: createWebHistory(),
   routes: [
-    { path: '/',            component: LandingPage },
+    { path: '/',            component: LandingPage ,alias: "/home"},
     { path: '/login',       component: LoginPage },
     { path: '/dashboard',   component: DashboardPreview, meta: { requiresAuth: true } },
     { path: '/drafts',      component: DraftsPage,       meta: { requiresAuth: true } },
@@ -31,7 +31,9 @@ const router = createRouter({
 })
 
 // ── Route guard — redirect to login if not authenticated ──────────────────────
+// localStorage.removeItem('cf_token')
 router.beforeEach((to, from, next) => {
+  // console.log(localStorage.getItem('cf_token'))
   const isLoggedIn = !!localStorage.getItem('cf_token')
   if (to.meta.requiresAuth && !isLoggedIn) {
     next('/login')

@@ -128,13 +128,14 @@
 </template>
 
 <script setup>
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import AppLayout from '../components/AppLayout.vue'
+import postsApi from '../api/postsApi'
 
-const activeFilter = ref('All')
-const filters = ['All','Draft','Pending','Approved']
-const selected = ref([])
-const editingDraft = ref(null)
+const activeFilter  = ref('All')
+const filters       = ['All', 'Draft', 'Pending', 'Approved']
+const selected      = ref([])
+const editingDraft  = ref(null)
 
 const drafts = ref([
   { id:1, platform:'Instagram', dialect:'Arabic (EGY)', status:'Draft', date:'May 27', copy:'Start your suhoor right — Araby Cold Brew, the morning pick-me-up that keeps you going all day.', arabic:'ابدأ سحورك صح — عربي كولد برو، طاقة الصبح اللي تكمل معاك طول اليوم ☕', hashtags:['سحور','قهوة','رمضان2026'], variantB:'Cold brew for suhoor? Yes. Araby\'s new cold brew hits different at 3 AM — get yours before Ramadan ends.' },
@@ -145,44 +146,85 @@ const drafts = ref([
   { id:6, platform:'Instagram', dialect:'Levantine', status:'Draft', date:'May 25', copy:'ترند الأسبوع — قهوة الصبح بتكون أحلى مع عربي ☀️', arabic:'ترند الأسبوع — قهوة الصبح بتكون أحلى مع عربي ☀️', hashtags:['ترند','قهوة_الصباح','لبنان'], variantB:null },
 ])
 
+// ── Load drafts from DB on mount ──────────────────────────────────────────────
+onMounted(async () => {
+  try {
+    const brandId = localStorage.getItem('cf_brandId')
+    if (!brandId) return
+    const data = await postsApi.getDrafts(brandId)
+    if (data?.length) drafts.value = data.map(p => ({
+      id:       p._id,
+      platform: p.platform || 'Instagram',
+      dialect:  p.dialect  || 'Arabic (EGY)',
+      status:   p.status   ? p.status.charAt(0).toUpperCase() + p.status.slice(1) : 'Draft',
+      date:     new Date(p.scheduledDate || p.createdAt).toLocaleDateString('en-GB', { day:'numeric', month:'short' }),
+      copy:     p.copyEN   || p.copy || '',
+      arabic:   p.copyAR   || null,
+      hashtags: p.hashtags || [],
+      variantB: p.variantB || null,
+    }))
+  } catch {
+    // الـ API مش شغال — هيفضل الـ static data
+  }
+})
+
+// ── Computed ──────────────────────────────────────────────────────────────────
 const filteredDrafts = computed(() =>
   activeFilter.value === 'All' ? drafts.value : drafts.value.filter(d => d.status === activeFilter.value)
 )
 
+// ── Actions ───────────────────────────────────────────────────────────────────
 function toggleSelect(id) {
   const i = selected.value.indexOf(id)
   if (i === -1) selected.value.push(id)
   else selected.value.splice(i, 1)
 }
 
-function approveSelected() {
-  selected.value.forEach(id => {
+async function approveSelected() {
+  for (const id of selected.value) {
     const d = drafts.value.find(x => x.id === id)
-    if (d) d.status = 'Approved'
-  })
+    if (d) {
+      d.status = 'Approved'
+      await postsApi.updatePost(id, { status: 'approved' }).catch(() => {})
+    }
+  }
   selected.value = []
 }
 
 function deleteSelected() {
-  drafts.value = drafts.value.filter(d => !selected.value.includes(d.id))
+  const ids = [...selected.value]
+  drafts.value = drafts.value.filter(d => !ids.includes(d.id))
   selected.value = []
+  ids.forEach(id => postsApi.deletePost(id).catch(() => {}))
 }
 
-function approveDraft(id) {
+async function approveDraft(id) {
   const d = drafts.value.find(x => x.id === id)
-  if (d) d.status = 'Approved'
+  if (d) {
+    d.status = 'Approved'
+    await postsApi.updatePost(id, { status: 'approved' }).catch(() => {})
+  }
 }
 
 function editDraft(draft) { editingDraft.value = { ...draft } }
 
-function saveDraft() {
+async function saveDraft() {
   const i = drafts.value.findIndex(x => x.id === editingDraft.value.id)
   if (i !== -1) drafts.value[i] = { ...editingDraft.value }
+  await postsApi.updatePost(editingDraft.value.id, {
+    copyEN: editingDraft.value.copy,
+    copyAR: editingDraft.value.arabic,
+    status: editingDraft.value.status.toLowerCase(),
+  }).catch(() => {})
   editingDraft.value = null
 }
 
-function deleteDraft(id) { drafts.value = drafts.value.filter(x => x.id !== id) }
+async function deleteDraft(id) {
+  drafts.value = drafts.value.filter(x => x.id !== id)
+  await postsApi.deletePost(id).catch(() => {})
+}
 
+// ── Helpers ───────────────────────────────────────────────────────────────────
 function platformClass(p) {
   return { Instagram:'bg-pink-500/15 text-pink-400', Facebook:'bg-blue-500/15 text-blue-400', LinkedIn:'bg-blue-700/15 text-blue-300', 'Twitter/X':'bg-sky-500/15 text-sky-400' }[p] || 'bg-slate-500/15 text-slate-400'
 }

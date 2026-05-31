@@ -76,7 +76,9 @@
         </div>
 
         <!-- Avatar -->
-        <div class="w-8 h-8 rounded-full bg-gradient-to-br from-blue-500 to-teal-400 flex items-center justify-center text-xs font-bold text-white">N</div>
+        <div class="w-8 h-8 rounded-full bg-gradient-to-br from-blue-500 to-teal-400 flex items-center justify-center text-xs font-bold text-white">
+          {{ authStore.userInitial }}
+        </div>
       </div>
     </header>
 
@@ -94,8 +96,8 @@
             style="background:rgba(59,130,246,0.08);border-color:rgba(59,130,246,0.25)">
             <div class="w-7 h-7 rounded-lg bg-gradient-to-br from-blue-500 to-teal-400 flex items-center justify-center text-xs font-bold text-white shrink-0">A</div>
             <div class="flex-1 min-w-0">
-              <p class="text-xs font-medium theme-text truncate">Araby Coffee</p>
-              <p class="text-[10px] theme-muted">Egyptian · Growth</p>
+              <p class="text-xs font-medium theme-text truncate">{{ authStore.userName }}</p>
+              <p class="text-[10px] theme-muted">{{ authStore.userPlan }}</p>
             </div>
             <svg class="w-3 h-3 theme-muted shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
           </div>
@@ -131,7 +133,14 @@
         <slot />
       </main>
     </div>
-
+    
+    <button @click="authStore.logout()"
+      class="flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-xs theme-sub hover:text-rose-400 transition-colors w-full mt-2">
+      <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/>
+      </svg>
+      Logout
+    </button>
     <!-- Click outside to close notifs -->
     <div v-if="showNotifs" class="fixed inset-0 z-40" @click="showNotifs = false"></div>
   </div>
@@ -142,8 +151,11 @@ import { ref, computed } from 'vue'
 import { RouterLink, useRoute } from 'vue-router'
 import { useTheme } from '../composables/useTheme.js'
 import { useNotifications } from '../composables/useNotifications.js'
+import { useAuthStore } from '../stores/authStore'
+
 
 const route = useRoute()
+const authStore = useAuthStore()
 const { isDark, toggle: toggleTheme } = useTheme()
 const { notifications, unreadCount, markRead, markAllRead } = useNotifications()
 const showNotifs = ref(false)

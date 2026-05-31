@@ -86,4 +86,16 @@ const calendarSchema = new mongoose.Schema({
 }, { timestamps: true })
 const Calendar = mongoose.model('Calendar', calendarSchema)
 
-module.exports = { User, Brand, Post, Calendar }
+// ── Trend Model ───────────────────────────────────────────────────────────────
+const trendSchema = new mongoose.Schema({
+  tag:         { type: String, required: true },
+  change:      { type: String },           // e.g. "+340%"
+  velocity:    { type: Number, default: 0 },
+  region:      { type: String, default: 'EG' },
+  source:      { type: String, enum: ['google', 'twitter', 'manual'], default: 'google' },
+  lastUpdated: { type: Date, default: Date.now },
+}, { timestamps: true })
+
+const Trend = mongoose.model('Trend', trendSchema)
+
+module.exports = { User, Brand, Post, Calendar, Trend }

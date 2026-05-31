@@ -84,7 +84,7 @@ router.post('/:id/embed', protect, async (req, res) => {
   `
   const pastPostsText = `Top performing posts from ${brand.name} on ${brand.platforms.join(', ')}.`
 
-  const count = await embedBrandVault(brand._id, guidelinesText, pastPostsText)
+  const count = await embedBrandVault(brand._id, guidelinesText, pastPostsText);
   res.json({ message: `Brand embedded — ${count} chunks stored in MongoDB` })
 })
 

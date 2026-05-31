@@ -311,6 +311,7 @@
 <script setup>
 import AppLayout from '../components/AppLayout.vue'
 import { ref } from 'vue'
+import brandApi from '../api/brandApi'
 
 
 const activeTab = ref('Brand Identity')
@@ -376,6 +377,23 @@ function testConnection() {
   setTimeout(() => { connectionResult.value = 'ok' }, 1200)
 }
 function saveMongo() { alert('MongoDB config saved!') }
-function saveAll() { alert('Brand Vault saved & re-embedded in RAG!') }
+
+async function saveAll() {
+  try {
+    const brandId = localStorage.getItem('cf_brandId')
+    let result
+    if (brandId) {
+      result = await brandApi.updateBrand(brandId, brand.value)
+    } else {
+      result = await brandApi.saveBrand(brand.value)
+      localStorage.setItem('cf_brandId', result.brand._id)
+    }
+    // Trigger embedding
+    await brandApi.embedBrand(result.brand._id || brandId)
+    alert('Saved & embedded successfully!')
+  } catch (err) {
+    alert('Save failed: ' + err.message)
+  }
+}
 function handleLogo(e) { console.log(e.target.files[0]) }
 </script>

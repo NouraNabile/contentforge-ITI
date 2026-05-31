@@ -6,7 +6,12 @@
       <div class="px-6 py-4 border-b flex items-center justify-between sticky top-0 z-10 theme-glass" style="border-color:var(--border)">
         <div>
           <h1 class="font-display text-lg font-600 theme-text">Content Calendar</h1>
-          <p class="text-xs theme-sub mt-0.5">May 26 – June 8, 2026 · 14 posts planned</p>
+          <p class="text-xs theme-sub mt-0.5">
+            <template v-if="currentCalendar">
+              {{ calendarDateRange }} · {{ currentCalendar.posts?.length || 0 }} posts planned
+            </template>
+            <template v-else>No calendar yet — generate your first plan</template>
+          </p>
         </div>
         <div class="flex items-center gap-2">
           <div class="flex items-center gap-1 p-1 rounded-xl theme-card theme-border">
@@ -32,9 +37,29 @@
           <div class="grid grid-cols-7 gap-2 mb-3">
             <div v-for="d in weekDays" :key="d" class="text-center text-[11px] theme-muted font-medium py-1">{{ d }}</div>
           </div>
+
+          <!-- Empty state -->
+          <div v-if="filteredWeeks.length === 0 && !loadingCalendar"
+            class="flex flex-col items-center justify-center py-24 theme-sub gap-3">
+            <svg class="w-12 h-12 opacity-20" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+            </svg>
+            <p class="text-sm">No calendar yet — click <strong class="theme-text">✦ Generate Plan</strong> to start</p>
+          </div>
+
+          <!-- Loading state -->
+          <div v-if="loadingCalendar" class="flex flex-col items-center justify-center py-24 gap-3 theme-sub">
+            <svg class="w-8 h-8 animate-spin text-blue-400" fill="none" viewBox="0 0 24 24">
+              <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/>
+              <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/>
+            </svg>
+            <p class="text-sm">Generating your calendar with Gemini AI…</p>
+            <p class="text-xs opacity-60">This may take 10–20 seconds</p>
+          </div>
+
           <!-- Weeks -->
           <div class="space-y-2">
-            <div v-for="week in calendarWeeks" :key="week.id" class="grid grid-cols-7 gap-2">
+            <div v-for="week in filteredWeeks" :key="week.id" class="grid grid-cols-7 gap-2">
               <div v-for="cell in week.cells" :key="cell.id"
                 @click="cell.copy && selectPost(cell)"
                 class="rounded-xl border transition-all min-h-[100px] p-2.5 flex flex-col"
@@ -53,7 +78,7 @@
           </div>
 
           <!-- Legend -->
-          <div class="flex items-center gap-5 flex-wrap mt-5 pt-4 border-t" style="border-color:var(--border)">
+          <div v-if="filteredWeeks.length > 0" class="flex items-center gap-5 flex-wrap mt-5 pt-4 border-t" style="border-color:var(--border)">
             <p class="text-[11px] theme-muted font-medium">Status:</p>
             <div v-for="s in legend" :key="s.label" class="flex items-center gap-1.5">
               <div class="w-1.5 h-1.5 rounded-full" :class="s.dot"></div>
@@ -82,7 +107,7 @@
               style="border-color:var(--border)"></textarea>
             <div class="mt-2 p-2 rounded-lg theme-card theme-border">
               <p class="text-[9px] theme-muted mb-1">Hashtags</p>
-              <p class="text-[10px] text-blue-400">#القهوة #رمضان2026 #مصر</p>
+              <p class="text-[10px] text-blue-400">{{ selectedPost.hashtags?.join(' ') || '#القهوة #رمضان2026 #مصر' }}</p>
             </div>
             <!-- Status picker -->
             <div class="mt-3 space-y-1">
@@ -94,7 +119,12 @@
                 <div class="w-1.5 h-1.5 rounded-full shrink-0" :class="s.dot"></div>{{ s.label }}
               </button>
             </div>
-            <button class="w-full mt-3 py-2 rounded-lg bg-blue-600 text-white text-xs font-medium hover:bg-blue-500 transition-colors">Save Changes</button>
+            <!-- Save feedback -->
+            <p v-if="saveMsg" class="text-[10px] text-green-400 mt-2 text-center">{{ saveMsg }}</p>
+            <button @click="savePost" :disabled="saving"
+              class="w-full mt-3 py-2 rounded-lg bg-blue-600 text-white text-xs font-medium hover:bg-blue-500 transition-colors disabled:opacity-50">
+              {{ saving ? 'Saving…' : 'Save Changes' }}
+            </button>
           </div>
 
           <!-- Empty state -->
@@ -103,31 +133,41 @@
           </div>
 
           <!-- A/B Critic -->
-          <div class="rounded-xl border border-amber-500/20 bg-amber-500/5 p-4">
+          <div v-if="selectedPost" class="rounded-xl border border-amber-500/20 bg-amber-500/5 p-4">
             <div class="flex items-center gap-2 mb-2">
               <span class="text-amber-400">⚡</span>
               <p class="text-xs font-medium text-amber-300">A/B Critic Agent</p>
             </div>
-            <p class="text-[11px] theme-sub leading-relaxed mb-3">Version B leads with the offer — typically 23% higher engagement on Egyptian IG.</p>
-            <div class="p-2.5 rounded-lg theme-card theme-border mb-3">
-              <p class="text-[10px] theme-sub italic leading-relaxed">اشتري اتنين، جيب واحد مجاناً ☕</p>
+            <p v-if="!variantB" class="text-[11px] theme-sub leading-relaxed mb-3">Generate a smarter version of this post using AI.</p>
+            <div v-if="variantB" class="p-2.5 rounded-lg theme-card theme-border mb-3">
+              <p class="text-[10px] theme-sub italic leading-relaxed">{{ variantB }}</p>
             </div>
-            <div class="flex gap-2">
-              <button class="flex-1 py-1.5 rounded-lg bg-amber-500/15 text-amber-400 text-[10px] hover:bg-amber-500/25 border border-amber-500/20 transition-colors">Use B</button>
-              <button class="flex-1 py-1.5 rounded-lg theme-card theme-border theme-muted text-[10px] hover:theme-text transition-colors">Keep A</button>
+            <div v-if="variantB" class="flex gap-2 mb-2">
+              <button @click="applyVariantB" class="flex-1 py-1.5 rounded-lg bg-amber-500/15 text-amber-400 text-[10px] hover:bg-amber-500/25 border border-amber-500/20 transition-colors">Use B</button>
+              <button @click="variantB=null" class="flex-1 py-1.5 rounded-lg theme-card theme-border theme-muted text-[10px] hover:theme-text transition-colors">Keep A</button>
             </div>
+            <button @click="generateVariantB" :disabled="loadingVariant"
+              class="w-full py-1.5 rounded-lg theme-card theme-border theme-muted text-[10px] hover:theme-text transition-colors">
+              {{ loadingVariant ? 'Generating…' : '✦ Generate Variant B' }}
+            </button>
           </div>
 
           <!-- Trends -->
           <div class="rounded-xl theme-surface theme-border p-4">
-            <p class="text-xs font-medium theme-text mb-3">🔥 Trending Now</p>
+            <div class="flex items-center justify-between mb-3">
+              <p class="text-xs font-medium theme-text">🔥 Trending Now</p>
+              <span v-if="trendsLastUpdated" class="text-[9px] theme-muted">{{ trendsLastUpdated }}</span>
+            </div>
             <div class="space-y-2">
               <div v-for="t in trends" :key="t.tag" class="flex items-center justify-between">
                 <span class="text-[11px] theme-sub">{{ t.tag }}</span>
                 <span class="text-[10px]" :class="t.color">{{ t.change }}</span>
               </div>
             </div>
-            <button class="w-full mt-3 py-1.5 rounded-lg theme-card theme-border theme-muted text-[10px] hover:theme-text transition-colors">Inject into next post →</button>
+            <button @click="injectTrend"
+              class="w-full mt-3 py-1.5 rounded-lg theme-card theme-border theme-muted text-[10px] hover:theme-text transition-colors">
+              Inject into next post →
+            </button>
           </div>
         </div>
       </div>
@@ -140,6 +180,12 @@
           <h2 class="font-display text-xl font-600 theme-text">Generate New Plan</h2>
           <button @click="showModal=false" class="theme-muted hover:theme-text"><svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg></button>
         </div>
+
+        <!-- No brand warning -->
+        <div v-if="!brandId" class="mb-4 p-3 rounded-xl bg-rose-500/10 border border-rose-500/20 text-rose-400 text-xs">
+          ⚠️ No brand found. Please go to <strong>Brand Vault</strong> first and save your brand.
+        </div>
+
         <div class="space-y-4">
           <div>
             <label class="text-xs theme-sub mb-1.5 block">Campaign Brief</label>
@@ -150,13 +196,13 @@
           <div class="grid grid-cols-2 gap-3">
             <div>
               <label class="text-xs theme-sub mb-1.5 block">Dialect</label>
-              <select class="w-full theme-input rounded-xl px-3 py-2.5 text-sm theme-text border focus:outline-none" style="border-color:var(--border)">
+              <select v-model="selectedDialect" class="w-full theme-input rounded-xl px-3 py-2.5 text-sm theme-text border focus:outline-none" style="border-color:var(--border)">
                 <option>Egyptian Arabic</option><option>Gulf Arabic</option><option>Levantine Arabic</option><option>Bilingual</option>
               </select>
             </div>
             <div>
               <label class="text-xs theme-sub mb-1.5 block">Duration</label>
-              <select class="w-full theme-input rounded-xl px-3 py-2.5 text-sm theme-text border focus:outline-none" style="border-color:var(--border)">
+              <select v-model="selectedDuration" class="w-full theme-input rounded-xl px-3 py-2.5 text-sm theme-text border focus:outline-none" style="border-color:var(--border)">
                 <option>2 Weeks</option><option>1 Week</option><option>1 Month</option>
               </select>
             </div>
@@ -175,10 +221,14 @@
             <p class="text-[11px] text-amber-400 font-medium mb-1">✦ Trends being injected</p>
             <p class="text-[11px] theme-muted">#رمضان_كريم (+340%) · Cold brew Egypt (+210%)</p>
           </div>
+          <p v-if="generateError" class="text-xs text-rose-400">{{ generateError }}</p>
         </div>
         <div class="flex gap-3 mt-6">
           <button @click="showModal=false" class="flex-1 py-3 rounded-xl theme-card theme-border theme-sub text-sm hover:theme-text transition-colors">Cancel</button>
-          <button @click="showModal=false" class="flex-1 py-3 rounded-xl bg-blue-600 text-white text-sm font-medium hover:bg-blue-500 transition-colors">✦ Generate Calendar</button>
+          <button @click="generateCalendar" :disabled="generating || !brief || !brandId"
+            class="flex-1 py-3 rounded-xl bg-blue-600 text-white text-sm font-medium hover:bg-blue-500 transition-colors disabled:opacity-50">
+            {{ generating ? 'Generating…' : '✦ Generate Calendar' }}
+          </button>
         </div>
       </div>
     </div>
@@ -186,38 +236,33 @@
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import AppLayout from '../components/AppLayout.vue'
+import calendarApi from '../api/calendarApi'
+import postsApi from '../api/postsApi'
+import api from '../api/client'
 
-const activeFilter = ref('All')
-const filters = ['All','Draft','Pending','Approved','Scheduled']
-const selectedPost = ref(null)
-const editCopy = ref('')
-const showModal = ref(false)
-const brief = ref('')
+// ── State ─────────────────────────────────────────────────────────────────────
+const brandId        = ref(localStorage.getItem('cf_brandId') || '')
+const activeFilter   = ref('All')
+const filters        = ['All','Draft','Pending','Approved','Scheduled']
+const selectedPost   = ref(null)
+const editCopy       = ref('')
+const showModal      = ref(false)
+const brief          = ref('')
+const selectedDialect  = ref('Egyptian Arabic')
+const selectedDuration = ref('2 Weeks')
+const generating     = ref(false)
+const generateError  = ref('')
+const loadingCalendar = ref(false)
+const saving         = ref(false)
+const saveMsg        = ref('')
+const variantB       = ref(null)
+const loadingVariant = ref(false)
+const currentCalendar = ref(null)
+const calendarWeeks  = ref([])
 
 const weekDays = ['Monday','Tuesday','Wednesday','Thursday','Friday','Saturday','Sunday']
-
-const calendarWeeks = ref([
-  { id:1, cells:[
-    { id:1,  date:'26', platform:'IG', copy:'قهوتك المفضلة الآن بطعم رمضان ☕ اللي بيشتري اتنين يجيب واحد مجاناً', status:'Approved', cellClass:'border-green-500/25 bg-green-500/5' },
-    { id:2,  date:'27', platform:'FB', copy:'Family iftar moments, powered by your morning brew 👨‍👩‍👧‍👦', status:'Scheduled', cellClass:'border-blue-500/25 bg-blue-500/5' },
-    { id:3,  date:'28', platform:'IG', copy:'New cold brew flavors drop tomorrow — which one are you trying first?', status:'Pending', cellClass:'border-amber-500/20 bg-amber-500/5' },
-    { id:4,  date:'29', platform:null, copy:null, status:null, cellClass:'bg-transparent' },
-    { id:5,  date:'30', platform:'LI', copy:'How we built an Arabic-first coffee brand in 18 months.', status:'Draft', cellClass:'theme-card' },
-    { id:6,  date:'31', platform:'IG', copy:'اختار طعمك المفضل 🎯 صوت في الكومنتس', status:'Draft', cellClass:'theme-card' },
-    { id:7,  date:'1',  platform:null, copy:null, status:null, cellClass:'bg-transparent' },
-  ]},
-  { id:2, cells:[
-    { id:8,  date:'2',  platform:'IG', copy:'Customer of the week: شاهد تجربته مع قهوة عربي ⭐', status:'Approved', cellClass:'border-green-500/25 bg-green-500/5' },
-    { id:9,  date:'3',  platform:'IG', copy:'Tip: قهوتك بتبقى أحسن لما بتعملها بالماية البارده أول', status:'Scheduled', cellClass:'border-blue-500/25 bg-blue-500/5' },
-    { id:10, date:'4',  platform:null, copy:null, status:null, cellClass:'bg-transparent' },
-    { id:11, date:'5',  platform:'IG', copy:'2 for 1 weekend promo — Saturday and Sunday only 🎉', status:'Pending', cellClass:'border-amber-500/20 bg-amber-500/5' },
-    { id:12, date:'6',  platform:'LI', copy:'Weekly roundup: what we learned from 10,000 Arabic posts this Ramadan.', status:'Draft', cellClass:'theme-card' },
-    { id:13, date:'7',  platform:'IG', copy:'ترند الأسبوع 🔥 هل جربت قهوة الصباح معانا؟', status:'Draft', cellClass:'theme-card' },
-    { id:14, date:'8',  platform:null, copy:null, status:null, cellClass:'bg-transparent' },
-  ]},
-])
 
 const statuses = [
   { label:'Draft',     dot:'bg-slate-500' },
@@ -226,7 +271,6 @@ const statuses = [
   { label:'Scheduled', dot:'bg-blue-400' },
   { label:'Published', dot:'bg-teal-400' },
 ]
-
 const legend = [
   { label:'Approved',  dot:'bg-green-400' },
   { label:'Scheduled', dot:'bg-blue-400' },
@@ -234,25 +278,204 @@ const legend = [
   { label:'Draft',     dot:'bg-slate-500' },
   { label:'Rest day',  dot:'bg-slate-700' },
 ]
-
-const trends = [
-  { tag:'#رمضان_كريم',  change:'+340%', color:'text-green-400' },
-  { tag:'#قهوة_الصباح', change:'+89%',  color:'text-teal-400' },
-  { tag:'Cold brew Egypt', change:'+210%', color:'text-green-400' },
-  { tag:'#سحور',        change:'+167%', color:'text-teal-400' },
-]
-
+const trends = ref([])
+const trendsLastUpdated = ref('')
 const platforms = ref([
-  { name:'Instagram', on:true }, { name:'Facebook', on:true },
-  { name:'LinkedIn',  on:false}, { name:'Twitter/X', on:false}, { name:'TikTok', on:false },
+  { name:'Instagram', on:true  },
+  { name:'Facebook',  on:true  },
+  { name:'LinkedIn',  on:false },
+  { name:'Twitter/X', on:false },
+  { name:'TikTok',    on:false },
 ])
 
-function selectPost(cell) { selectedPost.value = cell; editCopy.value = cell.copy }
+// ── Computed ──────────────────────────────────────────────────────────────────
 
+// Filter calendar cells by active status filter
+const filteredWeeks = computed(() => {
+  if (activeFilter.value === 'All') return calendarWeeks.value
+  return calendarWeeks.value.map(week => ({
+    ...week,
+    cells: week.cells.map(cell =>
+      (!cell.status || cell.status === activeFilter.value) ? cell : { ...cell, copy: null, status: null, platform: null, cellClass: 'bg-transparent' }
+    )
+  })).filter(week => week.cells.some(c => c.copy))
+})
+
+const calendarDateRange = computed(() => {
+  if (!currentCalendar.value) return ''
+  const start = new Date(currentCalendar.value.startDate)
+  const end   = new Date(currentCalendar.value.endDate)
+  return `${start.toLocaleDateString('en-GB', { day:'numeric', month:'short' })} – ${end.toLocaleDateString('en-GB', { day:'numeric', month:'short', year:'numeric' })}`
+})
+
+// ── Load on mount ─────────────────────────────────────────────────────────────
+onMounted(async () => {
+  // 1. جيب الـ trends من الـ API
+  try {
+    const data = await api.get('/trends')
+    trends.value = data.trends.map(t => ({
+      ...t,
+      color: t.velocity > 200 ? 'text-green-400' : 'text-teal-400'
+    }))
+    trendsLastUpdated.value = new Date(data.lastUpdated).toLocaleTimeString('ar-EG')
+  } catch {
+    // fallback لو الـ backend مش شغال
+    trends.value = [
+      { tag:'#رمضان_كريم',     change:'+340%', color:'text-green-400' },
+      { tag:'#قهوة_الصباح',    change:'+89%',  color:'text-teal-400' },
+      { tag:'Cold brew Egypt', change:'+210%', color:'text-green-400' },
+      { tag:'#سحور',           change:'+167%', color:'text-teal-400' },
+    ]
+  }
+
+  // 2. جيب آخر calendar من الـ DB
+  if (!brandId.value) return
+  try {
+    const calendars = await calendarApi.getBrandCalendars(brandId.value)
+    if (calendars?.length) {
+      const latest = await calendarApi.getCalendar(calendars[0]._id)
+      currentCalendar.value = latest
+      calendarWeeks.value = buildWeeks(latest.posts || [])
+    }
+  } catch {
+    // No calendar yet — that's fine
+  }
+})
+
+// ── Generate Calendar ─────────────────────────────────────────────────────────
+async function generateCalendar() {
+  if (!brief.value || !brandId.value) return
+  generateError.value = ''
+  generating.value = true
+  loadingCalendar.value = true
+  showModal.value = false
+  try {
+    const result = await calendarApi.generate({
+      brandId: brandId.value,
+      brief: brief.value,
+      dialect: selectedDialect.value,
+      platforms: platforms.value.filter(p => p.on).map(p => p.name),
+    })
+    currentCalendar.value = result.calendar
+    calendarWeeks.value = buildWeeks(result.posts || [])
+    brief.value = ''
+  } catch (err) {
+    generateError.value = err.message || 'Generation failed — is your backend running?'
+    showModal.value = true
+  } finally {
+    generating.value = false
+    loadingCalendar.value = false
+  }
+}
+
+// ── Build weeks grid from flat posts array ────────────────────────────────────
+function buildWeeks(posts) {
+  if (!posts.length) return []
+  // Sort by scheduledDate
+  const sorted = [...posts].sort((a, b) => new Date(a.scheduledDate) - new Date(b.scheduledDate))
+  const weeks = []
+  for (let i = 0; i < sorted.length; i += 7) {
+    const chunk = sorted.slice(i, i + 7)
+    // Pad to 7 cells if needed
+    while (chunk.length < 7) chunk.push({ _id: `empty-${i}-${chunk.length}`, empty: true })
+    weeks.push({
+      id: i,
+      cells: chunk.map(p => p.empty
+        ? { id: p._id, date: '', platform: null, copy: null, status: null, hashtags: [], cellClass: 'bg-transparent' }
+        : {
+            id: p._id,
+            date: new Date(p.scheduledDate).getDate().toString(),
+            platform: (p.platform || '').slice(0, 2).toUpperCase(),
+            copy: p.copyAR || p.copy || '',
+            status: p.status ? p.status.charAt(0).toUpperCase() + p.status.slice(1).replace('_', ' ') : 'Draft',
+            hashtags: p.hashtags || [],
+            cellClass: statusToClass(p.status),
+          }
+      )
+    })
+  }
+  return weeks
+}
+
+function statusToClass(s) {
+  return {
+    approved:       'border-green-500/25 bg-green-500/5',
+    scheduled:      'border-blue-500/25 bg-blue-500/5',
+    pending_review: 'border-amber-500/20 bg-amber-500/5',
+    draft:          'theme-card',
+  }[s] || 'theme-card'
+}
+
+// ── Post editor ───────────────────────────────────────────────────────────────
+function selectPost(cell) {
+  selectedPost.value = cell
+  editCopy.value = cell.copy
+  variantB.value = null
+  saveMsg.value = ''
+}
+
+async function savePost() {
+  if (!selectedPost.value) return
+  saving.value = true
+  saveMsg.value = ''
+  // Update local state immediately
+  selectedPost.value.copy = editCopy.value
+  selectedPost.value.cellClass = statusToClass(selectedPost.value.status.toLowerCase().replace(' ', '_'))
+  try {
+    await postsApi.updatePost(selectedPost.value.id, {
+      copyAR: editCopy.value,
+      status: selectedPost.value.status.toLowerCase().replace(' ', '_'),
+    })
+    saveMsg.value = '✓ Saved'
+    setTimeout(() => saveMsg.value = '', 2000)
+  } catch {
+    saveMsg.value = '✓ Saved locally'
+    setTimeout(() => saveMsg.value = '', 2000)
+  } finally {
+    saving.value = false
+  }
+}
+
+// ── A/B Variant ───────────────────────────────────────────────────────────────
+async function generateVariantB() {
+  if (!selectedPost.value) return
+  loadingVariant.value = true
+  variantB.value = null
+  try {
+    const result = await postsApi.generateVariantB(selectedPost.value.id)
+    variantB.value = result.copyAR || result.copyEN || 'No variant generated'
+  } catch (err) {
+    variantB.value = 'Could not generate variant — backend offline?'
+  } finally {
+    loadingVariant.value = false
+  }
+}
+
+async function applyVariantB() {
+  if (!selectedPost.value || !variantB.value) return
+  editCopy.value = variantB.value
+  selectedPost.value.copy = variantB.value
+  variantB.value = null
+  try {
+    await postsApi.applyVariantB(selectedPost.value.id)
+  } catch { /* local update still applied */ }
+}
+
+// ── Trend injection ───────────────────────────────────────────────────────────
+function injectTrend() {
+  if (!selectedPost.value) return
+  const topTrend = trends.value[0]?.tag
+  if (!editCopy.value.includes(topTrend)) {
+    editCopy.value = editCopy.value + ' ' + topTrend
+    selectedPost.value.copy = editCopy.value
+  }
+}
+
+// ── Helpers ───────────────────────────────────────────────────────────────────
 function platformBadge(p) {
-  return { IG:'bg-pink-500/20 text-pink-400', FB:'bg-blue-500/20 text-blue-400', LI:'bg-blue-700/20 text-blue-300', TW:'bg-sky-500/20 text-sky-400' }[p] || 'bg-slate-500/20 text-slate-400'
+  return { IG:'bg-pink-500/20 text-pink-400', FB:'bg-blue-500/20 text-blue-400', LI:'bg-blue-700/20 text-blue-300', TW:'bg-sky-500/20 text-sky-400', TI:'bg-rose-500/20 text-rose-400' }[p] || 'bg-slate-500/20 text-slate-400'
 }
 function statusColor(s) {
-  return { Approved:'text-green-400', Scheduled:'text-blue-400', Pending:'text-amber-400', Draft:'text-slate-500', Published:'text-teal-400' }[s] || 'text-slate-500'
+  return { Approved:'text-green-400', Scheduled:'text-blue-400', Pending:'text-amber-400', 'Pending Review':'text-amber-400', Draft:'text-slate-500', Published:'text-teal-400' }[s] || 'text-slate-500'
 }
 </script>

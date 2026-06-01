@@ -21,25 +21,6 @@
           </p>
         </div>
         <div class="flex items-center gap-2">
-          <!-- Status filter -->
-          <div
-            class="flex items-center gap-1 p-1 rounded-xl theme-card theme-border"
-          >
-            <button
-              v-for="f in filters"
-              :key="f"
-              @click="activeFilter = f"
-              class="px-3 py-1.5 rounded-lg text-xs transition-all"
-              :class="
-                activeFilter === f
-                  ? 'bg-blue-600 text-white'
-                  : 'theme-sub hover:theme-text'
-              "
-            >
-              {{ f }}
-            </button>
-          </div>
-
           <!-- Top trend badge — من DB مش هاردكود -->
           <span
             v-if="topTrend"
@@ -672,7 +653,6 @@ import api from "../api/client";
 // ── State ─────────────────────────────────────────────────────────────────────
 const brandId = ref(localStorage.getItem("cf_brandId") || "");
 const activeFilter = ref("All");
-const filters = ["All", "Draft", "Pending", "Approved", "Scheduled"];
 const selectedPost = ref(null);
 const editCopy = ref("");
 const showModal = ref(false);

@@ -11,25 +11,31 @@ router.get("/", protect, async (req, res) => {
       .limit(10);
 
     // لو الـ DB فاضي، رجع fallback
+    // if (!trends.length) {
+    //   return res.json({
+    //     trends: [
+    //       { tag: "#رمضان_كريم", change: "+340%", velocity: 340, region: "EG" },
+    //       { tag: "#قهوة_الصباح", change: "+89%", velocity: 89, region: "EG" },
+    //       {
+    //         tag: "Cold brew Egypt",
+    //         change: "+210%",
+    //         velocity: 210,
+    //         region: "EG",
+    //       },
+    //       { tag: "#سحور", change: "+167%", velocity: 167, region: "EG" },
+    //       { tag: "#إفطار", change: "+290%", velocity: 290, region: "EG" },
+    //     ],
+    //     lastUpdated: new Date().toISOString(),
+    //     source: "fallback",
+    //   });
+    // }
     if (!trends.length) {
       return res.json({
-        trends: [
-          { tag: "#رمضان_كريم", change: "+340%", velocity: 340, region: "EG" },
-          { tag: "#قهوة_الصباح", change: "+89%", velocity: 89, region: "EG" },
-          {
-            tag: "Cold brew Egypt",
-            change: "+210%",
-            velocity: 210,
-            region: "EG",
-          },
-          { tag: "#سحور", change: "+167%", velocity: 167, region: "EG" },
-          { tag: "#إفطار", change: "+290%", velocity: 290, region: "EG" },
-        ],
-        lastUpdated: new Date().toISOString(),
-        source: "fallback",
+        trends: [],
+        lastUpdated: null,
+        source: "database",
       });
     }
-
     res.json({
       trends,
       lastUpdated: trends[0]?.updatedAt || new Date().toISOString(),

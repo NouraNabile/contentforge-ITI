@@ -2,6 +2,7 @@
 const express  = require('express')
 const router   = express.Router()
 const protect  = require('../middleware/auth')
+const { Trend } = require("../models");
 const { Brand, Calendar, Post } = require('../models')
 const { generateCalendar, generateVariantB } = require('../services/geminiService')
 const { retrieveRelevantChunks }             = require('../services/embeddingService')
@@ -20,7 +21,20 @@ router.post('/generate', protect, async (req, res) => {
   const chunks = await retrieveRelevantChunks(brandId, brief)
 
   // 2. Live trends (hardcoded for demo — replace with trendService scraper)
-  const trends = ['#رمضان_كريم', '#قهوة_الصباح', 'Cold brew Egypt 2026', '#سحور']
+  // const trends = ['#رمضان_كريم', '#قهوة_الصباح', 'Cold brew Egypt 2026', '#سحور']
+  const trendDocs = await Trend.find({
+    region: brand.region || "EG",
+  })
+    .sort({ velocity: -1 })
+    .limit(10);
+
+  const trends = trendDocs.map((t) => t.tag);
+
+  if (!trends.length) {
+    return res.status(400).json({
+      message: "No trends available. Seed trends first.",
+    });
+  }
 
   // 3. Call Gemini to generate posts JSON
   const postsData = await generateCalendar({

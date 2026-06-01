@@ -2,10 +2,8 @@
   <AppLayout>
     <div class="flex flex-col h-full">
       <!-- Page toolbar -->
-      <div
-        class="px-6 py-4 border-b flex items-center justify-between sticky top-0 z-10 theme-glass"
-        style="border-color: var(--border)"
-      >
+      <div class="px-6 py-4 border-b flex items-center justify-between sticky top-0 z-10 theme-glass"
+        style="border-color: var(--border)">
         <div>
           <h1 class="font-display text-lg font-600 theme-text">
             Content Calendar
@@ -15,103 +13,52 @@
               {{ calendarDateRange }} ·
               {{ currentCalendar.posts?.length || 0 }} posts planned
             </template>
-            <template v-else
-              >No calendar yet — generate your first plan</template
-            >
+            <template v-else>No calendar yet — generate your first plan</template>
           </p>
         </div>
         <div class="flex items-center gap-2">
           <!-- Top trend badge — من DB مش هاردكود -->
-          <span
-            v-if="topTrend"
+          <span v-if="topTrend"
             class="text-[11px] px-2.5 py-1.5 rounded-lg bg-amber-500/10 text-amber-400 border border-amber-500/20 cursor-default"
-            :title="`Trending ${topTrend.change}`"
-          >
+            :title="`Trending ${topTrend.change}`">
             ✦ {{ topTrend.tag }}
           </span>
 
           <!-- Calendar actions — بتظهر بس لو في calendar -->
           <template v-if="currentCalendar">
             <!-- Approve Plan -->
-            <button
-              @click="approvePlan"
-              :disabled="approving"
-              class="px-4 py-2 rounded-xl bg-green-600 text-white text-xs font-medium hover:bg-green-500 transition-colors disabled:opacity-50 flex items-center gap-1.5"
-            >
-              <svg
-                class="w-3.5 h-3.5"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-              >
-                <path
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  stroke-width="2"
-                  d="M5 13l4 4L19 7"
-                />
+            <button @click="approvePlan" :disabled="approving"
+              class="px-4 py-2 rounded-xl bg-green-600 text-white text-xs font-medium hover:bg-green-500 transition-colors disabled:opacity-50 flex items-center gap-1.5">
+              <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
               </svg>
               {{ approving ? "Approving…" : "Approve Plan" }}
             </button>
             <!-- Regenerate -->
-            <button
-              @click="openRegenerate"
-              class="px-3 py-2 rounded-xl theme-card theme-border theme-sub text-xs hover:theme-text transition-colors flex items-center gap-1.5"
-            >
-              <svg
-                class="w-3.5 h-3.5"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-              >
-                <path
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  stroke-width="2"
-                  d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
-                />
+            <button @click="openRegenerate"
+              class="px-3 py-2 rounded-xl theme-card theme-border theme-sub text-xs hover:theme-text transition-colors flex items-center gap-1.5">
+              <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                  d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
               </svg>
               Regenerate
             </button>
             <!-- Delete -->
-            <button
-              @click="confirmDelete"
-              class="px-3 py-2 rounded-xl bg-rose-600/10 text-rose-400 border border-rose-500/20 text-xs hover:bg-rose-600/20 transition-colors flex items-center gap-1.5"
-            >
-              <svg
-                class="w-3.5 h-3.5"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-              >
-                <path
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  stroke-width="2"
-                  d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
-                />
+            <button @click="confirmDelete"
+              class="px-3 py-2 rounded-xl bg-rose-600/10 text-rose-400 border border-rose-500/20 text-xs hover:bg-rose-600/20 transition-colors flex items-center gap-1.5">
+              <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                  d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
               </svg>
               Delete
             </button>
           </template>
 
           <!-- Generate -->
-          <button
-            @click="showModal = true"
-            class="px-4 py-2 rounded-xl bg-blue-600 text-white text-xs font-medium hover:bg-blue-500 transition-colors flex items-center gap-1.5"
-          >
-            <svg
-              class="w-3.5 h-3.5"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-            >
-              <path
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                stroke-width="2"
-                d="M12 4v16m8-8H4"
-              />
+          <button @click="showModal = true"
+            class="px-4 py-2 rounded-xl bg-blue-600 text-white text-xs font-medium hover:bg-blue-500 transition-colors flex items-center gap-1.5">
+            <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
             </svg>
             Generate Plan
           </button>
@@ -122,32 +69,17 @@
         <!-- Calendar area -->
         <div class="flex-1 overflow-auto p-6">
           <div class="grid grid-cols-7 gap-2 mb-3">
-            <div
-              v-for="d in weekDays"
-              :key="d"
-              class="text-center text-[11px] theme-muted font-medium py-1"
-            >
+            <div v-for="d in weekDays" :key="d" class="text-center text-[11px] theme-muted font-medium py-1">
               {{ d }}
             </div>
           </div>
 
           <!-- Empty state -->
-          <div
-            v-if="filteredWeeks.length === 0 && !loadingCalendar"
-            class="flex flex-col items-center justify-center py-24 theme-sub gap-3"
-          >
-            <svg
-              class="w-12 h-12 opacity-20"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-            >
-              <path
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                stroke-width="1.5"
-                d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
-              />
+          <div v-if="filteredWeeks.length === 0 && !loadingCalendar"
+            class="flex flex-col items-center justify-center py-24 theme-sub gap-3">
+            <svg class="w-12 h-12 opacity-20" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+                d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
             </svg>
             <p class="text-sm">
               No calendar yet — click
@@ -156,28 +88,10 @@
           </div>
 
           <!-- Loading state -->
-          <div
-            v-if="loadingCalendar"
-            class="flex flex-col items-center justify-center py-24 gap-3 theme-sub"
-          >
-            <svg
-              class="w-8 h-8 animate-spin text-blue-400"
-              fill="none"
-              viewBox="0 0 24 24"
-            >
-              <circle
-                class="opacity-25"
-                cx="12"
-                cy="12"
-                r="10"
-                stroke="currentColor"
-                stroke-width="4"
-              />
-              <path
-                class="opacity-75"
-                fill="currentColor"
-                d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"
-              />
+          <div v-if="loadingCalendar" class="flex flex-col items-center justify-center py-24 gap-3 theme-sub">
+            <svg class="w-8 h-8 animate-spin text-blue-400" fill="none" viewBox="0 0 24 24">
+              <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" />
+              <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
             </svg>
             <p class="text-sm">Generating your calendar with Gemini AI…</p>
             <p class="text-xs opacity-60">This usually takes 20–40 seconds</p>
@@ -185,72 +99,38 @@
 
           <!-- Weeks -->
           <div class="space-y-2">
-            <div
-              v-for="week in filteredWeeks"
-              :key="week.id"
-              class="grid grid-cols-7 gap-2"
-            >
-              <div
-                v-for="cell in week.cells"
-                :key="cell.id"
-                @click="cell.copy && selectPost(cell)"
-                class="rounded-xl border transition-all min-h-[100px] p-2.5 flex flex-col"
-                :class="[
+            <div v-for="week in filteredWeeks" :key="week.id" class="grid grid-cols-7 gap-2">
+              <div v-for="cell in week.cells" :key="cell.id" @click="cell.copy && selectPost(cell)"
+                class="rounded-xl border transition-all min-h-[100px] p-2.5 flex flex-col" :class="[
                   cell.cellClass,
                   cell.copy
                     ? 'cursor-pointer hover:scale-[1.02]'
                     : 'cursor-default',
                   selectedPost?.id === cell.id ? 'ring-2 ring-blue-500/50' : '',
-                ]"
-                :style="cell.copy ? '' : 'border-color:var(--border)'"
-              >
+                ]" :style="cell.copy ? '' : 'border-color:var(--border)'">
                 <div class="flex items-center justify-between mb-1.5">
-                  <span
-                    class="text-[11px] font-medium"
-                    :class="cell.copy ? 'theme-text' : 'theme-muted'"
-                    >{{ cell.date }}</span
-                  >
-                  <span
-                    v-if="cell.platform"
-                    class="text-[9px] px-1.5 py-0.5 rounded font-medium"
-                    :class="platformBadge(cell.platform)"
-                    >{{ cell.platform }}</span
-                  >
+                  <span class="text-[11px] font-medium" :class="cell.copy ? 'theme-text' : 'theme-muted'">{{ cell.date
+                    }}</span>
+                  <span v-if="cell.platform" class="text-[9px] px-1.5 py-0.5 rounded font-medium"
+                    :class="platformBadge(cell.platform)">{{ cell.platform }}</span>
                 </div>
-                <p
-                  v-if="cell.copy"
-                  class="text-[10px] leading-tight theme-sub flex-1"
-                >
+                <p v-if="cell.copy" class="text-[10px] leading-tight theme-sub flex-1">
                   {{ cell.copy }}
                 </p>
-                <p
-                  v-else-if="cell.date"
-                  class="text-[10px] theme-muted flex-1 flex items-center justify-center"
-                >
+                <p v-else-if="cell.date" class="text-[10px] theme-muted flex-1 flex items-center justify-center">
                   —
                 </p>
-                <span
-                  v-if="cell.status"
-                  class="text-[9px] font-medium mt-1.5"
-                  :class="statusColor(cell.status)"
-                  >{{ cell.status }}</span
-                >
+                <span v-if="cell.status" class="text-[9px] font-medium mt-1.5" :class="statusColor(cell.status)">{{
+                  cell.status }}</span>
               </div>
             </div>
           </div>
 
           <!-- Legend -->
-          <div
-            v-if="filteredWeeks.length > 0"
-            class="flex items-center gap-5 flex-wrap mt-5 pt-4 border-t"
-            style="border-color: var(--border)"
-          >
+          <div v-if="filteredWeeks.length > 0" class="flex items-center gap-5 flex-wrap mt-5 pt-4 border-t"
+            style="border-color: var(--border)">
             <p class="text-[11px] theme-muted font-medium">Status:</p>
-            <div
-              v-for="s in legend"
-              :key="s.label"
-              class="flex items-center gap-1.5"
-            >
+            <div v-for="s in legend" :key="s.label" class="flex items-center gap-1.5">
               <div class="w-1.5 h-1.5 rounded-full" :class="s.dot"></div>
               <span class="text-[10px] theme-sub">{{ s.label }}</span>
             </div>
@@ -258,53 +138,28 @@
         </div>
 
         <!-- Right panel -->
-        <div
-          class="w-64 shrink-0 border-l overflow-y-auto p-4 space-y-4"
-          style="border-color: var(--border)"
-        >
+        <div class="w-64 shrink-0 border-l overflow-y-auto p-4 space-y-4" style="border-color: var(--border)">
           <!-- Post editor -->
-          <div
-            v-if="selectedPost"
-            class="rounded-xl theme-surface theme-border p-4"
-          >
+          <div v-if="selectedPost" class="rounded-xl theme-surface theme-border p-4">
             <div class="flex items-center justify-between mb-3">
               <p class="text-xs font-medium theme-text">Edit Post</p>
-              <button
-                @click="selectedPost = null"
-                class="theme-muted hover:theme-text"
-              >
-                <svg
-                  class="w-3.5 h-3.5"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                >
-                  <path
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                    stroke-width="2"
-                    d="M6 18L18 6M6 6l12 12"
-                  />
+              <button @click="selectedPost = null" class="theme-muted hover:theme-text">
+                <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
                 </svg>
               </button>
             </div>
             <div class="flex gap-1.5 mb-3 flex-wrap">
-              <span
-                class="text-[10px] px-2 py-0.5 rounded-full font-medium"
-                :class="platformBadge(selectedPost.platform)"
-                >{{ selectedPost.platform }}</span
-              >
-              <span
-                class="text-[10px] px-2 py-0.5 rounded-full theme-card theme-border theme-muted"
-                >{{ selectedPost.dialect || "Arabic" }}</span
-              >
+              <span class="text-[10px] px-2 py-0.5 rounded-full font-medium"
+                :class="platformBadge(selectedPost.platform)">{{
+                  selectedPost.platform }}</span>
+              <span class="text-[10px] px-2 py-0.5 rounded-full theme-card theme-border theme-muted">{{
+                selectedPost.dialect
+                || "Arabic" }}</span>
             </div>
-            <textarea
-              v-model="editCopy"
-              rows="5"
+            <textarea v-model="editCopy" rows="5"
               class="w-full theme-input rounded-lg p-2.5 text-xs theme-text border focus:outline-none focus:border-blue-500/40 resize-none leading-relaxed"
-              style="border-color: var(--border)"
-            ></textarea>
+              style="border-color: var(--border)"></textarea>
             <div class="mt-2 p-2 rounded-lg theme-card theme-border">
               <p class="text-[9px] theme-muted mb-1">Hashtags</p>
               <p class="text-[10px] text-blue-400">
@@ -313,89 +168,56 @@
             </div>
             <div class="mt-3 space-y-1">
               <p class="text-[10px] theme-muted mb-2">Status</p>
-              <button
-                v-for="s in statuses"
-                :key="s.label"
-                @click="selectedPost.status = s.label"
+              <button v-for="s in statuses" :key="s.label" @click="selectedPost.status = s.label"
                 class="w-full flex items-center gap-2 px-2.5 py-1.5 rounded-lg text-[10px] transition-colors text-left border"
-                :class="
-                  selectedPost.status === s.label
+                :class="selectedPost.status === s.label
                     ? 'bg-blue-600/15 text-blue-400 border-blue-500/20'
                     : 'theme-sub border-transparent hover:theme-text'
-                "
-              >
-                <div
-                  class="w-1.5 h-1.5 rounded-full shrink-0"
-                  :class="s.dot"
-                ></div>
+                  ">
+                <div class="w-1.5 h-1.5 rounded-full shrink-0" :class="s.dot"></div>
                 {{ s.label }}
               </button>
             </div>
-            <p
-              v-if="saveMsg"
-              class="text-[10px] text-green-400 mt-2 text-center"
-            >
+            <p v-if="saveMsg" class="text-[10px] text-green-400 mt-2 text-center">
               {{ saveMsg }}
             </p>
-            <button
-              @click="savePost"
-              :disabled="saving"
-              class="w-full mt-3 py-2 rounded-lg bg-blue-600 text-white text-xs font-medium hover:bg-blue-500 transition-colors disabled:opacity-50"
-            >
+            <button @click="savePost" :disabled="saving"
+              class="w-full mt-3 py-2 rounded-lg bg-blue-600 text-white text-xs font-medium hover:bg-blue-500 transition-colors disabled:opacity-50">
               {{ saving ? "Saving…" : "Save Changes" }}
             </button>
           </div>
-          <div
-            v-else
-            class="rounded-xl theme-card theme-border p-4 text-center"
-          >
+          <div v-else class="rounded-xl theme-card theme-border p-4 text-center">
             <p class="text-xs theme-muted">
               Click any post card to edit it here
             </p>
           </div>
 
           <!-- A/B Critic -->
-          <div
-            v-if="selectedPost"
-            class="rounded-xl border border-amber-500/20 bg-amber-500/5 p-4"
-          >
+          <div v-if="selectedPost" class="rounded-xl border border-amber-500/20 bg-amber-500/5 p-4">
             <div class="flex items-center gap-2 mb-2">
               <span class="text-amber-400">⚡</span>
               <p class="text-xs font-medium text-amber-300">A/B Critic Agent</p>
             </div>
-            <p
-              v-if="!variantB"
-              class="text-[11px] theme-sub leading-relaxed mb-3"
-            >
+            <p v-if="!variantB" class="text-[11px] theme-sub leading-relaxed mb-3">
               Generate a smarter version of this post using AI.
             </p>
-            <div
-              v-if="variantB"
-              class="p-2.5 rounded-lg theme-card theme-border mb-3"
-            >
+            <div v-if="variantB" class="p-2.5 rounded-lg theme-card theme-border mb-3">
               <p class="text-[10px] theme-sub italic leading-relaxed">
                 {{ variantB }}
               </p>
             </div>
             <div v-if="variantB" class="flex gap-2 mb-2">
-              <button
-                @click="applyVariantB"
-                class="flex-1 py-1.5 rounded-lg bg-amber-500/15 text-amber-400 text-[10px] hover:bg-amber-500/25 border border-amber-500/20 transition-colors"
-              >
+              <button @click="applyVariantB"
+                class="flex-1 py-1.5 rounded-lg bg-amber-500/15 text-amber-400 text-[10px] hover:bg-amber-500/25 border border-amber-500/20 transition-colors">
                 Use B
               </button>
-              <button
-                @click="variantB = null"
-                class="flex-1 py-1.5 rounded-lg theme-card theme-border theme-muted text-[10px] hover:theme-text transition-colors"
-              >
+              <button @click="variantB = null"
+                class="flex-1 py-1.5 rounded-lg theme-card theme-border theme-muted text-[10px] hover:theme-text transition-colors">
                 Keep A
               </button>
             </div>
-            <button
-              @click="generateVariantB"
-              :disabled="loadingVariant"
-              class="w-full py-1.5 rounded-lg theme-card theme-border theme-muted text-[10px] hover:theme-text transition-colors"
-            >
+            <button @click="generateVariantB" :disabled="loadingVariant"
+              class="w-full py-1.5 rounded-lg theme-card theme-border theme-muted text-[10px] hover:theme-text transition-colors">
               {{ loadingVariant ? "Generating…" : "✦ Generate Variant B" }}
             </button>
           </div>
@@ -409,19 +231,13 @@
               }}</span>
             </div>
             <div class="space-y-2">
-              <div
-                v-for="t in trends"
-                :key="t.tag"
-                class="flex items-center justify-between"
-              >
+              <div v-for="t in trends" :key="t.tag" class="flex items-center justify-between">
                 <span class="text-[11px] theme-sub">{{ t.tag }}</span>
                 <span class="text-[10px]" :class="t.color">{{ t.change }}</span>
               </div>
             </div>
-            <button
-              @click="injectTrend"
-              class="w-full mt-3 py-1.5 rounded-lg theme-card theme-border theme-muted text-[10px] hover:theme-text transition-colors"
-            >
+            <button @click="injectTrend"
+              class="w-full mt-3 py-1.5 rounded-lg theme-card theme-border theme-muted text-[10px] hover:theme-text transition-colors">
               Inject into next post →
             </button>
           </div>
@@ -430,48 +246,25 @@
     </div>
 
     <!-- ── Generate / Regenerate Modal ── -->
-    <div
-      v-if="showModal"
-      class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-6"
-    >
-      <div
-        class="theme-surface rounded-2xl theme-border max-w-lg w-full p-7 theme-shadow"
-      >
+    <div v-if="showModal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-6">
+      <div class="theme-surface rounded-2xl theme-border max-w-lg w-full p-7 theme-shadow">
         <div class="flex items-center justify-between mb-5">
           <h2 class="font-display text-xl font-600 theme-text">
             {{ isRegenerate ? "Regenerate Calendar" : "Generate New Plan" }}
           </h2>
-          <button
-            @click="showModal = false"
-            class="theme-muted hover:theme-text"
-          >
-            <svg
-              class="w-5 h-5"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-            >
-              <path
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                stroke-width="2"
-                d="M6 18L18 6M6 6l12 12"
-              />
+          <button @click="showModal = false" class="theme-muted hover:theme-text">
+            <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
             </svg>
           </button>
         </div>
 
-        <div
-          v-if="isRegenerate"
-          class="mb-4 p-3 rounded-xl bg-amber-500/10 border border-amber-500/20 text-amber-400 text-xs"
-        >
+        <div v-if="isRegenerate"
+          class="mb-4 p-3 rounded-xl bg-amber-500/10 border border-amber-500/20 text-amber-400 text-xs">
           ⚠️ This will delete the current calendar and generate a new one.
         </div>
 
-        <div
-          v-if="!brandId"
-          class="mb-4 p-3 rounded-xl bg-rose-500/10 border border-rose-500/20 text-rose-400 text-xs"
-        >
+        <div v-if="!brandId" class="mb-4 p-3 rounded-xl bg-rose-500/10 border border-rose-500/20 text-rose-400 text-xs">
           ⚠️ No brand found. Please go to <strong>Brand Vault</strong> first.
         </div>
 
@@ -479,24 +272,18 @@
           <!-- Brief -->
           <div>
             <label class="text-xs theme-sub mb-1.5 block">Campaign Brief</label>
-            <textarea
-              v-model="brief"
-              rows="3"
-              placeholder="e.g. Ramadan iftar campaign for our cold brew line…"
+            <textarea v-model="brief" rows="3" placeholder="e.g. Ramadan iftar campaign for our cold brew line…"
               class="w-full theme-input rounded-xl p-3.5 text-sm theme-text border resize-none focus:outline-none focus:border-blue-500/40"
-              style="border-color: var(--border)"
-            ></textarea>
+              style="border-color: var(--border)"></textarea>
           </div>
 
           <!-- Dialect + Start Date -->
           <div class="grid grid-cols-2 gap-3">
             <div>
               <label class="text-xs theme-sub mb-1.5 block">Dialect</label>
-              <select
-                v-model="selectedDialect"
+              <select v-model="selectedDialect"
                 class="w-full theme-input rounded-xl px-3 py-2.5 text-sm theme-text border focus:outline-none"
-                style="border-color: var(--border)"
-              >
+                style="border-color: var(--border)">
                 <option>Egyptian Arabic</option>
                 <option>Gulf Arabic</option>
                 <option>Levantine Arabic</option>
@@ -506,26 +293,18 @@
             </div>
             <div>
               <label class="text-xs theme-sub mb-1.5 block">Start Date</label>
-              <input
-                type="date"
-                v-model="startDate"
+              <input type="date" v-model="startDate"
                 class="w-full theme-input rounded-xl px-3 py-2.5 text-sm theme-text border focus:outline-none"
-                style="border-color: var(--border)"
-                :min="todayStr"
-              />
+                style="border-color: var(--border)" :min="todayStr" />
             </div>
           </div>
 
           <!-- End Date -->
           <div>
             <label class="text-xs theme-sub mb-1.5 block">End Date</label>
-            <input
-              type="date"
-              v-model="endDate"
+            <input type="date" v-model="endDate"
               class="w-full theme-input rounded-xl px-3 py-2.5 text-sm theme-text border focus:outline-none"
-              style="border-color: var(--border)"
-              :min="startDate || todayStr"
-            />
+              style="border-color: var(--border)" :min="startDate || todayStr" />
             <p class="text-[10px] theme-muted mt-1">
               {{ durationLabel }}
             </p>
@@ -535,27 +314,18 @@
           <div>
             <label class="text-xs theme-sub mb-1.5 block">Platforms</label>
             <div class="flex flex-wrap gap-2">
-              <button
-                v-for="p in platforms"
-                :key="p.name"
-                @click="p.on = !p.on"
-                class="px-3 py-1.5 rounded-lg text-xs border transition-all"
-                :class="
-                  p.on
+              <button v-for="p in platforms" :key="p.name" @click="p.on = !p.on"
+                class="px-3 py-1.5 rounded-lg text-xs border transition-all" :class="p.on
                     ? 'bg-blue-600/20 text-blue-400 border-blue-500/30'
                     : 'theme-border theme-muted hover:theme-text'
-                "
-              >
+                  ">
                 {{ p.name }}
               </button>
             </div>
           </div>
 
           <!-- Trends preview -->
-          <div
-            v-if="trends.length"
-            class="p-3 rounded-xl bg-amber-500/5 border border-amber-500/15"
-          >
+          <div v-if="trends.length" class="p-3 rounded-xl bg-amber-500/5 border border-amber-500/15">
             <p class="text-[11px] text-amber-400 font-medium mb-1">
               ✦ Trends being injected
             </p>
@@ -575,25 +345,19 @@
         </div>
 
         <div class="flex gap-3 mt-6">
-          <button
-            @click="showModal = false"
-            class="flex-1 py-3 rounded-xl theme-card theme-border theme-sub text-sm hover:theme-text transition-colors"
-          >
+          <button @click="showModal = false"
+            class="flex-1 py-3 rounded-xl theme-card theme-border theme-sub text-sm hover:theme-text transition-colors">
             Cancel
           </button>
-          <button
-            @click="doGenerate"
-            :disabled="
-              generating || !brief || !brandId || !startDate || !endDate
+          <button @click="doGenerate" :disabled="generating || !brief || !brandId || !startDate || !endDate
             "
-            class="flex-1 py-3 rounded-xl bg-blue-600 text-white text-sm font-medium hover:bg-blue-500 transition-colors disabled:opacity-50"
-          >
+            class="flex-1 py-3 rounded-xl bg-blue-600 text-white text-sm font-medium hover:bg-blue-500 transition-colors disabled:opacity-50">
             {{
               generating
                 ? "Generating… (may take ~40s)"
                 : isRegenerate
-                ? "↺ Regenerate"
-                : "✦ Generate Calendar"
+                  ? "↺ Regenerate"
+                  : "✦ Generate Calendar"
             }}
           </button>
         </div>
@@ -601,13 +365,9 @@
     </div>
 
     <!-- ── Delete Confirm Dialog ── -->
-    <div
-      v-if="showDeleteConfirm"
-      class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-6"
-    >
-      <div
-        class="theme-surface rounded-2xl theme-border max-w-sm w-full p-6 theme-shadow"
-      >
+    <div v-if="showDeleteConfirm"
+      class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-6">
+      <div class="theme-surface rounded-2xl theme-border max-w-sm w-full p-6 theme-shadow">
         <h2 class="font-display text-lg font-600 theme-text mb-2">
           Delete Calendar?
         </h2>
@@ -616,17 +376,12 @@
           cannot be undone.
         </p>
         <div class="flex gap-3">
-          <button
-            @click="showDeleteConfirm = false"
-            class="flex-1 py-2.5 rounded-xl theme-card theme-border theme-sub text-sm hover:theme-text transition-colors"
-          >
+          <button @click="showDeleteConfirm = false"
+            class="flex-1 py-2.5 rounded-xl theme-card theme-border theme-sub text-sm hover:theme-text transition-colors">
             Cancel
           </button>
-          <button
-            @click="deleteCalendar"
-            :disabled="deleting"
-            class="flex-1 py-2.5 rounded-xl bg-rose-600 text-white text-sm hover:bg-rose-500 transition-colors disabled:opacity-50"
-          >
+          <button @click="deleteCalendar" :disabled="deleting"
+            class="flex-1 py-2.5 rounded-xl bg-rose-600 text-white text-sm hover:bg-rose-500 transition-colors disabled:opacity-50">
             {{ deleting ? "Deleting…" : "Delete" }}
           </button>
         </div>
@@ -634,10 +389,8 @@
     </div>
 
     <!-- ── Approve success toast ── -->
-    <div
-      v-if="approveMsg"
-      class="fixed bottom-6 right-6 z-50 px-4 py-3 rounded-xl bg-green-600 text-white text-sm font-medium shadow-lg"
-    >
+    <div v-if="approveMsg"
+      class="fixed bottom-6 right-6 z-50 px-4 py-3 rounded-xl bg-green-600 text-white text-sm font-medium shadow-lg">
       ✓ {{ approveMsg }}
     </div>
   </AppLayout>
@@ -706,7 +459,7 @@ const durationLabel = computed(() => {
   if (!startDate.value || !endDate.value) return "";
   const days = Math.round(
     (new Date(endDate.value) - new Date(startDate.value)) /
-      (1000 * 60 * 60 * 24)
+    (1000 * 60 * 60 * 24)
   );
   if (days <= 0) return "⚠️ End date must be after start date";
   return `${days} days · ~${Math.round(days * 0.65)} posts expected`;
@@ -721,12 +474,12 @@ const filteredWeeks = computed(() => {
         !cell.status || cell.status === activeFilter.value
           ? cell
           : {
-              ...cell,
-              copy: null,
-              status: null,
-              platform: null,
-              cellClass: "bg-transparent",
-            }
+            ...cell,
+            copy: null,
+            status: null,
+            platform: null,
+            cellClass: "bg-transparent",
+          }
       ),
     }))
     .filter((week) => week.cells.some((c) => c.copy));
@@ -782,7 +535,7 @@ onMounted(async () => {
       currentCalendar.value = latest;
       calendarWeeks.value = buildWeeks(latest.posts || []);
     }
-  } catch {}
+  } catch { }
 });
 
 // ── Generate / Regenerate ─────────────────────────────────────────────────────
@@ -804,14 +557,14 @@ async function doGenerate() {
     if (isRegenerate.value && currentCalendar.value) {
       await calendarApi
         .deleteCalendar(currentCalendar.value._id)
-        .catch(() => {});
+        .catch(() => { });
       currentCalendar.value = null;
       calendarWeeks.value = [];
     }
 
     const durationDays = Math.round(
       (new Date(endDate.value) - new Date(startDate.value)) /
-        (1000 * 60 * 60 * 24)
+      (1000 * 60 * 60 * 24)
     );
 
     const result = await calendarApi.generate({
@@ -821,7 +574,7 @@ async function doGenerate() {
       platforms: platforms.value.filter((p) => p.on).map((p) => p.name),
       startDate: startDate.value,
       endDate: endDate.value,
-      duration: Math.round((new Date(endDate.value) - new Date(startDate.value)) /(1000 * 60 * 60 * 24)),
+      duration: Math.round((new Date(endDate.value) - new Date(startDate.value)) / (1000 * 60 * 60 * 24)),
     });
 
     currentCalendar.value = result.calendar;
@@ -851,10 +604,10 @@ async function approvePlan() {
       cells: week.cells.map((cell) =>
         cell.copy
           ? {
-              ...cell,
-              status: "Approved",
-              cellClass: "border-green-500/25 bg-green-500/5",
-            }
+            ...cell,
+            status: "Approved",
+            cellClass: "border-green-500/25 bg-green-500/5",
+          }
           : cell
       ),
     }));
@@ -905,27 +658,27 @@ function buildWeeks(posts) {
       cells: chunk.map((p) =>
         p.empty
           ? {
-              id: p._id,
-              date: "",
-              platform: null,
-              copy: null,
-              status: null,
-              hashtags: [],
-              cellClass: "bg-transparent",
-            }
+            id: p._id,
+            date: "",
+            platform: null,
+            copy: null,
+            status: null,
+            hashtags: [],
+            cellClass: "bg-transparent",
+          }
           : {
-              id: p._id,
-              date: new Date(p.date || p.scheduledDate).getDate().toString(),
-              platform: (p.platform || "").slice(0, 2).toUpperCase(),
-              copy: p.copyAR || p.copy || "",
-              dialect: p.dialect || "",
-              status: p.status
-                ? p.status.charAt(0).toUpperCase() +
-                  p.status.slice(1).replace("_", " ")
-                : "Draft",
-              hashtags: p.hashtags || [],
-              cellClass: statusToClass(p.status),
-            }
+            id: p._id,
+            date: new Date(p.date || p.scheduledDate).getDate().toString(),
+            platform: (p.platform || "").slice(0, 2).toUpperCase(),
+            copy: p.copyAR || p.copy || "",
+            dialect: p.dialect || "",
+            status: p.status
+              ? p.status.charAt(0).toUpperCase() +
+              p.status.slice(1).replace("_", " ")
+              : "Draft",
+            hashtags: p.hashtags || [],
+            cellClass: statusToClass(p.status),
+          }
       ),
     });
   }
@@ -994,7 +747,7 @@ async function applyVariantB() {
   variantB.value = null;
   try {
     await postsApi.applyVariantB(selectedPost.value.id);
-  } catch {}
+  } catch { }
 }
 
 // ── Inject trend ──────────────────────────────────────────────────────────────

@@ -37,12 +37,20 @@ router.post('/generate', protect, async (req, res) => {
   }
 
   // 3. Call Gemini to generate posts JSON
+  try{
   const postsData = await generateCalendar({
     brief, brand, trends,
     dialect:      dialect || brand.dialects[0] || 'Egyptian Arabic',
     platforms:    platforms || brand.platforms,
     brandContext: chunks.join('\n\n'),
-  })
+  })}
+  catch (err) {
+  return res.status(503)
+  .json({
+    message:
+      "AI service is temporarily busy. Please try again in a few moments.",
+  });
+  }
 
   // 4. Create calendar document
   const calendar = await Calendar.create({

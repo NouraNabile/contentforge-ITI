@@ -98,4 +98,14 @@ const trendSchema = new mongoose.Schema({
 
 const Trend = mongoose.model('Trend', trendSchema)
 
-module.exports = { User, Brand, Post, Calendar, Trend }
+// ── Chat Message Model ────────────────────────────────────────────────────────
+const chatMessageSchema = new mongoose.Schema({
+  brand:         { type: mongoose.Schema.Types.ObjectId, ref: 'Brand', required: true },
+  sender:        { type: String, enum: ['user','ai'], required: true },
+  content:    { type: String, required: true },
+  conversationId: { type: String, required: true }
+}, { timestamps: true })
+
+const ChatMessage = mongoose.model('ChatMessage', chatMessageSchema)
+
+module.exports = { User, Brand, Post, Calendar, Trend, ChatMessage }

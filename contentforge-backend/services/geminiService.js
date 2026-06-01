@@ -5,7 +5,7 @@ const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY)
 
 // ── Generate 2-week calendar ──────────────────────────────────────────────────
 async function generateCalendar({ brief, brand, trends, dialect, platforms, brandContext }) {
-  const model = genAI.getGenerativeModel({ model: 'gemini-2.5-flash' })
+  const model = genAI.getGenerativeModel({ model: 'gemini-3.1-flash-lite' })
 
   const prompt = `
 You are ContentForge, an AI content strategist for Arabic and bilingual brands.
@@ -48,6 +48,7 @@ RESPOND ONLY with a JSON array, no extra text, no markdown fences. Example forma
   text = text.replace(/```json|```/g, '').trim()
   return JSON.parse(text)
 }
+
 
 // ── Generate A/B variant ──────────────────────────────────────────────────────
 async function generateVariantB({ post, brand }) {

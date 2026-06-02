@@ -118,7 +118,7 @@
                   </span>
                 </div>
 
-                <div class="flex flex-col gap-2 flex-1 overflow-y-auto max-h-[280px] custom-scrollbar">
+                <div class="flex flex-col gap-2 flex-1 overflow-y-auto overflow-x-hidden max-h-[280px] custom-scrollbar">
                   <template v-if="dayCell.posts && dayCell.posts.length > 0">
                     <div v-for="post in dayCell.posts" :key="post._id || post.id" draggable="true"
                       @dragstart="onDragStart(post)" @click.stop="selectPost(post)"

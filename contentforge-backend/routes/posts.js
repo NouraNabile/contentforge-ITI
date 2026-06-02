@@ -60,14 +60,45 @@ router.post('/:id/apply-variant-b', protect, async (req, res) => {
 })
 
 // PATCH /api/posts/:id/schedule
+// router.patch('/:id/schedule', protect, async (req, res) => {
+//   const { scheduledAt } = req.body
+//   const post = await Post.findByIdAndUpdate(
+//     req.params.id,
+//     { scheduledAt: new Date(scheduledAt), status: 'scheduled' },
+//     { new: true }
+//   )
+//   res.json(post)
+// })
+
+// PATCH /api/posts/:id/schedule
 router.patch('/:id/schedule', protect, async (req, res) => {
-  const { scheduledAt } = req.body
-  const post = await Post.findByIdAndUpdate(
-    req.params.id,
-    { scheduledAt: new Date(scheduledAt), status: 'scheduled' },
-    { new: true }
-  )
-  res.json(post)
+  try {
+    const { scheduledAt } = req.body
+    
+    if (!scheduledAt) {
+      return res.status(400).json({ message: 'scheduledAt date is required' })
+    }
+
+    // Update both scheduledAt and any tracking date fields your schema uses
+    const post = await Post.findByIdAndUpdate(
+      req.params.id,
+      { 
+        scheduledAt: new Date(scheduledAt),
+        // If your schema uses a simple string date like '2026-06-05', match it here:
+        date: scheduledAt.substring(0, 10) 
+      },
+      { new: true }
+    )
+
+    if (!post) {
+      return res.status(404).json({ message: 'Post not found' })
+    }
+
+    res.json(post)
+  } catch (error) {
+    console.error('Error updating post date:', error)
+    res.status(500).json({ message: 'Server error updating scheduling window' })
+  }
 })
 
 // GET /api/posts/drafts/:brandId

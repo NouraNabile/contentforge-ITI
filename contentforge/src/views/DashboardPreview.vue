@@ -125,7 +125,6 @@
                       class="relative rounded-lg border p-2.5 flex flex-col justify-between transition-all aspect-square w-full cursor-grab hover:scale-[1.02] active:cursor-grabbing shadow-sm"
                       :class="[
                         statusToClass(post.status),
-                        (selectedPost?._id === post._id || selectedPost?.id === post.id) ? 'ring-2 ring-blue-500 border-blue-500/50' : ''
                       ]">
                       <div class="flex items-start justify-between">
                         <span class="text-[9px] font-mono opacity-60 text-left">
@@ -981,13 +980,23 @@ async function onDrop(targetCell) {
 }
 </script>
 <style scoped>
-.custom-scrollbar::-webkit-scrollbar {
-  width: 3px;
+/* Target the scrollbar track and thumb */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
 }
 
-.custom-scrollbar::-webkit-scrollbar-thumb {
-  background: var(--border, rgba(255, 255, 255, 0.1));
-  border-radius: 9px;
+::-webkit-scrollbar-track {
+  background: rgba(15, 23, 42, 0.3); /* Dark theme slate track */
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(148, 163, 184, 0.3); /* Subdued slate gray thumb */
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(148, 163, 184, 0.5); /* Slightly brighter on hover */
 }
 
 .aspect-square {

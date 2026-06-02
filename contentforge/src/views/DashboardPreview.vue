@@ -296,8 +296,9 @@
             <div>
               <label class="text-xs theme-sub mb-1.5 block">Start Date</label>
               <input type="date" v-model="startDate"
+                @change="validateDates"
                 class="w-full theme-input rounded-xl px-3 py-2.5 text-sm theme-text border focus:outline-none"
-                style="border-color: var(--border)" :min="todayStr()" />
+                style="border-color: var(--border)" :min="todayDate" />
             </div>
           </div>
 
@@ -305,10 +306,14 @@
           <div>
             <label class="text-xs theme-sub mb-1.5 block">End Date</label>
             <input type="date" v-model="endDate"
+              @change="validateDates"
               class="w-full theme-input rounded-xl px-3 py-2.5 text-sm theme-text border focus:outline-none"
-                style="border-color: var(--border)" :min="startDate || todayStr()" />
+                style="border-color: var(--border)" :min="startDate || todayDate" />
             <p class="text-[10px] theme-muted mt-1">
               {{ durationLabel }}
+            </p>
+            <p v-if="errorMessage" class="text-xs text-rose-400 font-medium mt-2">
+              {{ errorMessage }}
             </p>
           </div>
 
@@ -416,8 +421,15 @@ const showDeleteConfirm = ref(false);
 const isRegenerate = ref(false);
 const brief = ref("");
 const selectedDialect = ref("Egyptian Arabic");
-const startDate = ref(todayStr());
-const endDate = ref(twoWeeksStr());
+const todayDate = computed(() => {
+  const today = new Date();
+  const year = today.getFullYear();
+  const month = String(today.getMonth() + 1).padStart(2, "0");
+  const day = String(today.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
+});
+const startDate = ref(todayDate.value);
+const endDate = ref("");
 const generating = ref(false);
 const generateError = ref("");
 const loadingCalendar = ref(false);
@@ -428,6 +440,7 @@ const approveMsg = ref("");
 const deleting = ref(false);
 const variantB = ref(null);
 const loadingVariant = ref(false);
+const errorMessage = ref("");
 const currentCalendar = ref(null);
 const calendarWeeks = ref([]);
 const trends = ref([]);
@@ -463,14 +476,18 @@ const platforms = ref([
 // ── Computed ──────────────────────────────────────────────────────────────────
 const topTrend = computed(() => trends.value[0] || null);
 
-const durationLabel = computed(() => {
-  if (!startDate.value || !endDate.value) return "";
-  const days = Math.round(
+const duration = computed(() => {
+  if (!startDate.value || !endDate.value) return 0;
+  return Math.round(
     (new Date(endDate.value) - new Date(startDate.value)) /
     (1000 * 60 * 60 * 24)
   );
-  if (days <= 0) return "⚠️ End date must be after start date";
-  return `${days} days · ~${Math.round(days * 0.65)} posts expected`;
+});
+
+const durationLabel = computed(() => {
+  if (!startDate.value || !endDate.value) return "";
+  if (duration.value <= 0) return "⚠️ End date must be after start date";
+  return `${duration.value} days · ~${Math.round(duration.value * 0.65)} posts expected`;
 });
 
 const filteredWeeks = computed(() => {
@@ -508,24 +525,21 @@ const calendarDateRange = computed(() => {
 });
 
 // ── Helpers for dates ─────────────────────────────────────────────────────────
-function todayStr() {
-  const d = new Date()
-  const y = d.getFullYear()
-  const m = String(d.getMonth() + 1).padStart(2, '0')
-  const day = String(d.getDate()).padStart(2, '0')
-  return `${y}-${m}-${day}`
-}
 function parseLocalDate(dateStr) {
   const [y, m, d] = dateStr.split('-').map(Number)
   return new Date(y, m - 1, d)
 }
-function twoWeeksStr() {
-  const d = new Date();
-  d.setDate(d.getDate() + 14);
-  const y = d.getFullYear()
-  const m = String(d.getMonth() + 1).padStart(2, '0')
-  const day = String(d.getDate()).padStart(2, '0')
-  return `${y}-${m}-${day}`
+function validateDates() {
+  errorMessage.value = ""
+
+  if (startDate.value && startDate.value < todayDate.value) {
+    startDate.value = todayDate.value
+    errorMessage.value = "You cannot pick a date before today."
+  }
+
+  if (endDate.value && startDate.value && endDate.value < startDate.value) {
+    endDate.value = startDate.value
+  }
 }
 
 // ── Load on mount ─────────────────────────────────────────────────────────────
@@ -571,7 +585,7 @@ async function doGenerate() {
   loadingCalendar.value = true;
   showModal.value = false;
 
-  const today = parseLocalDate(todayStr())
+  const today = parseLocalDate(todayDate.value)
   const start = parseLocalDate(startDate.value)
   const end = parseLocalDate(endDate.value)
 
@@ -600,6 +614,8 @@ async function doGenerate() {
   }
 
   try {
+    validateDates()
+
     // لو regenerate، امسح القديم الأول
     if (isRegenerate.value && currentCalendar.value) {
       await calendarApi
@@ -609,11 +625,6 @@ async function doGenerate() {
       calendarWeeks.value = [];
     }
 
-    const durationDays = Math.round(
-      (end - start) /
-      (1000 * 60 * 60 * 24)
-    );
-
     const result = await calendarApi.generate({
       brandId: brandId.value,
       brief: brief.value,
@@ -621,7 +632,7 @@ async function doGenerate() {
       platforms: platforms.value.filter((p) => p.on).map((p) => p.name),
       startDate: startDate.value,
       endDate: endDate.value,
-      duration: Math.round((new Date(endDate.value) - new Date(startDate.value)) / (1000 * 60 * 60 * 24)),
+      duration: duration.value,
     });
 
     currentCalendar.value = result.calendar;

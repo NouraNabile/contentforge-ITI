@@ -716,6 +716,49 @@ async function deleteCalendar() {
 }
 
 // ── Build weeks grid ──────────────────────────────────────────────────────────
+// function buildWeeks(posts) {
+//   if (!posts.length) return [];
+//   const sorted = [...posts].sort(
+//     (a, b) =>
+//       new Date(a.date || a.scheduledDate) - new Date(b.date || b.scheduledDate)
+//   );
+//   const weeks = [];
+//   for (let i = 0; i < sorted.length; i += 7) {
+//     const chunk = sorted.slice(i, i + 7);
+//     while (chunk.length < 7)
+//       chunk.push({ _id: `empty-${i}-${chunk.length}`, empty: true });
+//     weeks.push({
+//       id: i,
+//       cells: chunk.map((p) =>
+//         p.empty
+//           ? {
+//             id: p._id,
+//             date: "",
+//             platform: null,
+//             copy: null,
+//             status: null,
+//             hashtags: [],
+//             cellClass: "bg-transparent",
+//           }
+//           : {
+//             id: p._id,
+//             date: new Date(p.date || p.scheduledDate).getDate().toString(),
+//             platform: (p.platform || "").slice(0, 2).toUpperCase(),
+//             copy: p.copyAR || p.copy || "",
+//             dialect: p.dialect || "",
+//             status: p.status
+//               ? p.status.charAt(0).toUpperCase() +
+//               p.status.slice(1).replace("_", " ")
+//               : "Draft",
+//             hashtags: p.hashtags || [],
+//             cellClass: statusToClass(p.status),
+//           }
+//       ),
+//     });
+//   }
+//   return weeks;
+// }
+// ── Build weeks grid ──────────────────────────────────────────────────────────
 function buildWeeks(posts) {
   if (!posts.length) return [];
   const sorted = [...posts].sort(
@@ -729,9 +772,9 @@ function buildWeeks(posts) {
       chunk.push({ _id: `empty-${i}-${chunk.length}`, empty: true });
     weeks.push({
       id: i,
-      cells: chunk.map((p) =>
-        p.empty
-          ? {
+      cells: chunk.map((p) => {
+        if (p.empty) {
+          return {
             id: p._id,
             date: "",
             platform: null,
@@ -739,10 +782,20 @@ function buildWeeks(posts) {
             status: null,
             hashtags: [],
             cellClass: "bg-transparent",
-          }
-          : {
+          };
+        } else {
+          // 1. Create a safe date object from backend field
+          const postDate = new Date(p.date || p.scheduledDate);
+          
+          // 2. Format it to look like "2 March" using standard locale formatting
+          const formattedDate = postDate.toLocaleDateString("en-GB", {
+            day: "numeric",
+            month: "long",
+          });
+
+          return {
             id: p._id,
-            date: new Date(p.date || p.scheduledDate).getDate().toString(),
+            date: formattedDate, // Now contains "2 March", "26 May", etc.
             platform: (p.platform || "").slice(0, 2).toUpperCase(),
             copy: p.copyAR || p.copy || "",
             dialect: p.dialect || "",
@@ -752,8 +805,9 @@ function buildWeeks(posts) {
               : "Draft",
             hashtags: p.hashtags || [],
             cellClass: statusToClass(p.status),
-          }
-      ),
+          };
+        }
+      }),
     });
   }
   return weeks;

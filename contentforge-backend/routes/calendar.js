@@ -112,7 +112,8 @@ router.post('/:id/approve', protect, async (req, res) => {
 
 // DELETE /api/calendar/:id
 router.delete('/:id', protect, async (req, res) => {
-  await Calendar.findByIdAndDelete(req.params.id)
+  await Post.deleteMany({ calendar: req.params.id })
+  await Calendar.findByIdAndDelete(req.params.id)  
   res.json({ message: 'Calendar deleted' })
 })
 

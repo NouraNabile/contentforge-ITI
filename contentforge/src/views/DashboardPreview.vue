@@ -34,15 +34,6 @@
               </svg>
               {{ approving ? "Approving…" : "Approve Plan" }}
             </button>
-            <!-- Regenerate -->
-            <button @click="openRegenerate"
-              class="px-3 py-2 rounded-xl theme-card theme-border theme-sub text-xs hover:theme-text transition-colors flex items-center gap-1.5">
-              <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                  d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-              </svg>
-              Regenerate
-            </button>
             <!-- Delete -->
             <button @click="confirmDelete"
               class="px-3 py-2 rounded-xl bg-rose-600/10 text-rose-400 border border-rose-500/20 text-xs hover:bg-rose-600/20 transition-colors flex items-center gap-1.5">
@@ -55,13 +46,22 @@
           </template>
 
           <!-- Generate -->
-          <button @click="showModal = true"
+          <button v-if="!currentCalendar" @click="showModal = true"
             class="px-4 py-2 rounded-xl bg-blue-600 text-white text-xs font-medium hover:bg-blue-500 transition-colors flex items-center gap-1.5">
             <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
             </svg>
             Generate Plan
           </button>
+          <!-- Regenerate -->
+            <button v-if="currentCalendar" @click="openRegenerate"
+              class="px-3 py-2 rounded-xl theme-card theme-border theme-sub text-xs hover:theme-text transition-colors flex items-center gap-1.5">
+              <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                  d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+              </svg>
+              Regenerate
+            </button>
         </div>
       </div>
 
@@ -743,6 +743,7 @@ async function deleteCalendar() {
     store.posts = [];
     selectedPost.value = null;
     showDeleteConfirm.value = false;
+    isRegenerate.value = false;
   } catch (err) {
     alert("Delete failed: " + err.message);
   } finally {

@@ -6,12 +6,12 @@ import { calendarApi, postsApi } from '../api'
 export const useCalendarStore = defineStore('calendar', () => {
 
   // ── State ─────────────────────────────────────────────────────────────────
-  const calendar    = ref(null)
-  const posts       = ref([])
-  const isGenerating= ref(false)
-  const isLoading   = ref(false)
-  const error       = ref(null)
-  const lastSaved   = ref(null)
+  const calendar = ref(null)
+  const posts = ref([])
+  const isGenerating = ref(false)
+  const isLoading = ref(false)
+  const error = ref(null)
+  const lastSaved = ref(null)
 
   // ── Generate a new calendar from the backend ──────────────────────────────
   async function generate(payload) {
@@ -20,7 +20,7 @@ export const useCalendarStore = defineStore('calendar', () => {
     try {
       const data = await calendarApi.generate(payload)
       calendar.value = data.calendar
-      posts.value    = data.posts
+      posts.value = data.posts
       lastSaved.value = new Date()
       return data
     } catch (err) {
@@ -38,7 +38,7 @@ export const useCalendarStore = defineStore('calendar', () => {
     try {
       const data = await calendarApi.getCalendar(calendarId)
       calendar.value = data
-      posts.value    = data.posts || []
+      posts.value = data.posts || []
     } catch (err) {
       error.value = err.message
     } finally {
@@ -92,8 +92,32 @@ export const useCalendarStore = defineStore('calendar', () => {
     posts.value = posts.value.filter(p => p._id !== postId)
   }
 
+  // ── Swap dates between two posts (drag-and-drop) ──────────────────────────
+  async function swapPostDates(draggedId, targetId) {
+    const dragged = posts.value.find(p => p._id === draggedId)
+    const target = posts.value.find(p => p._id === targetId)
+    if (!dragged || !target) return
+
+    // 1. Swap in memory instantly (optimistic)
+    const tempDate = dragged.date
+    dragged.date = target.date
+    target.date = tempDate
+
+    try {
+      // 2. Persist both to DB in parallel
+      await Promise.all([
+        postsApi.updateDate(draggedId, dragged.date),
+        postsApi.updateDate(targetId, target.date)
+      ])
+    } catch (err) {
+      // 3. Revert both if server fails
+      dragged.date = target.date
+      target.date = tempDate
+      throw err
+    }
+  }
   return {
     calendar, posts, isGenerating, isLoading, error, lastSaved,
-    generate, loadCalendar, updatePostStatus, updatePost, getVariantB, approveAll, deletePost
+    generate, loadCalendar, updatePostStatus, updatePost, getVariantB, approveAll, deletePost, swapPostDates
   }
 })

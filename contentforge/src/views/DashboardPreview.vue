@@ -100,17 +100,19 @@
           <!-- Weeks -->
           <div class="space-y-2">
             <div v-for="week in filteredWeeks" :key="week.id" class="grid grid-cols-7 gap-2">
-              <div v-for="cell in week.cells" :key="cell.id" @click="cell.copy && selectPost(cell)"
+              <div v-for="cell in week.cells" :key="cell.id" :draggable="!!cell.copy"
+                @dragstart="cell.copy && onDragStart(cell)" @dragover.prevent
+                @dragenter="cell.copy && (dragOverId = cell.id)" @dragleave="dragOverId = null"
+                @drop="cell.copy && onDrop(cell)" @click="cell.copy && selectPost(cell)"
                 class="rounded-xl border transition-all min-h-[100px] p-2.5 flex flex-col" :class="[
                   cell.cellClass,
-                  cell.copy
-                    ? 'cursor-pointer hover:scale-[1.02]'
-                    : 'cursor-default',
+                  cell.copy ? 'cursor-grab hover:scale-[1.02]' : 'cursor-default',
                   selectedPost?.id === cell.id ? 'ring-2 ring-blue-500/50' : '',
+                  dragOverId === cell.id ? 'ring-2 ring-amber-400/50 scale-[1.02]' : ''
                 ]" :style="cell.copy ? '' : 'border-color:var(--border)'">
                 <div class="flex items-center justify-between mb-1.5">
                   <span class="text-[11px] font-medium" :class="cell.copy ? 'theme-text' : 'theme-muted'">{{ cell.date
-                    }}</span>
+                  }}</span>
                   <span v-if="cell.platform" class="text-[9px] px-1.5 py-0.5 rounded font-medium"
                     :class="platformBadge(cell.platform)">{{ cell.platform }}</span>
                 </div>
@@ -171,8 +173,8 @@
               <button v-for="s in statuses" :key="s.label" @click="selectedPost.status = s.label"
                 class="w-full flex items-center gap-2 px-2.5 py-1.5 rounded-lg text-[10px] transition-colors text-left border"
                 :class="selectedPost.status === s.label
-                    ? 'bg-blue-600/15 text-blue-400 border-blue-500/20'
-                    : 'theme-sub border-transparent hover:theme-text'
+                  ? 'bg-blue-600/15 text-blue-400 border-blue-500/20'
+                  : 'theme-sub border-transparent hover:theme-text'
                   ">
                 <div class="w-1.5 h-1.5 rounded-full shrink-0" :class="s.dot"></div>
                 {{ s.label }}
@@ -295,7 +297,7 @@
               <label class="text-xs theme-sub mb-1.5 block">Start Date</label>
               <input type="date" v-model="startDate"
                 class="w-full theme-input rounded-xl px-3 py-2.5 text-sm theme-text border focus:outline-none"
-                style="border-color: var(--border)" :min="todayStr" />
+                style="border-color: var(--border)" :min="todayStr()" />
             </div>
           </div>
 
@@ -304,7 +306,7 @@
             <label class="text-xs theme-sub mb-1.5 block">End Date</label>
             <input type="date" v-model="endDate"
               class="w-full theme-input rounded-xl px-3 py-2.5 text-sm theme-text border focus:outline-none"
-              style="border-color: var(--border)" :min="startDate || todayStr" />
+                style="border-color: var(--border)" :min="startDate || todayStr()" />
             <p class="text-[10px] theme-muted mt-1">
               {{ durationLabel }}
             </p>
@@ -316,8 +318,8 @@
             <div class="flex flex-wrap gap-2">
               <button v-for="p in platforms" :key="p.name" @click="p.on = !p.on"
                 class="px-3 py-1.5 rounded-lg text-xs border transition-all" :class="p.on
-                    ? 'bg-blue-600/20 text-blue-400 border-blue-500/30'
-                    : 'theme-border theme-muted hover:theme-text'
+                  ? 'bg-blue-600/20 text-blue-400 border-blue-500/30'
+                  : 'theme-border theme-muted hover:theme-text'
                   ">
                 {{ p.name }}
               </button>
@@ -402,6 +404,7 @@ import AppLayout from "../components/AppLayout.vue";
 import calendarApi from "../api/calendarApi";
 import postsApi from "../api/postsApi";
 import api from "../api/client";
+import { useCalendarStore } from '../stores/calendarStore'
 
 // ── State ─────────────────────────────────────────────────────────────────────
 const brandId = ref(localStorage.getItem("cf_brandId") || "");
@@ -429,6 +432,11 @@ const currentCalendar = ref(null);
 const calendarWeeks = ref([]);
 const trends = ref([]);
 const trendsLastUpdated = ref("");
+const store = useCalendarStore()
+
+// ── Drag & Drop state ─────────────────────────────────────────────────────
+const draggedCell = ref(null)
+const dragOverId = ref(null)
 
 const weekDays = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
 const statuses = [
@@ -501,12 +509,23 @@ const calendarDateRange = computed(() => {
 
 // ── Helpers for dates ─────────────────────────────────────────────────────────
 function todayStr() {
-  return new Date().toISOString().split("T")[0];
+  const d = new Date()
+  const y = d.getFullYear()
+  const m = String(d.getMonth() + 1).padStart(2, '0')
+  const day = String(d.getDate()).padStart(2, '0')
+  return `${y}-${m}-${day}`
+}
+function parseLocalDate(dateStr) {
+  const [y, m, d] = dateStr.split('-').map(Number)
+  return new Date(y, m - 1, d)
 }
 function twoWeeksStr() {
   const d = new Date();
   d.setDate(d.getDate() + 14);
-  return d.toISOString().split("T")[0];
+  const y = d.getFullYear()
+  const m = String(d.getMonth() + 1).padStart(2, '0')
+  const day = String(d.getDate()).padStart(2, '0')
+  return `${y}-${m}-${day}`
 }
 
 // ── Load on mount ─────────────────────────────────────────────────────────────
@@ -552,6 +571,34 @@ async function doGenerate() {
   loadingCalendar.value = true;
   showModal.value = false;
 
+  const today = parseLocalDate(todayStr())
+  const start = parseLocalDate(startDate.value)
+  const end = parseLocalDate(endDate.value)
+
+  if (start < today) {
+    generateError.value = "Start date cannot be before today.";
+    showModal.value = true;
+    generating.value = false;
+    loadingCalendar.value = false;
+    return;
+  }
+
+  if (end < today) {
+    generateError.value = "End date cannot be before today.";
+    showModal.value = true;
+    generating.value = false;
+    loadingCalendar.value = false;
+    return;
+  }
+
+  if (end <= start) {
+    generateError.value = "End date must be after start date.";
+    showModal.value = true;
+    generating.value = false;
+    loadingCalendar.value = false;
+    return;
+  }
+
   try {
     // لو regenerate، امسح القديم الأول
     if (isRegenerate.value && currentCalendar.value) {
@@ -563,7 +610,7 @@ async function doGenerate() {
     }
 
     const durationDays = Math.round(
-      (new Date(endDate.value) - new Date(startDate.value)) /
+      (end - start) /
       (1000 * 60 * 60 * 24)
     );
 
@@ -783,5 +830,28 @@ function statusColor(s) {
       Published: "text-teal-400",
     }[s] || "text-slate-500"
   );
+}
+
+function onDragStart(cell) {
+  draggedCell.value = cell
+}
+
+async function onDrop(targetCell) {
+  dragOverId.value = null
+  if (!draggedCell.value) return
+  if (draggedCell.value.id === targetCell.id) return
+
+  try {
+    await store.swapPostDates(draggedCell.value.id, targetCell.id)
+
+    // Swap the display dates in calendarWeeks so UI reflects the change
+    const temp = draggedCell.value.date
+    draggedCell.value.date = targetCell.date
+    targetCell.date = temp
+  } catch {
+    alert("Failed to swap posts. Please try again.")
+  } finally {
+    draggedCell.value = null
+  }
 }
 </script>

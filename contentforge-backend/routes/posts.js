@@ -85,4 +85,19 @@ router.delete('/:id', protect, async (req, res) => {
   res.json({ message: 'Post deleted' })
 })
 
+
+// PATCH /api/posts/:id/date  ← drag-and-drop swap
+router.patch('/:id/date', protect, async (req, res) => {
+  const { date } = req.body
+  if (!date) return res.status(400).json({ message: 'date is required' })
+
+  const post = await Post.findByIdAndUpdate(
+    req.params.id,
+    { date: new Date(date) },
+    { new: true }
+  )
+  if (!post) return res.status(404).json({ message: 'Post not found' })
+  res.json(post)
+})
+
 module.exports = router

@@ -61,6 +61,13 @@ const postsApi = {
   async publishPost(postId) {
     return await api.post(`/posts/${postId}/publish`)
   },
+
+  // ── Swap post date (drag-and-drop) ──────────────────────────────────────────
+  // PATCH /api/posts/:id/date
+  // Body: { date: ISO date string }
+  async updateDate(postId, date) {
+    return await api.patch(`/posts/${postId}/date`, { date })
+  },
 }
 
 export default postsApi

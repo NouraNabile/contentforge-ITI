@@ -970,9 +970,21 @@ async function onDrop(targetCell) {
   const postId = draggedCell.value._id || draggedCell.value.id;
   const newDate = targetCell.rawDate;
 
+  // If post was approved, reset to draft on move
+  const wasApproved = draggedCell.value.status === 'approved';
+
   try {
     // Interfacing directly with your calendarStore.js action endpoint
     await store.movePostDate(postId, newDate);
+
+    if (wasApproved) {
+      await postsApi.updatePost(postId, { status: 'draft' });
+      store.posts = store.posts.map(p =>
+        (p._id === postId || p.id === postId)
+          ? { ...p, status: 'draft' }
+          : p
+      );
+    }
   } catch (err) {
     alert("Could not complete the move: " + err.message);
   } finally {

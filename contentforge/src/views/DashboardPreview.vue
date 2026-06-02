@@ -27,7 +27,7 @@
           <!-- Calendar actions — بتظهر بس لو في calendar -->
           <template v-if="currentCalendar">
             <!-- Approve Plan -->
-            <button @click="approvePlan" :disabled="approving"
+            <button @click="approvePlan" :disabled="approving || planApproved"
               class="px-4 py-2 rounded-xl bg-green-600 text-white text-xs font-medium hover:bg-green-500 transition-colors disabled:opacity-50 flex items-center gap-1.5">
               <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
@@ -54,14 +54,14 @@
             Generate Plan
           </button>
           <!-- Regenerate -->
-            <button v-if="currentCalendar" @click="openRegenerate"
-              class="px-3 py-2 rounded-xl theme-card theme-border theme-sub text-xs hover:theme-text transition-colors flex items-center gap-1.5">
-              <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                  d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-              </svg>
-              Regenerate
-            </button>
+          <button v-if="currentCalendar" @click="openRegenerate"
+            class="px-3 py-2 rounded-xl theme-card theme-border theme-sub text-xs hover:theme-text transition-colors flex items-center gap-1.5">
+            <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+            </svg>
+            Regenerate
+          </button>
         </div>
       </div>
 
@@ -118,7 +118,8 @@
                   </span>
                 </div>
 
-                <div class="flex flex-col gap-2 flex-1 overflow-y-auto overflow-x-hidden max-h-[280px] custom-scrollbar">
+                <div
+                  class="flex flex-col gap-2 flex-1 overflow-y-auto overflow-x-hidden max-h-[280px] custom-scrollbar">
                   <template v-if="dayCell.posts && dayCell.posts.length > 0">
                     <div v-for="post in dayCell.posts" :key="post._id || post.id" draggable="true"
                       @dragstart="onDragStart(post)" @click.stop="selectPost(post)"
@@ -476,6 +477,7 @@ const currentCalendar = ref(null);
 const trends = ref([]);
 const trendsLastUpdated = ref("");
 const store = useCalendarStore()
+const planApproved = ref(false);
 
 
 // ── Drag & Drop state ─────────────────────────────────────────────────────
@@ -721,6 +723,7 @@ async function approvePlan() {
     await calendarApi.approveCalendar(currentCalendar.value._id);
     store.posts = store.posts.map((p) => ({ ...p, status: "approved" }));
     approveMsg.value = "All posts approved!";
+    planApproved.value = true;
     setTimeout(() => (approveMsg.value = ""), 3000);
   } catch (err) {
     alert("Approve failed: " + err.message);
@@ -859,7 +862,7 @@ async function savePost() {
   if (!selectedPost.value) return;
   saving.value = true;
   saveMsg.value = "";
-  
+
   const postId = selectedPost.value._id || selectedPost.value.id;
   const formattedStatus = selectedPost.value.status.toLowerCase().replace(" ", "_");
 
@@ -869,9 +872,9 @@ async function savePost() {
       status: formattedStatus,
     });
 
-    store.posts = store.posts.map((p) => 
-      (p._id === postId || p.id === postId) 
-        ? { ...p, copyAR: editCopy.value, copy: editCopy.value, status: formattedStatus } 
+    store.posts = store.posts.map((p) =>
+      (p._id === postId || p.id === postId)
+        ? { ...p, copyAR: editCopy.value, copy: editCopy.value, status: formattedStatus }
         : p
     );
 
@@ -906,7 +909,7 @@ async function applyVariantB() {
   editCopy.value = variantB.value;
   selectedPost.value.copyAR = variantB.value;
   selectedPost.value.copy = variantB.value;
-  
+
   const postId = selectedPost.value._id || selectedPost.value.id;
   variantB.value = null;
   try {
@@ -961,6 +964,8 @@ async function onDrop(targetCell) {
   dragOverId.value = null;
   if (!draggedCell.value || !targetCell.rawDate) return;
 
+  planApproved.value = false;
+
   const currentPostDate = draggedCell.value.date || draggedCell.value.scheduledAt;
   if (currentPostDate?.substring(0, 10) === targetCell.rawDate) {
     draggedCell.value = null;
@@ -1000,16 +1005,19 @@ async function onDrop(targetCell) {
 }
 
 ::-webkit-scrollbar-track {
-  background: rgba(15, 23, 42, 0.3); /* Dark theme slate track */
+  background: rgba(15, 23, 42, 0.3);
+  /* Dark theme slate track */
 }
 
 ::-webkit-scrollbar-thumb {
-  background: rgba(148, 163, 184, 0.3); /* Subdued slate gray thumb */
+  background: rgba(148, 163, 184, 0.3);
+  /* Subdued slate gray thumb */
   border-radius: 4px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: rgba(148, 163, 184, 0.5); /* Slightly brighter on hover */
+  background: rgba(148, 163, 184, 0.5);
+  /* Slightly brighter on hover */
 }
 
 .aspect-square {

@@ -706,6 +706,7 @@ async function doGenerate() {
     store.posts = result.posts || [];
     brief.value = "";
     isRegenerate.value = false;
+    planApproved.value = false; 
   } catch (err) {
     generateError.value = err.message || "Generation failed.";
     showModal.value = true;

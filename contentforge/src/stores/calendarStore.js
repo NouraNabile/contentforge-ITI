@@ -93,31 +93,54 @@ export const useCalendarStore = defineStore('calendar', () => {
   }
 
   // ── Swap dates between two posts (drag-and-drop) ──────────────────────────
-  async function swapPostDates(draggedId, targetId) {
-    const dragged = posts.value.find(p => p._id === draggedId)
-    const target = posts.value.find(p => p._id === targetId)
-    if (!dragged || !target) return
+  // async function swapPostDates(draggedId, targetId) {
+  //   const dragged = posts.value.find(p => p._id === draggedId)
+  //   const target = posts.value.find(p => p._id === targetId)
+  //   if (!dragged || !target) return
 
-    // 1. Swap in memory instantly (optimistic)
-    const tempDate = dragged.date
-    dragged.date = target.date
-    target.date = tempDate
+  //   // 1. Swap in memory instantly (optimistic)
+  //   const tempDate = dragged.date
+  //   dragged.date = target.date
+  //   target.date = tempDate
+
+  //   try {
+  //     // 2. Persist both to DB in parallel
+  //     await Promise.all([
+  //       postsApi.updateDate(draggedId, dragged.date),
+  //       postsApi.updateDate(targetId, target.date)
+  //     ])
+  //   } catch (err) {
+  //     // 3. Revert both if server fails
+  //     dragged.date = target.date
+  //     target.date = tempDate
+  //     throw err
+  //   }
+  // }
+
+
+  // ── Move a post to a new date (drag-and-drop) ──────────────────────────
+  async function movePostDate(postId, newTargetDate) {
+    const post = posts.value.find(p => p._id === postId)
+    if (!post) return
+
+    // 1. Keep track of the original date for potential rollback
+    const originalDate = post.date
+
+    // 2. Update in memory instantly (optimistic update)
+    post.date = newTargetDate
 
     try {
-      // 2. Persist both to DB in parallel
-      await Promise.all([
-        postsApi.updateDate(draggedId, dragged.date),
-        postsApi.updateDate(targetId, target.date)
-      ])
+      // 3. Persist the change to the database
+      await postsApi.updateDate(postId, newTargetDate)
     } catch (err) {
-      // 3. Revert both if server fails
-      dragged.date = target.date
-      target.date = tempDate
+      // 4. Revert to original date if the server fails
+      post.date = originalDate
+      error.value = err.message
       throw err
     }
   }
   return {
     calendar, posts, isGenerating, isLoading, error, lastSaved,
-    generate, loadCalendar, updatePostStatus, updatePost, getVariantB, approveAll, deletePost, swapPostDates
+    generate, loadCalendar, updatePostStatus, updatePost, getVariantB, approveAll, deletePost, movePostDate
   }
 })

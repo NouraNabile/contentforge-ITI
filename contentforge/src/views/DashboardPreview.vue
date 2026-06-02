@@ -98,7 +98,7 @@
           </div>
 
           <!-- Weeks -->
-          <div class="space-y-2">
+          <!--<div class="space-y-2">
             <div v-for="week in filteredWeeks" :key="week.id" class="grid grid-cols-7 gap-2">
               <div v-for="cell in week.cells" :key="cell.id" :draggable="!!cell.copy"
                 @dragstart="cell.copy && onDragStart(cell)" @dragover.prevent
@@ -126,8 +126,43 @@
                   cell.status }}</span>
               </div>
             </div>
-          </div>
+          </div>-->
 
+
+          <div class="space-y-2">
+            <div v-for="week in filteredWeeks" :key="week.id" class="grid grid-cols-7 gap-2">
+              <div v-for="cell in week.cells" :key="cell.rawDate || cell.id" :draggable="!!cell.copy"
+                @dragstart="cell.copy && onDragStart(cell)" @dragover.prevent
+                @dragenter="dragOverId = cell.rawDate || cell.id" @dragleave="dragOverId = null" @drop="onDrop(cell)"
+                @click="cell.copy && selectPost(cell)"
+                class="rounded-xl border transition-all min-h-[100px] p-2.5 flex flex-col" :class="[
+                  cell.cellClass,
+                  cell.copy ? 'cursor-grab hover:scale-[1.02]' : 'cursor-default',
+                  selectedPost?.id === cell.id ? 'ring-2 ring-blue-500/50' : '',
+                  dragOverId === (cell.rawDate || cell.id) ? 'ring-2 ring-amber-400/50 scale-[1.02]' : ''
+                ]" :style="cell.copy ? '' : 'border-color:var(--border)'">
+
+                <div class="flex items-center justify-between mb-1.5">
+                  <span class="text-[11px] font-medium" :class="cell.copy ? 'theme-text' : 'theme-muted'">
+                    {{ cell.date }}
+                  </span>
+                  <span v-if="cell.platform" class="text-[9px] px-1.5 py-0.5 rounded font-medium"
+                    :class="platformBadge(cell.platform)">{{ cell.platform }}</span>
+                </div>
+
+                <p v-if="cell.copy" class="text-[10px] leading-tight theme-sub flex-1">
+                  {{ cell.copy }}
+                </p>
+                <p v-else class="text-[10px] theme-muted flex-1 flex items-center justify-center">
+                  —
+                </p>
+
+                <span v-if="cell.status" class="text-[9px] font-medium mt-1.5" :class="statusColor(cell.status)">
+                  {{ cell.status }}
+                </span>
+              </div>
+            </div>
+          </div>
           <!-- Legend -->
           <div v-if="filteredWeeks.length > 0" class="flex items-center gap-5 flex-wrap mt-5 pt-4 border-t"
             style="border-color: var(--border)">
@@ -579,8 +614,8 @@ onMounted(async () => {
     const calendars = await calendarApi.getBrandCalendars(brandId.value);
     if (calendars?.length) {
       const latest = await calendarApi.getCalendar(calendars[0]._id);
-      currentCalendar.value = latest;
-      calendarWeeks.value = buildWeeks(latest.posts || []);
+      store.posts = latest.posts || [];
+      calendarWeeks.value = buildWeeks(store.posts);
     }
   } catch { }
 });
@@ -652,7 +687,8 @@ async function doGenerate() {
     console.log("Generation result:", result);
 
     currentCalendar.value = result.calendar;
-    calendarWeeks.value = buildWeeks(result.posts || []);
+    store.posts = result.posts || [];
+    calendarWeeks.value = buildWeeks(store.posts);
     brief.value = "";
     isRegenerate.value = false;
   } catch (err) {
@@ -715,6 +751,7 @@ async function deleteCalendar() {
   }
 }
 
+
 // ── Build weeks grid ──────────────────────────────────────────────────────────
 // function buildWeeks(posts) {
 //   if (!posts.length) return [];
@@ -729,9 +766,9 @@ async function deleteCalendar() {
 //       chunk.push({ _id: `empty-${i}-${chunk.length}`, empty: true });
 //     weeks.push({
 //       id: i,
-//       cells: chunk.map((p) =>
-//         p.empty
-//           ? {
+//       cells: chunk.map((p) => {
+//         if (p.empty) {
+//           return {
 //             id: p._id,
 //             date: "",
 //             platform: null,
@@ -739,10 +776,20 @@ async function deleteCalendar() {
 //             status: null,
 //             hashtags: [],
 //             cellClass: "bg-transparent",
-//           }
-//           : {
+//           };
+//         } else {
+//           // 1. Create a safe date object from backend field
+//           const postDate = new Date(p.date || p.scheduledDate);
+
+//           // 2. Format it to look like "2 March" using standard locale formatting
+//           const formattedDate = postDate.toLocaleDateString("en-GB", {
+//             day: "numeric",
+//             month: "long",
+//           });
+
+//           return {
 //             id: p._id,
-//             date: new Date(p.date || p.scheduledDate).getDate().toString(),
+//             date: formattedDate, // Now contains "2 March", "26 May", etc.
 //             platform: (p.platform || "").slice(0, 2).toUpperCase(),
 //             copy: p.copyAR || p.copy || "",
 //             dialect: p.dialect || "",
@@ -752,76 +799,120 @@ async function deleteCalendar() {
 //               : "Draft",
 //             hashtags: p.hashtags || [],
 //             cellClass: statusToClass(p.status),
-//           }
-//       ),
+//           };
+//         }
+//       }),
 //     });
 //   }
 //   return weeks;
 // }
-// ── Build weeks grid ──────────────────────────────────────────────────────────
-function buildWeeks(posts) {
-  if (!posts.length) return [];
-  const sorted = [...posts].sort(
-    (a, b) =>
-      new Date(a.date || a.scheduledDate) - new Date(b.date || b.scheduledDate)
-  );
-  const weeks = [];
-  for (let i = 0; i < sorted.length; i += 7) {
-    const chunk = sorted.slice(i, i + 7);
-    while (chunk.length < 7)
-      chunk.push({ _id: `empty-${i}-${chunk.length}`, empty: true });
-    weeks.push({
-      id: i,
-      cells: chunk.map((p) => {
-        if (p.empty) {
-          return {
-            id: p._id,
-            date: "",
-            platform: null,
-            copy: null,
-            status: null,
-            hashtags: [],
-            cellClass: "bg-transparent",
-          };
-        } else {
-          // 1. Create a safe date object from backend field
-          const postDate = new Date(p.date || p.scheduledDate);
-          
-          // 2. Format it to look like "2 March" using standard locale formatting
-          const formattedDate = postDate.toLocaleDateString("en-GB", {
-            day: "numeric",
-            month: "long",
-          });
 
-          return {
-            id: p._id,
-            date: formattedDate, // Now contains "2 March", "26 May", etc.
-            platform: (p.platform || "").slice(0, 2).toUpperCase(),
-            copy: p.copyAR || p.copy || "",
-            dialect: p.dialect || "",
-            status: p.status
-              ? p.status.charAt(0).toUpperCase() +
-              p.status.slice(1).replace("_", " ")
-              : "Draft",
-            hashtags: p.hashtags || [],
-            cellClass: statusToClass(p.status),
-          };
-        }
-      }),
-    });
+// function statusToClass(s) {
+//   return (
+//     {
+//       approved: "border-green-500/25 bg-green-500/5",
+//       scheduled: "border-blue-500/25 bg-blue-500/5",
+//       pending_review: "border-amber-500/20 bg-amber-500/5",
+//       draft: "theme-card",
+//     }[s] || "theme-card"
+//   );
+// }
+
+
+// ── Build weeks grid mapping calendar structure ───────────────────────────
+function buildWeeks(posts) {
+  if (!currentCalendar.value || !posts) return [];
+
+  const start = new Date(currentCalendar.value.startDate);
+  const end = new Date(currentCalendar.value.endDate);
+
+  // Generate list of all ISO strings spanning the period
+  const dateSlots = [];
+  let current = new Date(start);
+  while (current <= end) {
+    dateSlots.push(current.toISOString().split('T')[0]);
+    current.setDate(current.getDate() + 1);
   }
+
+  // Backfill slots to line up Monday correctly on your grid headers
+  const initialDay = new Date(dateSlots[0]).getDay();
+  const offset = initialDay === 0 ? 6 : initialDay - 1; // Align to Mon index 0
+  for (let i = 0; i < offset; i++) {
+    dateSlots.unshift(null); // Structural pad spacer blocks
+  }
+
+  const weeks = [];
+  let weekCells = [];
+  let weekId = 0;
+
+  dateSlots.forEach((dateStr, index) => {
+    if (dateStr === null) {
+      weekCells.push({
+        id: `pad-${index}`,
+        date: "",
+        rawDate: null,
+        copy: null,
+        cellClass: "bg-transparent opacity-30 border-transparent pointer-events-none"
+      });
+    } else {
+      // Find the post assigned to this explicit calendar date 
+      const post = posts.find(p => {
+        const pDate = p.date || p.scheduledAt || p.scheduledDate;
+        return pDate && pDate.startsWith(dateStr);
+      });
+
+      if (post) {
+        const [y, mo, d] = dateStr.split('-').map(Number);
+        const formattedDate = new Date(y, mo - 1, d)
+          .toLocaleDateString('en-GB', { day: 'numeric', month: 'long' });
+        weekCells.push({
+          id: post._id,
+          date: formattedDate,
+          rawDate: dateStr,
+          platform: (post.platform || "").slice(0, 2).toUpperCase(),
+          copy: post.copyAR || post.copy || "",
+          dialect: post.dialect || "",
+          status: post.status ? post.status.charAt(0).toUpperCase() + post.status.slice(1).replace("_", " ") : "Draft",
+          hashtags: post.hashtags || [],
+          cellClass: statusToClass(post.status),
+        });
+      } else {
+        const [ey, em, ed] = dateStr.split('-').map(Number);
+        weekCells.push({
+          id: `empty-${dateStr}`,
+          date: new Date(ey, em - 1, ed)
+            .toLocaleDateString('en-GB', { day: 'numeric', month: 'long' }),
+          rawDate: dateStr,
+          platform: null,
+          copy: null,
+          status: null,
+          hashtags: [],
+          cellClass: "bg-slate-900/10 border-dashed border-slate-700/30",
+        });
+      }
+    }
+
+    // Wrap columns every 7 days
+    if (weekCells.length === 7 || index === dateSlots.length - 1) {
+      while (weekCells.length < 7) {
+        weekCells.push({ id: `fill-${index}-${weekCells.length}`, date: "", rawDate: null, copy: null, cellClass: "bg-transparent" });
+      }
+      weeks.push({ id: weekId++, cells: weekCells });
+      weekCells = [];
+    }
+  });
+
   return weeks;
 }
 
-function statusToClass(s) {
-  return (
-    {
-      approved: "border-green-500/25 bg-green-500/5",
-      scheduled: "border-blue-500/25 bg-blue-500/5",
-      pending_review: "border-amber-500/20 bg-amber-500/5",
-      draft: "theme-card",
-    }[s] || "theme-card"
-  );
+function statusToClass(status) {
+  return {
+    draft: "border-slate-700 bg-slate-800/40",
+    pending_review: "border-amber-500/20 bg-amber-500/5",
+    approved: "border-green-500/25 bg-green-500/5",
+    scheduled: "border-blue-500/25 bg-blue-500/5",
+    published: "border-teal-500/25 bg-teal-500/5"
+  }[status] || "border-slate-700 bg-slate-800/40";
 }
 
 // ── Post editor ───────────────────────────────────────────────────────────────
@@ -913,26 +1004,51 @@ function statusColor(s) {
   );
 }
 
+// function onDragStart(cell) {
+//   draggedCell.value = cell
+// }
+
+// async function onDrop(targetCell) {
+//   dragOverId.value = null
+//   if (!draggedCell.value) return
+//   if (draggedCell.value.id === targetCell.id) return
+
+//   try {
+//     await store.swapPostDates(draggedCell.value.id, targetCell.id)
+
+//     // Swap the display dates in calendarWeeks so UI reflects the change
+//     const temp = draggedCell.value.date
+//     draggedCell.value.date = targetCell.date
+//     targetCell.date = temp
+//   } catch {
+//     alert("Failed to swap posts. Please try again.")
+//   } finally {
+//     draggedCell.value = null
+//   }
+// }
+
+
+// ── Drag & Drop Handlers ───────────────────────────────────────────────────
 function onDragStart(cell) {
-  draggedCell.value = cell
+  // Save the complete post object being dragged
+  draggedCell.value = cell;
 }
 
 async function onDrop(targetCell) {
-  dragOverId.value = null
-  if (!draggedCell.value) return
-  if (draggedCell.value.id === targetCell.id) return
+  dragOverId.value = null;
+
+  if (!draggedCell.value || !targetCell.rawDate) return;
+
+  // Prevent dropping a post onto its own date slot
+  if (draggedCell.value.rawDate === targetCell.rawDate) return;
 
   try {
-    await store.swapPostDates(draggedCell.value.id, targetCell.id)
-
-    // Swap the display dates in calendarWeeks so UI reflects the change
-    const temp = draggedCell.value.date
-    draggedCell.value.date = targetCell.date
-    targetCell.date = temp
-  } catch {
-    alert("Failed to swap posts. Please try again.")
+    await store.movePostDate(draggedCell.value.id, targetCell.rawDate);
+    calendarWeeks.value = buildWeeks(store.posts);
+  } catch (err) {
+    alert("Could not complete the move: " + err.message);
   } finally {
-    draggedCell.value = null
+    draggedCell.value = null;
   }
 }
 </script>

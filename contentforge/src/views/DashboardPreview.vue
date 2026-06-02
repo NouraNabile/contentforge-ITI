@@ -11,7 +11,7 @@
           <p class="text-xs theme-sub mt-0.5">
             <template v-if="currentCalendar">
               {{ calendarDateRange }} ·
-              {{ currentCalendar.posts?.length || 0 }} posts planned
+              {{ store.posts?.length || 0 }} posts planned
             </template>
             <template v-else>No calendar yet — generate your first plan</template>
           </p>
@@ -98,71 +98,69 @@
           </div>
 
           <!-- Weeks -->
-          <!--<div class="space-y-2">
-            <div v-for="week in filteredWeeks" :key="week.id" class="grid grid-cols-7 gap-2">
-              <div v-for="cell in week.cells" :key="cell.id" :draggable="!!cell.copy"
-                @dragstart="cell.copy && onDragStart(cell)" @dragover.prevent
-                @dragenter="cell.copy && (dragOverId = cell.id)" @dragleave="dragOverId = null"
-                @drop="cell.copy && onDrop(cell)" @click="cell.copy && selectPost(cell)"
-                class="rounded-xl border transition-all min-h-[100px] p-2.5 flex flex-col" :class="[
-                  cell.cellClass,
-                  cell.copy ? 'cursor-grab hover:scale-[1.02]' : 'cursor-default',
-                  selectedPost?.id === cell.id ? 'ring-2 ring-blue-500/50' : '',
-                  dragOverId === cell.id ? 'ring-2 ring-amber-400/50 scale-[1.02]' : ''
-                ]" :style="cell.copy ? '' : 'border-color:var(--border)'">
-                <div class="flex items-center justify-between mb-1.5">
-                  <span class="text-[11px] font-medium" :class="cell.copy ? 'theme-text' : 'theme-muted'">{{ cell.date
-                  }}</span>
-                  <span v-if="cell.platform" class="text-[9px] px-1.5 py-0.5 rounded font-medium"
-                    :class="platformBadge(cell.platform)">{{ cell.platform }}</span>
-                </div>
-                <p v-if="cell.copy" class="text-[10px] leading-tight theme-sub flex-1">
-                  {{ cell.copy }}
-                </p>
-                <p v-else-if="cell.date" class="text-[10px] theme-muted flex-1 flex items-center justify-center">
-                  —
-                </p>
-                <span v-if="cell.status" class="text-[9px] font-medium mt-1.5" :class="statusColor(cell.status)">{{
-                  cell.status }}</span>
-              </div>
-            </div>
-          </div>-->
+          <div v-if="!loadingCalendar" class="space-y-3">
+            <div v-for="week in filteredWeeks" :key="week.id" class="grid grid-cols-7 gap-3">
+              <div v-for="dayCell in week.cells" :key="dayCell.id" @dragover.prevent
+                @dragenter="dragOverId = dayCell.rawDate" @dragleave="dragOverId = null" @drop="onDrop(dayCell)"
+                class="rounded-xl border p-2 flex flex-col min-h-[160px] transition-all bg-forge-900/40" :class="[
+                  dragOverId === dayCell.rawDate && dayCell.rawDate ? 'ring-2 ring-amber-400/50 border-amber-400/50 bg-amber-500/5 scale-[1.01]' : '',
+                  dayCell.cellClass
+                ]" style="border-color: var(--border);">
 
-
-          <div class="space-y-2">
-            <div v-for="week in filteredWeeks" :key="week.id" class="grid grid-cols-7 gap-2">
-              <div v-for="cell in week.cells" :key="cell.rawDate || cell.id" :draggable="!!cell.copy"
-                @dragstart="cell.copy && onDragStart(cell)" @dragover.prevent
-                @dragenter="dragOverId = cell.rawDate || cell.id" @dragleave="dragOverId = null" @drop="onDrop(cell)"
-                @click="cell.copy && selectPost(cell)"
-                class="rounded-xl border transition-all min-h-[100px] p-2.5 flex flex-col" :class="[
-                  cell.cellClass,
-                  cell.copy ? 'cursor-grab hover:scale-[1.02]' : 'cursor-default',
-                  selectedPost?.id === cell.id ? 'ring-2 ring-blue-500/50' : '',
-                  dragOverId === (cell.rawDate || cell.id) ? 'ring-2 ring-amber-400/50 scale-[1.02]' : ''
-                ]" :style="cell.copy ? '' : 'border-color:var(--border)'">
-
-                <div class="flex items-center justify-between mb-1.5">
-                  <span class="text-[11px] font-medium" :class="cell.copy ? 'theme-text' : 'theme-muted'">
-                    {{ cell.date }}
+                <div class="flex items-center justify-between mb-2 px-1">
+                  <span class="text-[11px] font-semibold tracking-wide"
+                    :class="dayCell.posts && dayCell.posts.length > 0 ? 'theme-text' : 'theme-muted'">
+                    {{ dayCell.date }}
                   </span>
-                  <span v-if="cell.platform" class="text-[9px] px-1.5 py-0.5 rounded font-medium"
-                    :class="platformBadge(cell.platform)">{{ cell.platform }}</span>
+                  <span v-if="dayCell.posts && dayCell.posts.length > 1"
+                    class="text-[9px] px-1.5 py-0.5 rounded-full bg-blue-500/10 text-blue-400 font-medium">
+                    {{ dayCell.posts.length }} posts
+                  </span>
                 </div>
 
-                <p v-if="cell.copy" class="text-[10px] leading-tight theme-sub flex-1">
-                  {{ cell.copy }}
-                </p>
-                <p v-else class="text-[10px] theme-muted flex-1 flex items-center justify-center">
-                  —
-                </p>
+                <div class="flex flex-col gap-2 flex-1 overflow-y-auto max-h-[280px] custom-scrollbar">
+                  <template v-if="dayCell.posts && dayCell.posts.length > 0">
+                    <div v-for="post in dayCell.posts" :key="post._id || post.id" draggable="true"
+                      @dragstart="onDragStart(post)" @click.stop="selectPost(post)"
+                      class="relative rounded-lg border p-2.5 flex flex-col justify-between transition-all aspect-square w-full cursor-grab hover:scale-[1.02] active:cursor-grabbing shadow-sm"
+                      :class="[
+                        statusToClass(post.status),
+                        (selectedPost?._id === post._id || selectedPost?.id === post.id) ? 'ring-2 ring-blue-500 border-blue-500/50' : ''
+                      ]">
+                      <div class="flex items-start justify-between">
+                        <span class="text-[9px] font-mono opacity-60 text-left">
+                          {{ dayCell.date }}
+                        </span>
+                        <span v-if="post.platform"
+                          class="text-[8px] px-1.5 py-0.5 rounded font-medium transform -mt-0.5"
+                          :class="platformBadge(post.platform)">
+                          {{ post.platform }}
+                        </span>
+                      </div>
 
-                <span v-if="cell.status" class="text-[9px] font-medium mt-1.5" :class="statusColor(cell.status)">
-                  {{ cell.status }}
-                </span>
+                      <p class="text-[10px] leading-snug theme-sub flex-1 line-clamp-3 mt-1.5 text-left">
+                        {{ post.copyAR || post.copy || post.text }}
+                      </p>
+
+                      <div class="flex items-center justify-between mt-1 pt-1 border-t border-white/5">
+                        <span v-if="post.status" class="text-[8px] font-medium tracking-wide"
+                          :class="statusColor(post.status)">
+                          ● {{ post.status }}
+                        </span>
+                      </div>
+                    </div>
+                  </template>
+
+                  <div v-else-if="dayCell.rawDate"
+                    class="text-[10px] theme-muted flex-1 flex items-center justify-center opacity-40 italic py-4">
+                    —
+                  </div>
+                </div>
               </div>
             </div>
           </div>
+
+
           <!-- Legend -->
           <div v-if="filteredWeeks.length > 0" class="flex items-center gap-5 flex-wrap mt-5 pt-4 border-t"
             style="border-color: var(--border)">
@@ -475,10 +473,11 @@ const variantB = ref(null);
 const loadingVariant = ref(false);
 const errorMessage = ref("");
 const currentCalendar = ref(null);
-const calendarWeeks = ref([]);
+// const calendarWeeks = ref([]);
 const trends = ref([]);
 const trendsLastUpdated = ref("");
 const store = useCalendarStore()
+
 
 // ── Drag & Drop state ─────────────────────────────────────────────────────
 const draggedCell = ref(null)
@@ -526,39 +525,93 @@ const durationLabel = computed(() => {
   return `${duration.value} days · ~${Math.round(duration.value * 0.65)} posts expected`;
 });
 
+// Re-built reactively based on Pinia store array state
+const calendarWeeks = computed(() => {
+  const startStr = currentCalendar.value?.startDate || startDate.value;
+  const endStr = currentCalendar.value?.endDate || endDate.value;
+  if (!startStr || !endStr) return [];
+
+  const start = new Date(startStr);
+  const end = new Date(endStr);
+
+  const dateSlots = [];
+  let current = new Date(start);
+  while (current <= end) {
+    dateSlots.push(current.toISOString().split('T')[0]);
+    current.setDate(current.getDate() + 1);
+  }
+
+  const initialDay = new Date(dateSlots[0]).getDay();
+  const offset = initialDay === 0 ? 6 : initialDay - 1;
+  for (let i = 0; i < offset; i++) {
+    dateSlots.unshift(null);
+  }
+
+  const weeks = [];
+  let weekCells = [];
+  let weekId = 0;
+
+  dateSlots.forEach((dateStr, index) => {
+    if (dateStr === null) {
+      weekCells.push({
+        id: `pad-${index}`,
+        date: "",
+        rawDate: null,
+        posts: [],
+        cellClass: "bg-transparent opacity-30 border-transparent pointer-events-none"
+      });
+    } else {
+      const dayPosts = (store.posts || []).filter(p => {
+        const pDate = p.date || p.scheduledAt;
+        return pDate && pDate.substring(0, 10) === dateStr;
+      });
+
+      const [y, mo, d] = dateStr.split('-').map(Number);
+      const formattedDate = new Date(y, mo - 1, d).toLocaleDateString('en-US', { day: 'numeric', month: 'short' });
+
+      weekCells.push({
+        id: `cell-${dateStr}`,
+        date: formattedDate,
+        rawDate: dateStr,
+        posts: dayPosts,
+        cellClass: dayPosts.length > 0 ? "" : "bg-slate-900/10 border-dashed border-slate-700/30"
+      });
+    }
+
+    if (weekCells.length === 7 || index === dateSlots.length - 1) {
+      while (weekCells.length < 7) {
+        weekCells.push({ id: `fill-${index}-${weekCells.length}`, date: "", rawDate: null, posts: [], cellClass: "bg-transparent" });
+      }
+      weeks.push({ id: weekId++, cells: weekCells });
+      weekCells = [];
+    }
+  });
+
+  return weeks;
+});
+
+// Refactored filters matching Option 1 properties
 const filteredWeeks = computed(() => {
   if (activeFilter.value === "All") return calendarWeeks.value;
-  return calendarWeeks.value
-    .map((week) => ({
-      ...week,
-      cells: week.cells.map((cell) =>
-        !cell.status || cell.status === activeFilter.value
-          ? cell
-          : {
-            ...cell,
-            copy: null,
-            status: null,
-            platform: null,
-            cellClass: "bg-transparent",
-          }
-      ),
+  return calendarWeeks.value.map((week) => ({
+    ...week,
+    cells: week.cells.map((cell) => ({
+      ...cell,
+      posts: cell.posts.filter((p) => {
+        const cleanStatus = p.status ? p.status.toLowerCase().replace("_", " ") : "";
+        return cleanStatus === activeFilter.value.toLowerCase();
+      })
     }))
-    .filter((week) => week.cells.some((c) => c.copy));
+  }));
 });
 
 const calendarDateRange = computed(() => {
   if (!currentCalendar.value) return "";
   const s = new Date(currentCalendar.value.startDate);
   const e = new Date(currentCalendar.value.endDate);
-  return `${s.toLocaleDateString("en-GB", {
-    day: "numeric",
-    month: "short",
-  })} – ${e.toLocaleDateString("en-GB", {
-    day: "numeric",
-    month: "short",
-    year: "numeric",
-  })}`;
+  return `${s.toLocaleDateString("en-GB", { day: "numeric", month: "short" })} – ${e.toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" })}`;
 });
+
 
 // ── Helpers for dates ─────────────────────────────────────────────────────────
 function parseLocalDate(dateStr) {
@@ -593,33 +646,29 @@ watch(todayDate, (newDate) => {
 
 // ── Load on mount ─────────────────────────────────────────────────────────────
 onMounted(async () => {
-  // 1. Trends
   try {
     const data = await api.get("/trends");
     trends.value = data.trends.map((t) => ({
       ...t,
       color: t.velocity > 200 ? "text-green-400" : "text-teal-400",
     }));
-    trendsLastUpdated.value = new Date(data.lastUpdated).toLocaleTimeString(
-      "ar-EG"
-    );
+    trendsLastUpdated.value = new Date(data.lastUpdated).toLocaleTimeString("ar-EG");
   } catch (err) {
     console.error(err);
-    trends.value = [];
   }
 
-  // 2. Latest calendar
   if (!brandId.value) return;
   try {
     const calendars = await calendarApi.getBrandCalendars(brandId.value);
     if (calendars?.length) {
       const latest = await calendarApi.getCalendar(calendars[0]._id);
+      currentCalendar.value = latest;
       store.posts = latest.posts || [];
-      calendarWeeks.value = buildWeeks(store.posts);
     }
-  } catch { }
+  } catch (err) {
+    console.error(err);
+  }
 });
-
 // ── Generate / Regenerate ─────────────────────────────────────────────────────
 function openRegenerate() {
   isRegenerate.value = true;
@@ -627,74 +676,37 @@ function openRegenerate() {
 }
 
 async function doGenerate() {
-  if (!brief.value || !brandId.value || !startDate.value || !endDate.value)
-    return;
+  if (!brief.value || !brandId.value || !startDate.value || !endDate.value) return;
   generateError.value = "";
   generating.value = true;
   loadingCalendar.value = true;
   showModal.value = false;
 
-  const today = parseLocalDate(todayDate.value)
-  const start = parseLocalDate(startDate.value)
-  const end = parseLocalDate(endDate.value)
-
-  if (start < today) {
-    generateError.value = "Start date cannot be before today.";
-    showModal.value = true;
-    generating.value = false;
-    loadingCalendar.value = false;
-    return;
-  }
-
-  if (end < today) {
-    generateError.value = "End date cannot be before today.";
-    showModal.value = true;
-    generating.value = false;
-    loadingCalendar.value = false;
-    return;
-  }
-
-  if (end <= start) {
-    generateError.value = "End date must be after start date.";
-    showModal.value = true;
-    generating.value = false;
-    loadingCalendar.value = false;
-    return;
-  }
-
   try {
-    validateDates()
+    validateDates();
 
-    // لو regenerate، امسح القديم الأول
     if (isRegenerate.value && currentCalendar.value) {
-      await calendarApi
-        .deleteCalendar(currentCalendar.value._id)
-        .catch(() => { });
+      await calendarApi.deleteCalendar(currentCalendar.value._id).catch(() => { });
       currentCalendar.value = null;
-      calendarWeeks.value = [];
+      store.posts = [];
     }
 
     const result = await calendarApi.generate({
-      brandId: brandId.value, //
-      brief: brief.value, //
-      dialect: selectedDialect.value, //
-      platforms: platforms.value.filter((p) => p.on).map((p) => p.name), //
-      startDate: startDate.value, //
-      endDate: endDate.value, //
-      duration: duration.value, // Passing dynamic computed days
+      brandId: brandId.value,
+      brief: brief.value,
+      dialect: selectedDialect.value,
+      platforms: platforms.value.filter((p) => p.on).map((p) => p.name),
+      startDate: startDate.value,
+      endDate: endDate.value,
+      duration: duration.value,
     });
-
-    console.log("Generation result:", result);
 
     currentCalendar.value = result.calendar;
     store.posts = result.posts || [];
-    calendarWeeks.value = buildWeeks(store.posts);
     brief.value = "";
     isRegenerate.value = false;
   } catch (err) {
-    generateError.value = err.message?.includes("timeout")
-      ? "Request timed out — Gemini is busy. Please try again."
-      : err.message || "Generation failed — is your backend running?";
+    generateError.value = err.message || "Generation failed.";
     showModal.value = true;
   } finally {
     generating.value = false;
@@ -708,19 +720,7 @@ async function approvePlan() {
   approving.value = true;
   try {
     await calendarApi.approveCalendar(currentCalendar.value._id);
-    // حدث الـ local state
-    calendarWeeks.value = calendarWeeks.value.map((week) => ({
-      ...week,
-      cells: week.cells.map((cell) =>
-        cell.copy
-          ? {
-            ...cell,
-            status: "Approved",
-            cellClass: "border-green-500/25 bg-green-500/5",
-          }
-          : cell
-      ),
-    }));
+    store.posts = store.posts.map((p) => ({ ...p, status: "approved" }));
     approveMsg.value = "All posts approved!";
     setTimeout(() => (approveMsg.value = ""), 3000);
   } catch (err) {
@@ -741,7 +741,7 @@ async function deleteCalendar() {
   try {
     await calendarApi.deleteCalendar(currentCalendar.value._id);
     currentCalendar.value = null;
-    calendarWeeks.value = [];
+    store.posts = [];
     selectedPost.value = null;
     showDeleteConfirm.value = false;
   } catch (err) {
@@ -750,74 +750,6 @@ async function deleteCalendar() {
     deleting.value = false;
   }
 }
-
-
-// ── Build weeks grid ──────────────────────────────────────────────────────────
-// function buildWeeks(posts) {
-//   if (!posts.length) return [];
-//   const sorted = [...posts].sort(
-//     (a, b) =>
-//       new Date(a.date || a.scheduledDate) - new Date(b.date || b.scheduledDate)
-//   );
-//   const weeks = [];
-//   for (let i = 0; i < sorted.length; i += 7) {
-//     const chunk = sorted.slice(i, i + 7);
-//     while (chunk.length < 7)
-//       chunk.push({ _id: `empty-${i}-${chunk.length}`, empty: true });
-//     weeks.push({
-//       id: i,
-//       cells: chunk.map((p) => {
-//         if (p.empty) {
-//           return {
-//             id: p._id,
-//             date: "",
-//             platform: null,
-//             copy: null,
-//             status: null,
-//             hashtags: [],
-//             cellClass: "bg-transparent",
-//           };
-//         } else {
-//           // 1. Create a safe date object from backend field
-//           const postDate = new Date(p.date || p.scheduledDate);
-
-//           // 2. Format it to look like "2 March" using standard locale formatting
-//           const formattedDate = postDate.toLocaleDateString("en-GB", {
-//             day: "numeric",
-//             month: "long",
-//           });
-
-//           return {
-//             id: p._id,
-//             date: formattedDate, // Now contains "2 March", "26 May", etc.
-//             platform: (p.platform || "").slice(0, 2).toUpperCase(),
-//             copy: p.copyAR || p.copy || "",
-//             dialect: p.dialect || "",
-//             status: p.status
-//               ? p.status.charAt(0).toUpperCase() +
-//               p.status.slice(1).replace("_", " ")
-//               : "Draft",
-//             hashtags: p.hashtags || [],
-//             cellClass: statusToClass(p.status),
-//           };
-//         }
-//       }),
-//     });
-//   }
-//   return weeks;
-// }
-
-// function statusToClass(s) {
-//   return (
-//     {
-//       approved: "border-green-500/25 bg-green-500/5",
-//       scheduled: "border-blue-500/25 bg-blue-500/5",
-//       pending_review: "border-amber-500/20 bg-amber-500/5",
-//       draft: "theme-card",
-//     }[s] || "theme-card"
-//   );
-// }
-
 
 // ── Build weeks grid mapping calendar structure ───────────────────────────
 function buildWeeks(posts) {
@@ -916,9 +848,9 @@ function statusToClass(status) {
 }
 
 // ── Post editor ───────────────────────────────────────────────────────────────
-function selectPost(cell) {
-  selectedPost.value = cell;
-  editCopy.value = cell.copy;
+function selectPost(post) {
+  selectedPost.value = post;
+  editCopy.value = post.copyAR || post.copy || post.text || "";
   variantB.value = null;
   saveMsg.value = "";
 }
@@ -927,15 +859,22 @@ async function savePost() {
   if (!selectedPost.value) return;
   saving.value = true;
   saveMsg.value = "";
-  selectedPost.value.copy = editCopy.value;
-  selectedPost.value.cellClass = statusToClass(
-    selectedPost.value.status.toLowerCase().replace(" ", "_")
-  );
+  
+  const postId = selectedPost.value._id || selectedPost.value.id;
+  const formattedStatus = selectedPost.value.status.toLowerCase().replace(" ", "_");
+
   try {
-    await postsApi.updatePost(selectedPost.value.id, {
+    await postsApi.updatePost(postId, {
       copyAR: editCopy.value,
-      status: selectedPost.value.status.toLowerCase().replace(" ", "_"),
+      status: formattedStatus,
     });
+
+    store.posts = store.posts.map((p) => 
+      (p._id === postId || p.id === postId) 
+        ? { ...p, copyAR: editCopy.value, copy: editCopy.value, status: formattedStatus } 
+        : p
+    );
+
     saveMsg.value = "✓ Saved";
   } catch {
     saveMsg.value = "✓ Saved locally";
@@ -946,12 +885,14 @@ async function savePost() {
 }
 
 // ── A/B Variant ───────────────────────────────────────────────────────────────
+
 async function generateVariantB() {
   if (!selectedPost.value) return;
   loadingVariant.value = true;
   variantB.value = null;
   try {
-    const r = await postsApi.generateVariantB(selectedPost.value.id);
+    const postId = selectedPost.value._id || selectedPost.value.id;
+    const r = await postsApi.generateVariantB(postId);
     variantB.value = r.copyAR || r.copyEN || "No variant generated";
   } catch {
     variantB.value = "Could not generate variant";
@@ -959,14 +900,20 @@ async function generateVariantB() {
     loadingVariant.value = false;
   }
 }
+
 async function applyVariantB() {
   if (!selectedPost.value || !variantB.value) return;
   editCopy.value = variantB.value;
+  selectedPost.value.copyAR = variantB.value;
   selectedPost.value.copy = variantB.value;
+  
+  const postId = selectedPost.value._id || selectedPost.value.id;
   variantB.value = null;
   try {
-    await postsApi.applyVariantB(selectedPost.value.id);
-  } catch { }
+    await postsApi.applyVariantB(postId);
+  } catch (err) {
+    console.error(err);
+  }
 }
 
 // ── Inject trend ──────────────────────────────────────────────────────────────
@@ -975,7 +922,6 @@ function injectTrend() {
   const tag = trends.value[0].tag;
   if (!editCopy.value.includes(tag)) {
     editCopy.value += " " + tag;
-    selectedPost.value.copy = editCopy.value;
   }
 }
 
@@ -1004,29 +950,6 @@ function statusColor(s) {
   );
 }
 
-// function onDragStart(cell) {
-//   draggedCell.value = cell
-// }
-
-// async function onDrop(targetCell) {
-//   dragOverId.value = null
-//   if (!draggedCell.value) return
-//   if (draggedCell.value.id === targetCell.id) return
-
-//   try {
-//     await store.swapPostDates(draggedCell.value.id, targetCell.id)
-
-//     // Swap the display dates in calendarWeeks so UI reflects the change
-//     const temp = draggedCell.value.date
-//     draggedCell.value.date = targetCell.date
-//     targetCell.date = temp
-//   } catch {
-//     alert("Failed to swap posts. Please try again.")
-//   } finally {
-//     draggedCell.value = null
-//   }
-// }
-
 
 // ── Drag & Drop Handlers ───────────────────────────────────────────────────
 function onDragStart(cell) {
@@ -1036,15 +959,20 @@ function onDragStart(cell) {
 
 async function onDrop(targetCell) {
   dragOverId.value = null;
-
   if (!draggedCell.value || !targetCell.rawDate) return;
 
-  // Prevent dropping a post onto its own date slot
-  if (draggedCell.value.rawDate === targetCell.rawDate) return;
+  const currentPostDate = draggedCell.value.date || draggedCell.value.scheduledAt;
+  if (currentPostDate?.substring(0, 10) === targetCell.rawDate) {
+    draggedCell.value = null;
+    return;
+  }
+
+  const postId = draggedCell.value._id || draggedCell.value.id;
+  const newDate = targetCell.rawDate;
 
   try {
-    await store.movePostDate(draggedCell.value.id, targetCell.rawDate);
-    calendarWeeks.value = buildWeeks(store.posts);
+    // Interfacing directly with your calendarStore.js action endpoint
+    await store.movePostDate(postId, newDate);
   } catch (err) {
     alert("Could not complete the move: " + err.message);
   } finally {
@@ -1052,3 +980,17 @@ async function onDrop(targetCell) {
   }
 }
 </script>
+<style scoped>
+.custom-scrollbar::-webkit-scrollbar {
+  width: 3px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: var(--border, rgba(255, 255, 255, 0.1));
+  border-radius: 9px;
+}
+
+.aspect-square {
+  aspect-ratio: 1 / 1;
+}
+</style>

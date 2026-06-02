@@ -295,8 +295,7 @@
             </div>
             <div>
               <label class="text-xs theme-sub mb-1.5 block">Start Date</label>
-              <input type="date" v-model="startDate"
-                @change="validateDates"
+              <input type="date" v-model="startDate" @change="validateDates"
                 class="w-full theme-input rounded-xl px-3 py-2.5 text-sm theme-text border focus:outline-none"
                 style="border-color: var(--border)" :min="todayDate" />
             </div>
@@ -305,10 +304,9 @@
           <!-- End Date -->
           <div>
             <label class="text-xs theme-sub mb-1.5 block">End Date</label>
-            <input type="date" v-model="endDate"
-              @change="validateDates"
+            <input type="date" v-model="endDate" @change="validateDates"
               class="w-full theme-input rounded-xl px-3 py-2.5 text-sm theme-text border focus:outline-none"
-                style="border-color: var(--border)" :min="startDate || todayDate" />
+              style="border-color: var(--border)" :min="startDate || todayDate" />
             <p class="text-[10px] theme-muted mt-1">
               {{ durationLabel }}
             </p>
@@ -404,7 +402,7 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from "vue";
+import { ref, computed, onMounted, watch } from "vue";
 import AppLayout from "../components/AppLayout.vue";
 import calendarApi from "../api/calendarApi";
 import postsApi from "../api/postsApi";
@@ -428,7 +426,7 @@ const todayDate = computed(() => {
   const day = String(today.getDate()).padStart(2, "0");
   return `${year}-${month}-${day}`;
 });
-const startDate = ref(todayDate.value);
+const startDate = ref("");
 const endDate = ref("");
 const generating = ref(false);
 const generateError = ref("");
@@ -477,12 +475,15 @@ const platforms = ref([
 const topTrend = computed(() => trends.value[0] || null);
 
 const duration = computed(() => {
-  if (!startDate.value || !endDate.value) return 0;
+  if (!startDate.value || !endDate.value) {
+    return 0;
+  }
   return Math.round(
     (new Date(endDate.value) - new Date(startDate.value)) /
     (1000 * 60 * 60 * 24)
   );
 });
+
 
 const durationLabel = computed(() => {
   if (!startDate.value || !endDate.value) return "";
@@ -540,7 +541,20 @@ function validateDates() {
   if (endDate.value && startDate.value && endDate.value < startDate.value) {
     endDate.value = startDate.value
   }
+
+
+  // console.log("--- Date Selection Changed ---");
+  // console.log("Selected Start Date:", startDate.value);
+  // console.log("Selected End Date:", endDate.value);
+  // console.log("Calculated Duration (Days):", duration.value);
 }
+
+// Initialize startDate when todayDate is computed
+watch(todayDate, (newDate) => {
+  if (!startDate.value) {
+    startDate.value = newDate
+  }
+}, { immediate: true })
 
 // ── Load on mount ─────────────────────────────────────────────────────────────
 onMounted(async () => {
@@ -626,14 +640,16 @@ async function doGenerate() {
     }
 
     const result = await calendarApi.generate({
-      brandId: brandId.value,
-      brief: brief.value,
-      dialect: selectedDialect.value,
-      platforms: platforms.value.filter((p) => p.on).map((p) => p.name),
-      startDate: startDate.value,
-      endDate: endDate.value,
-      duration: duration.value,
+      brandId: brandId.value, //
+      brief: brief.value, //
+      dialect: selectedDialect.value, //
+      platforms: platforms.value.filter((p) => p.on).map((p) => p.name), //
+      startDate: startDate.value, //
+      endDate: endDate.value, //
+      duration: duration.value, // Passing dynamic computed days
     });
+
+    console.log("Generation result:", result);
 
     currentCalendar.value = result.calendar;
     calendarWeeks.value = buildWeeks(result.posts || []);

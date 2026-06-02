@@ -9,10 +9,12 @@ const calendarApi = {
   // Body: { brandId, brief, dialect, platforms[], startDate }
   // Returns: { calendar, posts[] }
   // ⚠️ This calls Gemini 2.5 — may take 10-20 seconds
-  async generate({ brandId, brief, dialect, platforms, startDate }) {
+  async generate({ brandId, brief, dialect, platforms, startDate, endDate, duration }) {
     return await api.post('/calendar/generate', {
       brandId, brief, dialect, platforms,
-      startDate: startDate || new Date().toISOString()
+      startDate, 
+      endDate, 
+      duration
     })
   },
 

@@ -4,10 +4,41 @@ const bcrypt   = require('bcryptjs')
 
 // ── User ──────────────────────────────────────────────────────────────────────
 const userSchema = new mongoose.Schema({
-  name:     { type: String, required: true, trim: true },
-  email:    { type: String, required: true, unique: true, lowercase: true },
-  password: { type: String, required: true, minlength: 6 },
-  plan:     { type: String, enum: ['free','starter','growth','agency'], default: 'free' },
+  name:       { type: String, required: true, trim: true },
+  email:      { type: String, required: true, unique: true, lowercase: true },
+  password:   { type: String, required: true, minlength: 6 },
+ // الخانات الجديدة لفترة التجربة
+  plan: { type: String, enum: ['free','starter','growth','agency'], default: 'free' },
+  isVerified: { type: Boolean, default: false },
+  verificationCode: String,
+  verificationCodeExpires: Date,
+
+  // التعديل والتحسين هنا:
+  phone: {
+    type: String,
+    required: [true, 'Phone number is required'], // رسالة واضحة لو متبعتش
+    unique: true // يمنع تكرار الرقم نهائياً في الداتا بيز
+  },
+  isTrial: { 
+    type: Boolean, 
+    default: true // بنخليها true تلقائيًا لأن أي مستخدم جديد هيبدأ كـ Trial
+  }, 
+  trialStartDate: { 
+    type: Date, 
+    default: Date.now // الداتا بيز هتحط تاريخ النهاردة تلقائياً أول ما الحساب يتكريت
+  },            
+  trialDurationDays: { 
+    type: Number, 
+    default: 14 
+  }, 
+  trialEndsAt: {
+    type: Date,
+    required: true // بنحسبه في الـ controller وبنبعته
+  },
+  hasUsedTrial: {
+    type: Boolean,
+    default: true // بيبقى true علطول لأنه بدأ الـ Trial بتاعته فعلياً بمجرد التسجيل
+  }
 }, { timestamps: true })
 
 userSchema.pre('save', async function(next) {

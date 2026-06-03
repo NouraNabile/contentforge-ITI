@@ -17,7 +17,7 @@ export const useAuthStore = defineStore('auth', () => {
   const userInitial = computed(() => user.value?.name?.[0]?.toUpperCase() || '?')
 
   // ── Actions ───────────────────────────────────────────────────────────────
-  async function login(credentials) {z
+  async function login(credentials) {
     loading.value = true
     error.value   = null
     try {

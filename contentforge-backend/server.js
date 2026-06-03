@@ -42,6 +42,7 @@ app.use("/api/brand", require("./routes/brand"));
 app.use("/api/calendar", require("./routes/calendar"));
 app.use("/api/posts", require("./routes/posts"));
 app.use("/api/trends", require("./routes/trends"));
+app.use("/api/connections", require("./routes/connections"));
 
 // ── Health check — frontend pings this to check if server is up ───────────────
 app.get("/api/health", (req, res) => {
@@ -72,3 +73,4 @@ app.listen(PORT, () => {
   console.log(`\n🚀 ContentForge API running on http://localhost:${PORT}`);
   console.log(`📋 Health check: http://localhost:${PORT}/api/health\n`);
 });
+

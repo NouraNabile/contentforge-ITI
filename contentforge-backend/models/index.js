@@ -98,4 +98,19 @@ const trendSchema = new mongoose.Schema({
 
 const Trend = mongoose.model('Trend', trendSchema)
 
-module.exports = { User, Brand, Post, Calendar, Trend }
+// ── Connection Model (Social Media Accounts) ──────────────────────────────────
+const connectionSchema = new mongoose.Schema({
+  user:       { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
+  platform:   { type: String, required: true },
+  handle:     { type: String, required: true },
+  email:      String,
+  connected:  { type: Boolean, default: true },
+  stats:      [{ label: String, value: String }],
+  permissions:[String],
+  rawData:    mongoose.Schema.Types.Mixed,
+}, { timestamps: true })
+
+const Connection = mongoose.model('Connection', connectionSchema)
+
+
+module.exports = { User, Brand, Post, Calendar, Trend, Connection }

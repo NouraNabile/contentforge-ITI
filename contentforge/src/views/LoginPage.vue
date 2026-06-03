@@ -60,21 +60,21 @@
           
           <div v-if="isRegister">
             <label class="text-xs theme-sub mb-1.5 block font-medium">Full Name</label>
-            <input v-model="form.name" type="text" placeholder="Noura Nabil"
+            <input v-model="form.name" type="text" placeholder="Full Name"
               class="w-full theme-input rounded-xl px-4 py-3 text-sm theme-text border focus:outline-none focus:border-blue-500/50 transition-colors"
               style="border-color:var(--border)" @keyup.enter="submit"/>
           </div>
 
           <div v-if="isRegister">
             <label class="text-xs theme-sub mb-1.5 block font-medium">Phone Number</label>
-            <input v-model="form.phone" type="tel" placeholder="+201012345678"
+            <input v-model="form.phone" type="tel" placeholder="+201000000000"
               class="w-full theme-input rounded-xl px-4 py-3 text-sm theme-text border focus:outline-none focus:border-blue-500/50 transition-colors"
               style="border-color:var(--border)" @keyup.enter="submit"/>
           </div>
 
           <div>
             <label class="text-xs theme-sub mb-1.5 block font-medium">Email Address</label>
-            <input v-model="form.email" type="email" placeholder="noura@arabycoffee.com"
+            <input v-model="form.email" type="email" placeholder="example@example.com"
               class="w-full theme-input rounded-xl px-4 py-3 text-sm theme-text border focus:outline-none focus:border-blue-500/50 transition-colors"
               style="border-color:var(--border)" @keyup.enter="submit"/>
           </div>

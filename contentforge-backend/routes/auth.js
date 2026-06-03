@@ -9,51 +9,56 @@ const sendVerificationEmail = require("../services/emailService");
 const signToken = (id) =>
   jwt.sign({ id }, process.env.JWT_SECRET, { expiresIn: process.env.JWT_EXPIRES_IN || '7d' })
 
-router.post('/register', async (req, res) => {
-  // 1. أضفنا الـ phone هنا في الـ body
-  const { name, email, password, phone } = req.body;
+router.post("/register", async (req, res) => {
+  try {
+    const { name, email, password, phone } = req.body;
 
-  // تأكد أن رقم الهاتف مطلوب مع باقي البيانات
-  if (!name || !email || !password || !phone)
-    return res.status(400).json({ message: 'Name, email, password and phone are required' });
+    if (!name || !email || !password || !phone)
+      return res
+        .status(400)
+        .json({ message: "Name, email, password and phone are required" });
 
-  // 2. الفحص الأول: هل الإيميل مسجل قبل كده؟
-  if (await User.findOne({ email }))
-    return res.status(400).json({ message: 'Email already registered' });
+    if (await User.findOne({ email }))
+      return res.status(400).json({ message: "Email already registered" });
 
-  // 3. الفحص الثاني والأهم (الحماية): هل رقم التليفون ده مستخدم قبل كده؟
-  // لو لقاه مستخدم، هيمنعه تماماً حتى لو الإيميل جديد
-  if (await User.findOne({ phone })) {
-    return res.status(400).json({ 
-      message: 'This phone number has already been used for a trial periods.' 
+    if (await User.findOne({ phone }))
+      return res
+        .status(400)
+        .json({
+          message:
+            "This phone number has already been used for a trial periods.",
+        });
+
+    const verificationCode = Math.floor(
+      100000 + Math.random() * 900000,
+    ).toString();
+
+    const trialEndsAt = new Date(Date.now() + 14 * 24 * 60 * 60 * 1000);
+
+    const user = await User.create({
+      name,
+      email,
+      password,
+      phone,
+      verificationCode,
+      verificationCodeExpires: Date.now() + 10 * 60 * 1000,
+      isVerified: false,
+      isTrial: true,
+      trialEndsAt,
+      hasUsedTrial: true,
     });
+
+    // ✅ تأكد إن الإيميل اتبعت قبل ما ترد
+    await sendVerificationEmail(email, verificationCode);
+
+    res
+      .status(201)
+      .json({ message: "User created. Please verify your email first." });
+  } catch (err) {
+    // ✅ هيطبع السبب الحقيقي في الـ terminal
+    console.error("REGISTER ERROR:", err);
+    res.status(500).json({ message: err.message });
   }
-
-  const verificationCode =
-    Math.floor(100000 + Math.random() * 900000).toString();
-
-  // 4. حساب تاريخ انتهاء الـ 14 يوم من الآن
-  const trialEndsAt = new Date();
-  trialEndsAt.setDate(trialEndsAt.getDate() + 14); // بيزود 14 يوم على التاريخ الحالي
-
-  const user = await User.create({
-    name,
-    email,
-    password,
-    phone,
-    verificationCode,
-    verificationCodeExpires: Date.now() + 10 * 60 * 1000,
-    isVerified: false,
-    isTrial: true,        // ← required by the protect middleware
-    trialEndsAt,
-    hasUsedTrial: true
-  });
-
-  await sendVerificationEmail(email, verificationCode);
-
-  res.status(201).json({
-    message: "User created. Please verify your email first."
-  });
 });
 
 router.post("/verify-email", async (req, res) => {
@@ -123,8 +128,7 @@ router.post('/demo', async (req, res) => {
     let user = await User.findOne({ email: demoEmail });
 
     if (!user) {
-      const trialEndsAt = new Date();
-      trialEndsAt.setDate(trialEndsAt.getDate() + 14);
+      const trialEndsAt = new Date(Date.now() + 14 * 24 * 60 * 60 * 1000);
 
       user = await User.create({
         name: "Demo User",

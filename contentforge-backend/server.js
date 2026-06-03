@@ -9,7 +9,6 @@ const connectDB = require("./config/db");
 const { startTrendScheduler } = require("./services/trendService");
 const chatRoutes = require("./routes/chat");
 
-
 const app = express();
 
 // ── Connect to MongoDB Atlas ──────────────────────────────────────────────────
@@ -45,6 +44,7 @@ app.use("/api/calendar", require("./routes/calendar"));
 app.use("/api/posts", require("./routes/posts"));
 app.use("/api/trends", require("./routes/trends"));
 app.use("/api/chat", chatRoutes);
+app.use("/api/stats", require("./routes/stats"));
 
 // ── Health check — frontend pings this to check if server is up ───────────────
 app.get("/api/health", (req, res) => {

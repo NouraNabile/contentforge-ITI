@@ -1,15 +1,22 @@
+require("dotenv").config();
 const nodemailer = require("nodemailer");
 
-// ده بيتعمل مرة واحدة بس
-const transporter = nodemailer.createTransport({
-  service: "gmail",
-  auth: {
-    user: process.env.EMAIL_USER,
-    pass: process.env.EMAIL_PASS
-  }
-});
-
 async function sendVerificationEmail(email, code) {
+  console.log("EMAIL_USER:", process.env.EMAIL_USER);
+  console.log(
+    "EMAIL_PASS:",
+    process.env.EMAIL_PASS ? "✅ موجود" : "❌ undefined",
+  );
+
+  // ✅ بيتعمل كل مرة بتبعت إيميل، بعد ما الـ .env يكون اتحمّل
+  const transporter = nodemailer.createTransport({
+    service: "gmail",
+    auth: {
+      user: process.env.EMAIL_USER,
+      pass: process.env.EMAIL_PASS,
+    },
+  });
+
   await transporter.sendMail({
     from: process.env.EMAIL_USER,
     to: email,
@@ -18,7 +25,7 @@ async function sendVerificationEmail(email, code) {
       <h2>Email Verification</h2>
       <p>Your verification code is:</p>
       <h1>${code}</h1>
-    `
+    `,
   });
 }
 

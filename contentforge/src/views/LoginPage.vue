@@ -1,12 +1,10 @@
 <template>
   <div class="min-h-screen theme-bg flex items-center justify-center p-6 bg-grid">
 
-    <!-- Ambient glow -->
     <div class="absolute top-1/3 left-1/2 -translate-x-1/2 w-96 h-96 rounded-full bg-blue-600/8 blur-3xl pointer-events-none"></div>
 
     <div class="w-full max-w-md relative z-10">
 
-      <!-- Logo -->
       <div class="text-center mb-8">
         <RouterLink to="/" class="inline-flex items-center gap-2.5 mb-4">
           <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-500 to-teal-400 flex items-center justify-center">
@@ -15,31 +13,51 @@
           <span class="font-display font-700 text-xl theme-text">ContentForge</span>
         </RouterLink>
         <h1 class="font-display text-2xl font-700 theme-text mb-1">
-          {{ isRegister ? 'Create your account' : 'Welcome back' }}
+          {{ showOTP ? 'Confirm Your Email' : (isRegister ? 'Create your account' : 'Welcome back') }}
         </h1>
         <p class="text-sm theme-sub">
-          {{ isRegister ? 'Start generating Arabic content in minutes' : 'Sign in to your brand dashboard' }}
+          {{ showOTP ? 'Enter the 6-digit code we sent you' : (isRegister ? 'Start generating Arabic content in minutes' : 'Sign in to your brand dashboard') }}
         </p>
       </div>
 
-      <!-- Card -->
       <div class="rounded-2xl theme-surface theme-border p-8 theme-shadow">
 
-        <!-- Error banner -->
         <div v-if="error" class="mb-5 px-4 py-3 rounded-xl bg-rose-500/10 border border-rose-500/20 text-rose-400 text-sm flex items-center gap-2">
           <svg class="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
           {{ error }}
         </div>
 
-        <!-- Success banner -->
         <div v-if="success" class="mb-5 px-4 py-3 rounded-xl bg-green-500/10 border border-green-500/20 text-green-400 text-sm flex items-center gap-2">
           <svg class="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
           {{ success }}
         </div>
 
-        <div class="space-y-4">
+        <div v-if="showOTP" class="space-y-6 text-center">
+          <div class="flex justify-center gap-2" dir="ltr">
+            <input
+              v-for="(digit, index) in 6"
+              :key="index"
+              ref="inputRefs"
+              v-model="otpInputs[index]"
+              type="text"
+              maxlength="1"
+              class="w-12 h-12 text-center text-xl font-bold border-2 border-gray-300 rounded-lg focus:border-indigo-600 focus:ring-4 focus:ring-indigo-100 outline-none transition-all duration-200"
+              @input="handleOtpInput(index, $event)"
+              @keydown="handleOtpKeyDown(index, $event)"
+            />
+          </div>
+          
+          <button @click="verifyEmail" :disabled="loading" class="w-full bg-blue-600 hover:bg-blue-500 text-white font-medium py-3.5 rounded-xl transition-colors text-sm flex items-center justify-center gap-2">
+            <svg v-if="loading" class="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
+              <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/>
+              <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/>
+            </svg>
+            {{ loading ? 'Verifying...' : 'Verify Code' }}
+          </button>
+        </div>
 
-          <!-- Name field (register only) -->
+        <div v-else class="space-y-4">
+          
           <div v-if="isRegister">
             <label class="text-xs theme-sub mb-1.5 block font-medium">Full Name</label>
             <input v-model="form.name" type="text" placeholder="Noura Nabil"
@@ -47,7 +65,13 @@
               style="border-color:var(--border)" @keyup.enter="submit"/>
           </div>
 
-          <!-- Email -->
+          <div v-if="isRegister">
+            <label class="text-xs theme-sub mb-1.5 block font-medium">Phone Number</label>
+            <input v-model="form.phone" type="tel" placeholder="+201012345678"
+              class="w-full theme-input rounded-xl px-4 py-3 text-sm theme-text border focus:outline-none focus:border-blue-500/50 transition-colors"
+              style="border-color:var(--border)" @keyup.enter="submit"/>
+          </div>
+
           <div>
             <label class="text-xs theme-sub mb-1.5 block font-medium">Email Address</label>
             <input v-model="form.email" type="email" placeholder="noura@arabycoffee.com"
@@ -55,7 +79,6 @@
               style="border-color:var(--border)" @keyup.enter="submit"/>
           </div>
 
-          <!-- Password -->
           <div>
             <label class="text-xs theme-sub mb-1.5 block font-medium">Password</label>
             <div class="relative">
@@ -73,7 +96,6 @@
             </div>
           </div>
 
-          <!-- Submit button -->
           <button @click="submit" :disabled="loading"
             class="w-full py-3.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-medium text-sm transition-all hover:shadow-lg hover:shadow-blue-500/20 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 mt-2">
             <svg v-if="loading" class="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
@@ -82,62 +104,67 @@
             </svg>
             {{ loading ? (isRegister ? 'Creating account…' : 'Signing in…') : (isRegister ? 'Create Account' : 'Sign In') }}
           </button>
+
+          <p class="text-center text-sm theme-sub mt-6">
+            {{ isRegister ? 'Already have an account?' : "Don't have an account?" }}
+            <button @click="isRegister=!isRegister; error=null"
+              class="text-blue-400 hover:text-blue-300 ml-1 font-medium transition-colors">
+              {{ isRegister ? 'Sign in' : 'Create one free' }}
+            </button>
+          </p>
         </div>
 
-        <!-- Divider -->
-        <div class="flex items-center gap-3 my-5">
-          <div class="flex-1 h-px" style="background:var(--border)"></div>
-          <span class="text-xs theme-muted">or</span>
-          <div class="flex-1 h-px" style="background:var(--border)"></div>
-        </div>
-
-        <!-- Demo login button -->
-        <button @click="demoLogin"
-          class="w-full py-3 rounded-xl theme-card theme-border theme-sub text-sm hover:theme-text transition-colors">
-          🎭 Try with Demo Account
-        </button>
-
-        <!-- Toggle register/login -->
-        <p class="text-center text-sm theme-sub mt-6">
-          {{ isRegister ? 'Already have an account?' : "Don't have an account?" }}
-          <button @click="isRegister=!isRegister; error=null"
-            class="text-blue-400 hover:text-blue-300 ml-1 font-medium transition-colors">
-            {{ isRegister ? 'Sign in' : 'Create one free' }}
-          </button>
-        </p>
       </div>
 
-      <!-- Connection status indicator -->
-      <div class="flex items-center justify-center gap-2 mt-5">
-        <div class="w-1.5 h-1.5 rounded-full" :class="serverOnline ? 'bg-green-400' : 'bg-rose-400'"></div>
-        <span class="text-[11px] theme-muted">
-          {{ serverOnline ? 'Server connected · ' + apiUrl : 'Backend offline — start your server first' }}
-        </span>
-      </div>
     </div>
   </div>
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, onMounted,nextTick } from 'vue'
 import { RouterLink, useRouter } from 'vue-router'
 import { useAuthStore } from '../stores/authStore'
 import api from '../api/client'
 
-const router   = useRouter()
-const authStore= useAuthStore()
+const showOTP = ref(false)
+const otpCode = ref('')
+
+const router    = useRouter()
+const authStore = useAuthStore()
 
 const isRegister  = ref(false)
 const showPass    = ref(false)
 const loading     = ref(false)
 const error       = ref(null)
 const success     = ref(null)
-const serverOnline= ref(false)
-const apiUrl      = import.meta.env.VITE_API_URL || 'http://localhost:3000/api'
+const serverOnline = ref(false)
+const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:3000/api'
 
-const form = ref({ name: '', email: '', password: '' })
+const form = ref({ name: '', email: '', password: '', phone: '' })
 
-// Check server health on mount
+// 1. مصفوفة فيها 6 خانات فاضية للـ OTP
+const otpInputs = ref(['', '', '', '', '', ''])
+
+// 2. reference عشان نلقط صناديق الـ HTML في الكود
+const inputRefs = ref([])
+
+// 3. فانكشن بتتحكم في الحركة بين البوكسات أوتوماتيك
+const handleOtpInput = (index, event) => {
+  const value = event.target.value
+  
+  // لو كتب رقم، انقل للبوكس اللي بعده
+  if (value && index < 5) {
+    inputRefs.value[index + 1].focus()
+  }
+}
+
+// 4. فانكشن عشان لو داس Backspace يرجع للبوكس اللي قبله
+const handleOtpKeyDown = (index, event) => {
+  if (event.key === 'Backspace' && !otpInputs.value[index] && index > 0) {
+    inputRefs.value[index - 1].focus()
+  }
+}
+
 onMounted(async () => {
   try {
     await api.get('/health')
@@ -147,9 +174,14 @@ onMounted(async () => {
   }
 })
 
+
 async function submit() {
   error.value = null
   if (!form.value.email || !form.value.password) {
+    error.value = 'Please fill in all fields'
+    return
+  }
+  if (isRegister.value && (!form.value.name || !form.value.phone)) {
     error.value = 'Please fill in all fields'
     return
   }
@@ -157,11 +189,18 @@ async function submit() {
   try {
     if (isRegister.value) {
       await authStore.register(form.value)
-      success.value = 'Account created! Redirecting…'
+      success.value = 'Check your email for a verification code'
+      showOTP.value = true
+      // ✅ No redirect here — user must verify first
     } else {
       await authStore.login(form.value)
+      if (localStorage.getItem('cf_token')) {
+      // 3. طالما اتسيف، انقل برمش العين والقلب جامد ومحدش هيقدر يطردك!
+      router.push('/dashboard')
+    } else {
+      error.value = 'تم تسجيل الدخول ولكن لم يتم حفظ التوكن، تأكدي من كود الـ Store'
     }
-    setTimeout(() => router.push('/dashboard'), 600)
+    }
   } catch (err) {
     error.value = err.message || 'Something went wrong. Is your backend running?'
   } finally {
@@ -169,16 +208,54 @@ async function submit() {
   }
 }
 
-// Fill demo credentials and log in
-async function demoLogin() {
-  form.value = { email: 'demo@arabycoffee.com', password: 'demo123' }
-  // If backend is offline, just go to dashboard directly (demo mode)
-  if (!serverOnline.value) {
-    localStorage.setItem('cf_token', 'demo_token')
-    localStorage.setItem('cf_user', JSON.stringify({ name: 'Noura', email: 'demo@arabycoffee.com', plan: 'growth' }))
+// ✅ Now a top-level function, accessible from the template
+async function verifyEmail() {
+  error.value = null
+  try {
+    loading.value = true
+    await api.post('/auth/verify-email', {
+      email: form.value.email,
+      code: otpInputs.value.join('') // نجمع الأرقام من المصفوفة
+    })
+    success.value = 'Email verified successfully 🎉'
+    // 2. 🚀 السطر السحري: بنعمل تسجيل دخول أوتوماتيك فوراً عشان الـ Store يجيب التوكن ويسيفه
+    await authStore.login(form.value)
+    
+    // 3. ننتقل للداش بورد والقلب جامد والتوكن متسيف
     router.push('/dashboard')
-    return
+  } catch (err) {
+    error.value = err.response?.data?.message || 'Invalid or expired code'
+  } finally {
+    loading.value = false
   }
-  await submit()
 }
+
+
+async function demoLogin() {
+  try {
+    loading.value = true;
+    error.value = null;
+
+    const response = await api.post('/auth/demo');
+    
+    // 1. السطر السحري: هيطبع لنا شكل الـ response بالظبط في الـ Console عشان نفهمه
+    // console.log("الباك إند رجع لنا إيه بالظبط؟ :", response);
+
+    // 2. هنحط شرط ذكي: لو الـ response جواه (.data) هنقرأ منها، لو معندوش هنقرأ منه مباشرة
+    const responseData = response.data ? response.data : response;
+
+    // 3. بنسيف وأنتِ مطمنة لأننا أمّنا السطرين
+    localStorage.setItem('cf_token', responseData.token);
+    localStorage.setItem('cf_user', JSON.stringify(responseData.user));
+    
+    router.push('/dashboard');
+    
+  } catch (err) {
+    console.error("Demo login failed:", err);
+    error.value = err.response?.data?.message || 'Something went wrong';
+  } finally {
+    loading.value = false;
+  }
+}
+
 </script>

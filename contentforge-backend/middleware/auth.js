@@ -16,13 +16,25 @@ const protect = async (req, res, next) => {
   try {
     const decoded = jwt.verify(token, process.env.JWT_SECRET)
     req.user = await User.findById(decoded.id).select('-password')
+    
     if (!req.user) {
       return res.status(401).json({ message: 'User not found' })
     }
+
+    // ----------------------------------------------------
+    // الحتة السحرية الجديدة هنا:
+    // بنشيك لو الحساب لسه في فترة التجربة (isTrial) والتاريخ الحالي أحدث من تاريخ الانتهاء
+    if (req.user.isTrial && Date.now() > new Date(req.user.trialEndsAt)) {
+      return res.status(403).json({ 
+        message: 'Your 14-day free trial has expired. Please subscribe to continue.' 
+      })
+    }
+    // ----------------------------------------------------
+
     next()
   } catch (err) {
     return res.status(401).json({ message: 'Not authorized — invalid or expired token' })
   }
 }
 
-module.exports = protect
+module.exports = protect // متنساش تعملها export لو مش معمولة

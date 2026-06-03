@@ -11,16 +11,7 @@
           </p>
         </div>
         <div class="flex items-center gap-2">
-          <div
-            class="flex items-center gap-2 px-3 py-1.5 rounded-lg theme-border bg-green-500/5"
-          >
-            <div
-              class="w-1.5 h-1.5 rounded-full bg-green-400 animate-pulse"
-            ></div>
-            <span class="text-xs text-green-400"
-              >Embedded in MongoDB Atlas</span
-            >
-          </div>
+          
           <button
             @click="saveAll"
             class="px-4 py-2 rounded-xl bg-blue-600 hover:bg-blue-500 text-white text-sm font-medium transition-colors"
@@ -244,6 +235,21 @@
               </div>
             </div>
           </div>
+
+           <!-- Section 4: Platforms -->
+        <div>
+          <h3 class="text-sm font-medium theme-text mb-4 flex items-center gap-2">📱 Target Platforms</h3>
+          <div class="flex flex-wrap gap-2">
+            <button v-for="p in platformOptions" :key="p.name"
+              @click="toggleItem(brand.platforms, p.name)"
+              class="flex items-center gap-2 px-3 py-2 rounded-xl border text-sm transition-all"
+              :class="brand.platforms.includes(p.name)
+                ? 'bg-blue-600/15 border-blue-500/30 text-blue-400'
+                : 'theme-card theme-border theme-sub hover:theme-text'">
+              {{ p.icon }} {{ p.name }}
+            </button>
+          </div>
+        </div>
           <div class="grid md:grid-cols-2 gap-5">
             <div>
               <label class="text-xs theme-sub mb-1.5 block"
@@ -405,205 +411,6 @@
           </div>
         </div>
       </div>
-
-      <!-- TAB: MongoDB Config -->
-      <div v-if="activeTab === 'MongoDB Config'" class="space-y-5">
-        <div class="theme-surface rounded-2xl theme-border p-6 space-y-5">
-          <div class="flex items-center gap-3 mb-2">
-            <span class="text-2xl">🍃</span>
-            <div>
-              <h3 class="font-display font-600 text-base theme-text">
-                MongoDB Atlas Configuration
-              </h3>
-              <p class="text-xs theme-sub">
-                BSON document model for campaign calendars and brand profiles
-              </p>
-            </div>
-            <div
-              class="ml-auto flex items-center gap-2 px-3 py-1.5 rounded-lg border border-green-500/20 bg-green-500/5"
-            >
-              <div
-                class="w-1.5 h-1.5 rounded-full bg-green-400 animate-pulse"
-              ></div>
-              <span class="text-xs text-green-400 font-medium">Connected</span>
-            </div>
-          </div>
-
-          <div class="grid md:grid-cols-2 gap-4">
-            <div>
-              <label class="text-xs theme-sub mb-1.5 block"
-                >Connection String (URI)</label
-              >
-              <div class="flex gap-2">
-                <input
-                  v-model="mongo.uri"
-                  :type="showUri ? 'text' : 'password'"
-                  class="flex-1 px-3 py-2.5 rounded-xl theme-border theme-input text-sm theme-text focus:outline-none font-mono text-xs"
-                />
-                <button
-                  @click="showUri = !showUri"
-                  class="px-3 py-2 rounded-xl theme-border text-muted hover:theme-text transition-colors text-xs"
-                >
-                  {{ showUri ? "🙈" : "👁️" }}
-                </button>
-              </div>
-            </div>
-            <div>
-              <label class="text-xs theme-sub mb-1.5 block"
-                >Database Name</label
-              >
-              <input
-                v-model="mongo.database"
-                type="text"
-                class="w-full px-3 py-2.5 rounded-xl theme-border theme-input text-sm theme-text focus:outline-none font-mono"
-              />
-            </div>
-            <div>
-              <label class="text-xs theme-sub mb-1.5 block">Cluster Name</label>
-              <input
-                v-model="mongo.cluster"
-                type="text"
-                class="w-full px-3 py-2.5 rounded-xl theme-border theme-input text-sm theme-text focus:outline-none font-mono"
-              />
-            </div>
-            <div>
-              <label class="text-xs theme-sub mb-1.5 block">Region</label>
-              <select
-                v-model="mongo.region"
-                class="w-full px-3 py-2.5 rounded-xl theme-border theme-input text-sm theme-text focus:outline-none"
-              >
-                <option>AWS / eu-west-1 (Ireland)</option>
-                <option>AWS / me-south-1 (Bahrain)</option>
-                <option>AWS / ap-southeast-1 (Singapore)</option>
-                <option>GCP / europe-west1</option>
-              </select>
-            </div>
-          </div>
-
-          <!-- Collections -->
-          <div>
-            <label class="text-xs theme-sub mb-3 block font-medium"
-              >Collections Schema</label
-            >
-            <div class="grid md:grid-cols-3 gap-3">
-              <div
-                v-for="col in collections"
-                :key="col.name"
-                class="p-3 rounded-xl theme-card theme-border"
-              >
-                <div class="flex items-center gap-2 mb-2">
-                  <span class="text-base">{{ col.icon }}</span>
-                  <span class="text-xs font-medium theme-text font-mono">{{
-                    col.name
-                  }}</span>
-                </div>
-                <ul class="space-y-1">
-                  <li
-                    v-for="field in col.fields"
-                    :key="field"
-                    class="text-[10px] text-muted font-mono"
-                  >
-                    · {{ field }}
-                  </li>
-                </ul>
-              </div>
-            </div>
-          </div>
-
-          <div class="flex gap-3 pt-2">
-            <button
-              @click="testConnection"
-              class="px-5 py-2.5 rounded-xl theme-border text-sm theme-sub hover:theme-text transition-colors"
-            >
-              🔌 Test Connection
-            </button>
-            <button
-              @click="saveMongo"
-              class="px-5 py-2.5 rounded-xl bg-green-600 text-white text-sm font-medium hover:bg-green-500 transition-colors"
-            >
-              💾 Save Config
-            </button>
-          </div>
-
-          <!-- Connection test result -->
-          <div
-            v-if="connectionResult"
-            class="p-3 rounded-xl"
-            :class="
-              connectionResult === 'ok'
-                ? 'bg-green-500/10 border border-green-500/20'
-                : 'bg-red-500/10 border border-red-500/20'
-            "
-          >
-            <p
-              class="text-sm"
-              :class="
-                connectionResult === 'ok' ? 'text-green-400' : 'text-red-400'
-              "
-            >
-              {{
-                connectionResult === "ok"
-                  ? "✓ Connection successful — Atlas cluster is reachable."
-                  : "✕ Connection failed — check your URI and network."
-              }}
-            </p>
-          </div>
-        </div>
-
-        <!-- Gemini + Google Embeddings config -->
-        <div class="theme-surface rounded-2xl theme-border p-6 space-y-4">
-          <h3
-            class="font-display font-600 text-base theme-text flex items-center gap-2"
-          >
-            🤖 AI Model Config
-          </h3>
-          <div class="grid md:grid-cols-2 gap-4">
-            <div>
-              <label class="text-xs theme-sub mb-1.5 block"
-                >Google Gemini API Key</label
-              >
-              <input
-                v-model="aiConfig.geminiKey"
-                type="password"
-                placeholder="AIza..."
-                class="w-full px-3 py-2.5 rounded-xl theme-border theme-input text-sm theme-text font-mono focus:outline-none focus:border-blue-500/40"
-              />
-            </div>
-            <div>
-              <label class="text-xs theme-sub mb-1.5 block">Gemini Model</label>
-              <select
-                v-model="aiConfig.model"
-                class="w-full px-3 py-2.5 rounded-xl theme-border theme-input text-sm theme-text focus:outline-none"
-              >
-                <option>gemini-2.5-flash</option>
-                <option>gemini-2.5-pro</option>
-                <option>gemini-1.5-pro</option>
-              </select>
-            </div>
-            <div>
-              <label class="text-xs theme-sub mb-1.5 block"
-                >Google Embedding API Key</label
-              >
-              <input
-                v-model="aiConfig.embeddingKey"
-                type="password"
-                placeholder="AIza..."
-                class="w-full px-3 py-2.5 rounded-xl theme-border theme-input text-sm theme-text font-mono focus:outline-none focus:border-blue-500/40"
-              />
-            </div>
-            <div>
-              <label class="text-xs theme-sub mb-1.5 block"
-                >Max Context Tokens</label
-              >
-              <input
-                v-model="aiConfig.maxTokens"
-                type="number"
-                class="w-full px-3 py-2.5 rounded-xl theme-border theme-input text-sm theme-text focus:outline-none"
-              />
-            </div>
-          </div>
-        </div>
-      </div>
     </div>
   </AppLayout>
 </template>
@@ -614,7 +421,7 @@ import { ref } from "vue";
 import brandApi from "../api/brandApi";
 
 const activeTab = ref("Brand Identity");
-const tabs = ["Brand Identity", "Top Posts", "MongoDB Config"];
+const tabs = ["Brand Identity", "Top Posts"];
 const showUri = ref(false);
 const connectionResult = ref(null);
 const newColor = ref("#3B82F6");
@@ -634,8 +441,17 @@ const brand = ref({
   topicsInclude:
     "Coffee culture, Egyptian daily life, Ramadan moments, morning routines",
   topicsExclude: "Politics, religion debates, competitor brand names",
+  platforms: []
+  
 });
 
+const platformOptions = [
+  { name: "Instagram", icon: "📸" },
+  { name: "Facebook", icon: "📘" },
+  { name: "LinkedIn", icon: "💼" },
+  { name: "X", icon: "𝕏" },
+  { name: "TikTok", icon: "🎵" }
+];
 const tones = ref([
   { label: "Formal–Casual", left: "Formal", right: "Casual", value: 70 },
   { label: "Serious–Playful", left: "Serious", right: "Playful", value: 65 },
@@ -654,6 +470,7 @@ const dialects = [
   "English",
   "Bilingual",
 ];
+
 
 const topPosts = ref([
   {
@@ -733,6 +550,7 @@ const collections = [
     icon: "⚡",
     fields: ["_id", "post_id", "version_b_copy", "hook_type", "score"],
   },
+  
 ];
 
 const aiConfig = ref({
@@ -773,23 +591,6 @@ function saveMongo() {
   alert("MongoDB config saved!");
 }
 
-// async function saveAll() {
-//   try {
-//     const brandId = localStorage.getItem('cf_brandId')
-//     let result
-//     if (brandId) {
-//       result = await brandApi.updateBrand(brandId, brand.value)
-//     } else {
-//       result = await brandApi.saveBrand(brand.value)
-//       localStorage.setItem('cf_brandId', result.brand._id)
-//     }
-//     // Trigger embedding
-//     await brandApi.embedBrand(result.brand._id || brandId)
-//     alert('Saved & embedded successfully!')
-//   } catch (err) {
-//     alert('Save failed: ' + err.message)
-//   }
-// }
 
 const currentBrandId = ref(localStorage.getItem("cf_brandId") || null);
 

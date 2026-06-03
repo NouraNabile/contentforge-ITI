@@ -11,6 +11,7 @@ import BrandingPage     from './views/BrandingPage.vue'
 import ChatPage         from './views/ChatPage.vue'
 import ConnectionsPage  from './views/ConnectionsPage.vue'
 import LoginPage        from './views/LoginPage.vue'
+import TrialExpiredPage from './views/TrialExpiredPage.vue'
 
 // ── Router ────────────────────────────────────────────────────────────────────
 const router = createRouter({
@@ -23,6 +24,7 @@ const router = createRouter({
     { path: '/branding',    component: BrandingPage,     meta: { requiresAuth: true } },
     { path: '/chat',        component: ChatPage,         meta: { requiresAuth: true } },
     { path: '/connections', component: ConnectionsPage,  meta: { requiresAuth: true } },
+    { path: '/trial-expired', component: TrialExpiredPage }
   ],
   scrollBehavior(to) {
     if (to.hash) return { el: to.hash, behavior: 'smooth' }
@@ -33,8 +35,15 @@ const router = createRouter({
 // ── Route guard — redirect to login if not authenticated ──────────────────────
 router.beforeEach((to, from, next) => {
   const isLoggedIn = !!localStorage.getItem('cf_token')
+  const hadAccount = !!localStorage.getItem('cf_user') // still exists after 403 clears token? No...
+
   if (to.meta.requiresAuth && !isLoggedIn) {
-    next('/login')
+    // Check if they were redirected due to trial expiry
+    if (window.location.pathname === '/trial-expired' || from.path === '/trial-expired') {
+      next('/trial-expired')
+    } else {
+      next('/login')
+    }
   } else {
     next()
   }

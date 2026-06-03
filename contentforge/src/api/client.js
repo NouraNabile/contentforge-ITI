@@ -56,6 +56,13 @@ api.interceptors.response.use(
       }
     }
 
+    // 403 → trial expired → clear session and redirect to upgrade page
+   if (status === 403) {
+  if (window.location.pathname !== '/trial-expired') {
+    window.location.href = '/trial-expired'
+  }
+}
+
     // 429 → rate limited (too many AI requests)
     if (status === 429) {
       console.warn('Rate limited — slow down requests')

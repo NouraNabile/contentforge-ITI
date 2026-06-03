@@ -6,12 +6,12 @@ import { calendarApi, postsApi } from '../api'
 export const useCalendarStore = defineStore('calendar', () => {
 
   // ── State ─────────────────────────────────────────────────────────────────
-  const calendar    = ref(null)
-  const posts       = ref([])
-  const isGenerating= ref(false)
-  const isLoading   = ref(false)
-  const error       = ref(null)
-  const lastSaved   = ref(null)
+  const calendar = ref(null)
+  const posts = ref([])
+  const isGenerating = ref(false)
+  const isLoading = ref(false)
+  const error = ref(null)
+  const lastSaved = ref(null)
 
   // ── Generate a new calendar from the backend ──────────────────────────────
   async function generate(payload) {
@@ -20,7 +20,7 @@ export const useCalendarStore = defineStore('calendar', () => {
     try {
       const data = await calendarApi.generate(payload)
       calendar.value = data.calendar
-      posts.value    = data.posts
+      posts.value = data.posts
       lastSaved.value = new Date()
       return data
     } catch (err) {
@@ -38,7 +38,7 @@ export const useCalendarStore = defineStore('calendar', () => {
     try {
       const data = await calendarApi.getCalendar(calendarId)
       calendar.value = data
-      posts.value    = data.posts || []
+      posts.value = data.posts || []
     } catch (err) {
       error.value = err.message
     } finally {
@@ -92,8 +92,33 @@ export const useCalendarStore = defineStore('calendar', () => {
     posts.value = posts.value.filter(p => p._id !== postId)
   }
 
+
+  // ── Move a post to a new date (drag-and-drop) ──────────────────────────
+  async function movePostDate(postId, newTargetDate) {
+    const post = posts.value.find(p => p._id === postId)
+    if (!post) return
+
+    // 1. Keep track of the original date for potential rollback
+    const originalDate = post.date || post.scheduledAt
+
+    // 2. Update in memory instantly (optimistic update)
+    post.date = newTargetDate
+    post.scheduledAt = newTargetDate
+
+    try {
+      // 3. Persist the change to the database
+      await postsApi.schedulePost(postId, newTargetDate)
+    } catch (err) {
+      // 4. Revert both if server fails
+      post.date = originalDate
+      post.scheduledAt = originalDate
+      error.value = "Failed to save post placement. Reverting..."
+      console.error(err)
+    }
+  }
+
   return {
     calendar, posts, isGenerating, isLoading, error, lastSaved,
-    generate, loadCalendar, updatePostStatus, updatePost, getVariantB, approveAll, deletePost
+    generate, loadCalendar, updatePostStatus, updatePost, getVariantB, approveAll, deletePost, movePostDate
   }
 })

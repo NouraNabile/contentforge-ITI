@@ -1,15 +1,19 @@
 // backend/routes/calendar.js
-const express  = require('express')
-const router   = express.Router()
-const protect  = require('../middleware/auth')
+const express = require('express')
+const router = express.Router()
+const protect = require('../middleware/auth')
 const { Trend } = require("../models");
 const { Brand, Calendar, Post } = require('../models')
 const { generateCalendar, generateVariantB } = require('../services/geminiService')
-const { retrieveRelevantChunks }             = require('../services/embeddingService')
+const { retrieveRelevantChunks } = require('../services/embeddingService')
 
 // POST /api/calendar/generate
 router.post('/generate', protect, async (req, res) => {
-  const { brandId, brief, dialect, platforms, startDate } = req.body
+  const { brandId, brief, dialect, platforms, startDate,
+    endDate,
+    duration } = req.body
+
+  console.log(req.body)
 
   if (!brandId || !brief)
     return res.status(400).json({ message: 'brandId and brief are required' })
@@ -37,12 +41,23 @@ router.post('/generate', protect, async (req, res) => {
   }
 
   // 3. Call Gemini to generate posts JSON
-  const postsData = await generateCalendar({
-    brief, brand, trends,
-    dialect:      dialect || brand.dialects[0] || 'Egyptian Arabic',
-    platforms:    platforms || brand.platforms,
-    brandContext: chunks.join('\n\n'),
-  })
+  let postsData;
+  try {
+    postsData = await generateCalendar({
+      brief, brand, trends,
+      dialect: dialect || brand.dialects[0] || 'Egyptian Arabic',
+      platforms: platforms || brand.platforms,
+      brandContext: chunks.join('\n\n'),
+      startDate,
+      endDate,   
+      duration
+    });
+  } catch (err) {
+    return res.status(503).json({
+      message:
+        'AI service is temporarily busy. Please try again in a few moments.',
+    });
+  }
 
   // 4. Create calendar document
   const calendar = await Calendar.create({
@@ -50,10 +65,10 @@ router.post('/generate', protect, async (req, res) => {
     title: brief.slice(0, 60),
     brief, dialect,
     platforms: platforms || brand.platforms,
-    startDate:  startDate ? new Date(startDate) : new Date(),
-    endDate:    new Date(Date.now() + 14 * 24 * 60 * 60 * 1000),
+    startDate: startDate ? new Date(startDate) : new Date(),
+    endDate: endDate ? new Date(endDate) : new Date(Date.now() + 14 * 24 * 60 * 60 * 1000),
     trendsUsed: trends,
-    status:     'ready',
+    status: 'ready',
   })
 
   // 5. Save each post
@@ -87,7 +102,7 @@ router.post('/:id/approve', protect, async (req, res) => {
   if (!calendar) return res.status(404).json({ message: 'Calendar not found' })
 
   await Post.updateMany(
-    { calendar: calendar._id, status: { $in: ['draft','pending_review'] } },
+    { calendar: calendar._id, status: { $in: ['draft', 'pending_review'] } },
     { status: 'approved' }
   )
   calendar.status = 'approved'
@@ -97,7 +112,8 @@ router.post('/:id/approve', protect, async (req, res) => {
 
 // DELETE /api/calendar/:id
 router.delete('/:id', protect, async (req, res) => {
-  await Calendar.findByIdAndDelete(req.params.id)
+  await Post.deleteMany({ calendar: req.params.id })
+  await Calendar.findByIdAndDelete(req.params.id)  
   res.json({ message: 'Calendar deleted' })
 })
 

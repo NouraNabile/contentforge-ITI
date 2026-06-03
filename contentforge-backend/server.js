@@ -7,6 +7,8 @@ const mongoose = require("mongoose");
 const cors = require("cors");
 const connectDB = require("./config/db");
 const { startTrendScheduler } = require("./services/trendService");
+const chatRoutes = require("./routes/chat");
+
 
 const app = express();
 
@@ -42,6 +44,7 @@ app.use("/api/brand", require("./routes/brand"));
 app.use("/api/calendar", require("./routes/calendar"));
 app.use("/api/posts", require("./routes/posts"));
 app.use("/api/trends", require("./routes/trends"));
+app.use("/api/chat", chatRoutes);
 app.use("/api/connections", require("./routes/connections"));
 
 // ── Health check — frontend pings this to check if server is up ───────────────

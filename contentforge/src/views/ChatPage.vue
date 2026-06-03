@@ -16,7 +16,7 @@
             </div>
             <div>
               <p class="text-sm font-medium theme-text">ContentForge AI</p>
-              <div class="flex items-center gap-1.5">
+              <!-- <div class="flex items-center gap-1.5">
                 <div
                   class="w-1.5 h-1.5 rounded-full animate-pulse"
                   :class="brandLoaded ? 'bg-green-400' : 'bg-amber-400'"
@@ -28,7 +28,7 @@
                       : "Gemini 2.5 Flash · No brand loaded"
                   }}
                 </p>
-              </div>
+              </div> -->
             </div>
           </div>
           <div class="flex items-center gap-2">
@@ -38,7 +38,7 @@
             >
               Clear chat
             </button>
-            <button
+            <!-- <button
               @click="showUpload = true"
               class="text-xs text-blue-400 px-3 py-1.5 rounded-lg bg-blue-600/10 border border-blue-500/20 hover:bg-blue-600/20 transition-colors flex items-center gap-1.5"
             >
@@ -56,7 +56,7 @@
                 />
               </svg>
               Upload Files
-            </button>
+            </button> -->
           </div>
         </div>
 
@@ -287,7 +287,7 @@
           <div v-else class="text-[11px] theme-muted space-y-2">
             <p>No brand loaded.</p>
             <router-link
-              to="/brand"
+              to="/branding"
               class="text-blue-400 hover:underline text-[11px]"
               >→ Set up Brand Vault</router-link
             >
@@ -309,8 +309,31 @@
           </div>
         </div>
 
-        <!-- Session files -->
+        <!-- Past Conversations -->
         <div class="rounded-xl theme-surface theme-border p-4">
+          <p class="text-xs font-medium theme-text mb-3">🕘 Past Conversations</p>
+          <div v-if="pastConversations.length" class="space-y-1.5">
+            <button
+              v-for="conv in pastConversations"
+              :key="conv._id"
+              @click="loadConversation(conv._id)"
+              class="w-full text-left px-3 py-2 rounded-lg theme-card theme-border text-[11px] theme-sub hover:theme-text hover:border-blue-500/20 transition-all truncate"
+              :class="conv._id === conversationId ? 'border-blue-500/30 text-blue-400' : ''"
+            >
+              {{ conv.preview }}
+            </button>
+          </div>
+          <p v-else class="text-[11px] theme-muted">No past conversations yet.</p>
+          <button
+            @click="clearChat"
+            class="mt-3 w-full text-[11px] theme-muted hover:theme-text py-1.5 rounded-lg theme-card theme-border transition-colors"
+          >
+            + New conversation
+          </button>
+        </div>
+
+        <!-- Session files -->
+        <!-- <div class="rounded-xl theme-surface theme-border p-4">
           <p class="text-xs font-medium theme-text mb-3">📎 Session Files</p>
           <div v-if="sessionFiles.length" class="space-y-2">
             <div
@@ -351,7 +374,7 @@
               multiple
             />
           </label>
-        </div>
+        </div> -->
       </div>
     </div>
 
@@ -454,11 +477,19 @@ const attachedFiles = ref([]);
 const pendingFiles = ref([]);
 const msgContainer = ref(null);
 const messages = ref([]);
-const sessionFiles = ref([]);
+// const sessionFiles = ref([]);
 const currentBrand = ref(null);
 const brandLoaded = ref(false);
 const ragChunks = ref(0);
 const userInitial = ref("U");
+
+// ✅ Persist conversationId across page refreshes within the same tab session
+const storedConvId = sessionStorage.getItem("cf_conversationId") || crypto.randomUUID();
+sessionStorage.setItem("cf_conversationId", storedConvId);
+const conversationId = ref(storedConvId);
+
+// Past conversations list for the sidebar
+const pastConversations = ref([]);
 
 // chat history نبعته للـ API عشان Gemini يتذكر المحادثة
 const chatHistory = ref([]);
@@ -505,52 +536,152 @@ const quickPrompts = [
 ];
 
 // ── Load brand on mount ───────────────────────────────────────────────────────
+// onMounted(async () => {
+//   // جيب الـ user initial من الـ auth
+//   try {
+//     const me = await api.get("/auth/me");
+//     userInitial.value = me?.user?.name?.charAt(0).toUpperCase() || "U";
+//   } catch {}
+
+//   // جيب الـ brand
+//   let brandId = null;
+//   try {
+//     const brands = await brandApi.getMyBrands();
+//     if (brands?.length) {
+//       currentBrand.value = brands[0];
+//       brandLoaded.value = true;
+//       ragChunks.value = brands[0].ragChunks?.length || 0;
+//       brandId = brands[0]._id.toString(); // ✅ ensure plain string, not ObjectId object
+//       localStorage.setItem("cf_brandId", brandId);
+//     }
+//   } catch {}
+
+//   // ✅ Load existing messages for the current conversationId
+//   try {
+//     if (brandId) {
+//       const { messages: history } = await api.get(
+//         `/chat/history/${conversationId.value}`
+//       );
+//       if (history?.length) {
+//         messages.value = history.map((m) => ({
+//           id: m._id,
+//           role: m.sender, // "user" | "ai"
+//           time: new Date(m.createdAt).toLocaleTimeString([], {
+//             hour: "2-digit",
+//             minute: "2-digit",
+//           }),
+//           content: m.content,
+//         }));
+//       }
+//     }
+//   } catch {}
+
+//   // ✅ Load past conversations list for the sidebar
+//   // try {
+//     if (brandId) {
+//       // 1. Show cached conversations instantly from localStorage
+//       const cached = localStorage.getItem("cf_conversations");
+//       if (cached) {
+//         try {
+//           pastConversations.value = JSON.parse(cached);
+//         } 
+//         catch {
+//           pastConversations.value = [];
+//         }
+//       }
+
+//       // 2. Fetch fresh from API and update both UI + localStorage
+//           try {
+//         const { conversations } = await api.get(
+//           `/chat/conversations/${brandId}`
+//         );
+
+//         if (conversations?.length) {
+//           pastConversations.value = conversations;
+
+//           // update cache
+//           localStorage.setItem(
+//             "cf_conversations",
+//             JSON.stringify(conversations)
+//           );
+//         }
+//       } catch (err) {
+//         console.error("Failed to refresh conversations", err);
+//       }
+//     }
+
+//   // Show welcome message only if no history was loaded
+//   if (messages.value.length === 0) {
+//     if (brandLoaded.value) {
+//       messages.value.push({
+//         id: 1,
+//         role: "ai",
+//         time: now(),
+//         content: `مرحباً! I'm your ContentForge AI — I have your **${
+//           currentBrand.value.name
+//         }** brand voice loaded (${
+//           currentBrand.value.dialects?.[0] || "Arabic"
+//         }). Ask me to generate posts, plan a campaign, or analyze your content.`,
+//       });
+//     } else {
+//       messages.value.push({
+//         id: 1,
+//         role: "ai",
+//         time: now(),
+//         content:
+//           "مرحباً! I'm ContentForge AI. It looks like you haven't set up your Brand Vault yet. Head to the Brand Vault page to upload your brand guidelines and get personalized content.",
+//       });
+//     }
+//   }
+// });
+
 onMounted(async () => {
-  // جيب الـ user initial من الـ auth
-  try {
-    const me = await api.get("/auth/me");
-    userInitial.value = me?.user?.name?.charAt(0).toUpperCase() || "U";
-  } catch {}
 
-  // جيب الـ brand
-  try {
-    const brands = await brandApi.getMyBrands();
-    if (brands?.length) {
-      currentBrand.value = brands[0];
-      brandLoaded.value = true;
-      ragChunks.value = brands[0].ragChunks?.length || 0;
-      localStorage.setItem("cf_brandId", brands[0]._id);
+  let brandId = localStorage.getItem("cf_brandId");
 
-      // رسالة ترحيب مخصصة
-      messages.value.push({
-        id: 1,
-        role: "ai",
-        time: now(),
-        content: `مرحباً! I'm your ContentForge AI — I have your **${
-          brands[0].name
-        }** brand voice loaded (${
-          brands[0].dialects?.[0] || "Arabic"
-        }). Ask me to generate posts, plan a campaign, or analyze your content.`,
-      });
-    } else {
-      messages.value.push({
-        id: 1,
-        role: "ai",
-        time: now(),
-        content:
-          "مرحباً! I'm ContentForge AI. It looks like you haven't set up your Brand Vault yet. Head to the Brand Vault page to upload your brand guidelines and get personalized content.",
-      });
+  // 🧠 1. LOAD CACHE FIRST (always instant)
+  const cacheKey = `cf_conversations_${brandId}`;
+
+  const cached = localStorage.getItem(cacheKey);
+  if (cached) {
+    try {
+      pastConversations.value = JSON.parse(cached);
+    } catch {
+      pastConversations.value = [];
     }
-  } catch {
-    messages.value.push({
-      id: 1,
-      role: "ai",
-      time: now(),
-      content: "مرحباً! I'm ContentForge AI. How can I help you today?",
-    });
+  }
+
+  // 🧠 2. IF NO BRAND → fetch brand
+  if (!brandId) {
+    try {
+      const brands = await brandApi.getMyBrands();
+      if (brands?.length) {
+        brandId = brands[0]._id.toString();
+        localStorage.setItem("cf_brandId", brandId);
+        currentBrand.value = brands[0];
+        brandLoaded.value = true;
+      }
+    } catch {}
+  }
+
+  // 🧠 3. FETCH LATEST FROM API
+  if (brandId) {
+    try {
+      const { conversations } = await api.get(
+        `/chat/conversations/${brandId}`
+      );
+
+      pastConversations.value = conversations || [];
+
+      localStorage.setItem(
+        cacheKey,
+        JSON.stringify(pastConversations.value)
+      );
+    } catch (err) {
+      console.error(err);
+    }
   }
 });
-
 // ── Send message → Gemini API ─────────────────────────────────────────────────
 async function sendMessage() {
   if (!input.value.trim() && !attachedFiles.value.length) return;
@@ -580,7 +711,7 @@ async function sendMessage() {
     const data = await api.post("/chat", {
       message: userText,
       brandId,
-      history: chatHistory.value.slice(-10), // آخر 10 رسائل بس عشان نوفر tokens
+      conversationId: conversationId.value, // ✅ required by backend to load/save DB history
     });
 
     const reply = data.reply || "Sorry, I couldn't generate a response.";
@@ -592,6 +723,15 @@ async function sendMessage() {
       content: reply,
     });
     chatHistory.value.push({ role: "ai", content: reply });
+
+    // ✅ Refresh sidebar so new conversation appears immediately
+    if (brandId) {
+      try {
+        const { conversations } = await api.get(`/chat/conversations/${brandId}`);
+        pastConversations.value = conversations || [];
+        localStorage.setItem("cf_conversations", JSON.stringify(pastConversations.value));
+      } catch {}
+    }
   } catch (err) {
     messages.value.push({
       id: Date.now() + 1,
@@ -607,6 +747,27 @@ async function sendMessage() {
   }
 }
 
+// ── Load a past conversation ──────────────────────────────────────────────────
+async function loadConversation(id) {
+  conversationId.value = id;
+  sessionStorage.setItem("cf_conversationId", id);
+  chatHistory.value = [];
+  try {
+    const { messages: history } = await api.get(`/chat/history/${id}`);
+    messages.value = (history || []).map((m) => ({
+      id: m._id,
+      role: m.sender,
+      time: new Date(m.createdAt).toLocaleTimeString([], {
+        hour: "2-digit",
+        minute: "2-digit",
+      }),
+      content: m.content,
+    }));
+    await nextTick();
+    scrollBottom();
+  } catch {}
+}
+
 // ── Helpers ───────────────────────────────────────────────────────────────────
 function sendSuggestion(s) {
   input.value = s;
@@ -616,6 +777,10 @@ function sendSuggestion(s) {
 function clearChat() {
   messages.value = [];
   chatHistory.value = [];
+  // ✅ Start a brand new conversation session
+  const newId = crypto.randomUUID();
+  conversationId.value = newId;
+  sessionStorage.setItem("cf_conversationId", newId);
   // رسالة ترحيب تاني
   if (brandLoaded.value) {
     messages.value.push({
@@ -669,21 +834,21 @@ function handleDrop(e) {
   [...e.dataTransfer.files].forEach((f) => pendingFiles.value.push(f.name));
 }
 
-async function confirmUpload() {
-  // أضيف للـ session files
-  pendingFiles.value.forEach((n) =>
-    sessionFiles.value.unshift({ name: n, size: "—", icon: "📄" })
-  );
+// async function confirmUpload() {
+//   // أضيف للـ session files
+//   pendingFiles.value.forEach((n) =>
+//     sessionFiles.value.unshift({ name: n, size: "—", icon: "📄" })
+//   );
 
-  // لو في brandId ارفع للـ backend
-  const brandId = localStorage.getItem("cf_brandId");
-  if (brandId && pendingFiles.value.length) {
-    try {
-      await brandApi.uploadGuidelines(brandId, pendingFiles.value[0]);
-    } catch {}
-  }
+//   // لو في brandId ارفع للـ backend
+//   const brandId = localStorage.getItem("cf_brandId");
+//   if (brandId && pendingFiles.value.length) {
+//     try {
+//       await brandApi.uploadGuidelines(brandId, pendingFiles.value[0]);
+//     } catch {}
+//   }
 
-  pendingFiles.value = [];
-  showUpload.value = false;
-}
+//   pendingFiles.value = [];
+//   showUpload.value = false;
+// }
 </script>

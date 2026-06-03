@@ -4,8 +4,9 @@ const { GoogleGenerativeAI } = require('@google/generative-ai')
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY)
 
 // ── Generate 2-week calendar ──────────────────────────────────────────────────
-async function generateCalendar({ brief, brand, trends, dialect, platforms, brandContext }) {
-  const model = genAI.getGenerativeModel({ model: 'gemini-2.5-flash' })
+async function generateCalendar({ brief, brand, trends, dialect, platforms, brandContext, startDate, endDate, duration }) {
+  
+  const model = genAI.getGenerativeModel({ model: 'gemini-3.1-flash-lite' })
 
   const prompt = `
 You are ContentForge, an AI content strategist for Arabic and bilingual brands.
@@ -25,15 +26,21 @@ ${brief}
 TRENDING NOW (inject naturally into posts):
 ${trends.join(', ')}
 
-TASK: Generate a 14-day content calendar for: ${platforms.join(', ')}
-Include 2-3 rest days per week (no post those days — just skip them).
+STRICT TIMEFRAME CONSTRAINTS:
+- Start Date: ${startDate}
+- End Date: ${endDate}
+- Plan Duration: Exactly ${duration} days. 
+
+TASK: Generate a sequential content calendar spanning from ${startDate} to ${endDate} (${duration} days total) for: ${platforms.join(', ')}.
+Each post MUST have an accurate "date" parameter corresponding to a day within this explicit range. 
+Include roughly 2 rest days per week (for empty days, simply do not generate an object for that specific date in the array).
 
 RESPOND ONLY with a JSON array, no extra text, no markdown fences. Example format:
 [
   {
-    "date": "2026-05-26",
-    "platform": "Instagram",
-    "dialect": "Egyptian Arabic",
+    "date": "${startDate}",
+    "platform": "${platforms[0] || 'Instagram'}",
+    "dialect": "${dialect}",
     "copyAR": "Arabic caption text here",
     "copyEN": "English translation here",
     "hashtags": ["hashtag1", "hashtag2", "hashtag3"],
@@ -48,6 +55,7 @@ RESPOND ONLY with a JSON array, no extra text, no markdown fences. Example forma
   text = text.replace(/```json|```/g, '').trim()
   return JSON.parse(text)
 }
+
 
 // ── Generate A/B variant ──────────────────────────────────────────────────────
 async function generateVariantB({ post, brand }) {

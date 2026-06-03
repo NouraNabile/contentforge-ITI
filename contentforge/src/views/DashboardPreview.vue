@@ -2,10 +2,8 @@
   <AppLayout>
     <div class="flex flex-col h-full">
       <!-- Page toolbar -->
-      <div
-        class="px-6 py-4 border-b flex items-center justify-between sticky top-0 z-10 theme-glass"
-        style="border-color: var(--border)"
-      >
+      <div class="px-6 py-4 border-b flex items-center justify-between sticky top-0 z-10 theme-glass"
+        style="border-color: var(--border)">
         <div>
           <h1 class="font-display text-lg font-600 theme-text">
             Content Calendar
@@ -13,126 +11,56 @@
           <p class="text-xs theme-sub mt-0.5">
             <template v-if="currentCalendar">
               {{ calendarDateRange }} ·
-              {{ currentCalendar.posts?.length || 0 }} posts planned
+              {{ store.posts?.length || 0 }} posts planned
             </template>
-            <template v-else
-              >No calendar yet — generate your first plan</template
-            >
+            <template v-else>No calendar yet — generate your first plan</template>
           </p>
         </div>
         <div class="flex items-center gap-2">
-          <!-- Status filter -->
-          <div
-            class="flex items-center gap-1 p-1 rounded-xl theme-card theme-border"
-          >
-            <button
-              v-for="f in filters"
-              :key="f"
-              @click="activeFilter = f"
-              class="px-3 py-1.5 rounded-lg text-xs transition-all"
-              :class="
-                activeFilter === f
-                  ? 'bg-blue-600 text-white'
-                  : 'theme-sub hover:theme-text'
-              "
-            >
-              {{ f }}
-            </button>
-          </div>
-
           <!-- Top trend badge — من DB مش هاردكود -->
-          <span
-            v-if="topTrend"
+          <span v-if="topTrend"
             class="text-[11px] px-2.5 py-1.5 rounded-lg bg-amber-500/10 text-amber-400 border border-amber-500/20 cursor-default"
-            :title="`Trending ${topTrend.change}`"
-          >
+            :title="`Trending ${topTrend.change}`">
             ✦ {{ topTrend.tag }}
           </span>
 
           <!-- Calendar actions — بتظهر بس لو في calendar -->
           <template v-if="currentCalendar">
             <!-- Approve Plan -->
-            <button
-              @click="approvePlan"
-              :disabled="approving"
-              class="px-4 py-2 rounded-xl bg-green-600 text-white text-xs font-medium hover:bg-green-500 transition-colors disabled:opacity-50 flex items-center gap-1.5"
-            >
-              <svg
-                class="w-3.5 h-3.5"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-              >
-                <path
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  stroke-width="2"
-                  d="M5 13l4 4L19 7"
-                />
+            <button @click="approvePlan" :disabled="approving || planApproved"
+              class="px-4 py-2 rounded-xl bg-green-600 text-white text-xs font-medium hover:bg-green-500 transition-colors disabled:opacity-50 flex items-center gap-1.5">
+              <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
               </svg>
               {{ approving ? "Approving…" : "Approve Plan" }}
             </button>
-            <!-- Regenerate -->
-            <button
-              @click="openRegenerate"
-              class="px-3 py-2 rounded-xl theme-card theme-border theme-sub text-xs hover:theme-text transition-colors flex items-center gap-1.5"
-            >
-              <svg
-                class="w-3.5 h-3.5"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-              >
-                <path
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  stroke-width="2"
-                  d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
-                />
-              </svg>
-              Regenerate
-            </button>
             <!-- Delete -->
-            <button
-              @click="confirmDelete"
-              class="px-3 py-2 rounded-xl bg-rose-600/10 text-rose-400 border border-rose-500/20 text-xs hover:bg-rose-600/20 transition-colors flex items-center gap-1.5"
-            >
-              <svg
-                class="w-3.5 h-3.5"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-              >
-                <path
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  stroke-width="2"
-                  d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
-                />
+            <button @click="confirmDelete"
+              class="px-3 py-2 rounded-xl bg-rose-600/10 text-rose-400 border border-rose-500/20 text-xs hover:bg-rose-600/20 transition-colors flex items-center gap-1.5">
+              <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                  d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
               </svg>
               Delete
             </button>
           </template>
 
           <!-- Generate -->
-          <button
-            @click="showModal = true"
-            class="px-4 py-2 rounded-xl bg-blue-600 text-white text-xs font-medium hover:bg-blue-500 transition-colors flex items-center gap-1.5"
-          >
-            <svg
-              class="w-3.5 h-3.5"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-            >
-              <path
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                stroke-width="2"
-                d="M12 4v16m8-8H4"
-              />
+          <button v-if="!currentCalendar" @click="showModal = true"
+            class="px-4 py-2 rounded-xl bg-blue-600 text-white text-xs font-medium hover:bg-blue-500 transition-colors flex items-center gap-1.5">
+            <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
             </svg>
             Generate Plan
+          </button>
+          <!-- Regenerate -->
+          <button v-if="currentCalendar" @click="openRegenerate"
+            class="px-3 py-2 rounded-xl theme-card theme-border theme-sub text-xs hover:theme-text transition-colors flex items-center gap-1.5">
+            <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+            </svg>
+            Regenerate
           </button>
         </div>
       </div>
@@ -141,32 +69,17 @@
         <!-- Calendar area -->
         <div class="flex-1 overflow-auto p-6">
           <div class="grid grid-cols-7 gap-2 mb-3">
-            <div
-              v-for="d in weekDays"
-              :key="d"
-              class="text-center text-[11px] theme-muted font-medium py-1"
-            >
+            <div v-for="d in weekDays" :key="d" class="text-center text-[11px] theme-muted font-medium py-1">
               {{ d }}
             </div>
           </div>
 
           <!-- Empty state -->
-          <div
-            v-if="filteredWeeks.length === 0 && !loadingCalendar"
-            class="flex flex-col items-center justify-center py-24 theme-sub gap-3"
-          >
-            <svg
-              class="w-12 h-12 opacity-20"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-            >
-              <path
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                stroke-width="1.5"
-                d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
-              />
+          <div v-if="filteredWeeks.length === 0 && !loadingCalendar"
+            class="flex flex-col items-center justify-center py-24 theme-sub gap-3">
+            <svg class="w-12 h-12 opacity-20" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+                d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
             </svg>
             <p class="text-sm">
               No calendar yet — click
@@ -175,101 +88,84 @@
           </div>
 
           <!-- Loading state -->
-          <div
-            v-if="loadingCalendar"
-            class="flex flex-col items-center justify-center py-24 gap-3 theme-sub"
-          >
-            <svg
-              class="w-8 h-8 animate-spin text-blue-400"
-              fill="none"
-              viewBox="0 0 24 24"
-            >
-              <circle
-                class="opacity-25"
-                cx="12"
-                cy="12"
-                r="10"
-                stroke="currentColor"
-                stroke-width="4"
-              />
-              <path
-                class="opacity-75"
-                fill="currentColor"
-                d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"
-              />
+          <div v-if="loadingCalendar" class="flex flex-col items-center justify-center py-24 gap-3 theme-sub">
+            <svg class="w-8 h-8 animate-spin text-blue-400" fill="none" viewBox="0 0 24 24">
+              <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" />
+              <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
             </svg>
             <p class="text-sm">Generating your calendar with Gemini AI…</p>
             <p class="text-xs opacity-60">This usually takes 20–40 seconds</p>
           </div>
 
           <!-- Weeks -->
-          <div class="space-y-2">
-            <div
-              v-for="week in filteredWeeks"
-              :key="week.id"
-              class="grid grid-cols-7 gap-2"
-            >
-              <div
-                v-for="cell in week.cells"
-                :key="cell.id"
-                @click="cell.copy && selectPost(cell)"
-                class="rounded-xl border transition-all min-h-[100px] p-2.5 flex flex-col"
-                :class="[
-                  cell.cellClass,
-                  cell.copy
-                    ? 'cursor-pointer hover:scale-[1.02]'
-                    : 'cursor-default',
-                  selectedPost?.id === cell.id ? 'ring-2 ring-blue-500/50' : '',
-                ]"
-                :style="cell.copy ? '' : 'border-color:var(--border)'"
-              >
-                <div class="flex items-center justify-between mb-1.5">
-                  <span
-                    class="text-[11px] font-medium"
-                    :class="cell.copy ? 'theme-text' : 'theme-muted'"
-                    >{{ cell.date }}</span
-                  >
-                  <span
-                    v-if="cell.platform"
-                    class="text-[9px] px-1.5 py-0.5 rounded font-medium"
-                    :class="platformBadge(cell.platform)"
-                    >{{ cell.platform }}</span
-                  >
+          <div v-if="!loadingCalendar" class="space-y-3">
+            <div v-for="week in filteredWeeks" :key="week.id" class="grid grid-cols-7 gap-3">
+              <div v-for="dayCell in week.cells" :key="dayCell.id" @dragover.prevent
+                @dragenter="dragOverId = dayCell.rawDate" @dragleave="dragOverId = null" @drop="onDrop(dayCell)"
+                class="rounded-xl border p-2 flex flex-col min-h-[160px] transition-all bg-forge-900/40" :class="[
+                  dragOverId === dayCell.rawDate && dayCell.rawDate ? 'ring-2 ring-amber-400/50 border-amber-400/50 bg-amber-500/5 scale-[1.01]' : '',
+                  dayCell.cellClass
+                ]" style="border-color: var(--border);">
+
+                <div class="flex items-center justify-between mb-2 px-1">
+                  <span class="text-[11px] font-semibold tracking-wide"
+                    :class="dayCell.posts && dayCell.posts.length > 0 ? 'theme-text' : 'theme-muted'">
+                    {{ dayCell.date }}
+                  </span>
+                  <span v-if="dayCell.posts && dayCell.posts.length > 1"
+                    class="text-[9px] px-1.5 py-0.5 rounded-full bg-blue-500/10 text-blue-400 font-medium">
+                    {{ dayCell.posts.length }} posts
+                  </span>
                 </div>
-                <p
-                  v-if="cell.copy"
-                  class="text-[10px] leading-tight theme-sub flex-1"
-                >
-                  {{ cell.copy }}
-                </p>
-                <p
-                  v-else-if="cell.date"
-                  class="text-[10px] theme-muted flex-1 flex items-center justify-center"
-                >
-                  —
-                </p>
-                <span
-                  v-if="cell.status"
-                  class="text-[9px] font-medium mt-1.5"
-                  :class="statusColor(cell.status)"
-                  >{{ cell.status }}</span
-                >
+
+                <div
+                  class="flex flex-col gap-2 flex-1 overflow-y-auto overflow-x-hidden max-h-[280px] custom-scrollbar">
+                  <template v-if="dayCell.posts && dayCell.posts.length > 0">
+                    <div v-for="post in dayCell.posts" :key="post._id || post.id" draggable="true"
+                      @dragstart="onDragStart(post)" @click.stop="selectPost(post)"
+                      class="relative rounded-lg border p-2.5 flex flex-col justify-between transition-all aspect-square w-full cursor-grab hover:scale-[1.02] active:cursor-grabbing shadow-sm"
+                      :class="[
+                        statusToClass(post.status),
+                      ]">
+                      <div class="flex items-start justify-between">
+                        <span class="text-[9px] font-mono opacity-60 text-left">
+                          {{ dayCell.date }}
+                        </span>
+                        <span v-if="post.platform"
+                          class="text-[8px] px-1.5 py-0.5 rounded font-medium transform -mt-0.5"
+                          :class="platformBadge(post.platform)">
+                          {{ post.platform }}
+                        </span>
+                      </div>
+
+                      <p class="text-[10px] leading-snug theme-sub flex-1 line-clamp-3 mt-1.5 text-left">
+                        {{ post.copyAR || post.copy || post.text }}
+                      </p>
+
+                      <div class="flex items-center justify-between mt-1 pt-1 border-t border-white/5">
+                        <span v-if="post.status" class="text-[8px] font-medium tracking-wide"
+                          :class="statusColor(post.status)">
+                          ● {{ post.status }}
+                        </span>
+                      </div>
+                    </div>
+                  </template>
+
+                  <div v-else-if="dayCell.rawDate"
+                    class="text-[10px] theme-muted flex-1 flex items-center justify-center opacity-40 italic py-4">
+                    —
+                  </div>
+                </div>
               </div>
             </div>
           </div>
 
+
           <!-- Legend -->
-          <div
-            v-if="filteredWeeks.length > 0"
-            class="flex items-center gap-5 flex-wrap mt-5 pt-4 border-t"
-            style="border-color: var(--border)"
-          >
+          <div v-if="filteredWeeks.length > 0" class="flex items-center gap-5 flex-wrap mt-5 pt-4 border-t"
+            style="border-color: var(--border)">
             <p class="text-[11px] theme-muted font-medium">Status:</p>
-            <div
-              v-for="s in legend"
-              :key="s.label"
-              class="flex items-center gap-1.5"
-            >
+            <div v-for="s in legend" :key="s.label" class="flex items-center gap-1.5">
               <div class="w-1.5 h-1.5 rounded-full" :class="s.dot"></div>
               <span class="text-[10px] theme-sub">{{ s.label }}</span>
             </div>
@@ -277,53 +173,28 @@
         </div>
 
         <!-- Right panel -->
-        <div
-          class="w-64 shrink-0 border-l overflow-y-auto p-4 space-y-4"
-          style="border-color: var(--border)"
-        >
+        <div class="w-64 shrink-0 border-l overflow-y-auto p-4 space-y-4" style="border-color: var(--border)">
           <!-- Post editor -->
-          <div
-            v-if="selectedPost"
-            class="rounded-xl theme-surface theme-border p-4"
-          >
+          <div v-if="selectedPost" class="rounded-xl theme-surface theme-border p-4">
             <div class="flex items-center justify-between mb-3">
               <p class="text-xs font-medium theme-text">Edit Post</p>
-              <button
-                @click="selectedPost = null"
-                class="theme-muted hover:theme-text"
-              >
-                <svg
-                  class="w-3.5 h-3.5"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                >
-                  <path
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                    stroke-width="2"
-                    d="M6 18L18 6M6 6l12 12"
-                  />
+              <button @click="selectedPost = null" class="theme-muted hover:theme-text">
+                <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
                 </svg>
               </button>
             </div>
             <div class="flex gap-1.5 mb-3 flex-wrap">
-              <span
-                class="text-[10px] px-2 py-0.5 rounded-full font-medium"
-                :class="platformBadge(selectedPost.platform)"
-                >{{ selectedPost.platform }}</span
-              >
-              <span
-                class="text-[10px] px-2 py-0.5 rounded-full theme-card theme-border theme-muted"
-                >{{ selectedPost.dialect || "Arabic" }}</span
-              >
+              <span class="text-[10px] px-2 py-0.5 rounded-full font-medium"
+                :class="platformBadge(selectedPost.platform)">{{
+                  selectedPost.platform }}</span>
+              <span class="text-[10px] px-2 py-0.5 rounded-full theme-card theme-border theme-muted">{{
+                selectedPost.dialect
+                || "Arabic" }}</span>
             </div>
-            <textarea
-              v-model="editCopy"
-              rows="5"
+            <textarea v-model="editCopy" rows="5"
               class="w-full theme-input rounded-lg p-2.5 text-xs theme-text border focus:outline-none focus:border-blue-500/40 resize-none leading-relaxed"
-              style="border-color: var(--border)"
-            ></textarea>
+              style="border-color: var(--border)"></textarea>
             <div class="mt-2 p-2 rounded-lg theme-card theme-border">
               <p class="text-[9px] theme-muted mb-1">Hashtags</p>
               <p class="text-[10px] text-blue-400">
@@ -332,89 +203,56 @@
             </div>
             <div class="mt-3 space-y-1">
               <p class="text-[10px] theme-muted mb-2">Status</p>
-              <button
-                v-for="s in statuses"
-                :key="s.label"
-                @click="selectedPost.status = s.label"
+              <button v-for="s in statuses" :key="s.label" @click="selectedPost.status = s.label"
                 class="w-full flex items-center gap-2 px-2.5 py-1.5 rounded-lg text-[10px] transition-colors text-left border"
-                :class="
-                  selectedPost.status === s.label
-                    ? 'bg-blue-600/15 text-blue-400 border-blue-500/20'
-                    : 'theme-sub border-transparent hover:theme-text'
-                "
-              >
-                <div
-                  class="w-1.5 h-1.5 rounded-full shrink-0"
-                  :class="s.dot"
-                ></div>
+                :class="selectedPost.status === s.label
+                  ? 'bg-blue-600/15 text-blue-400 border-blue-500/20'
+                  : 'theme-sub border-transparent hover:theme-text'
+                  ">
+                <div class="w-1.5 h-1.5 rounded-full shrink-0" :class="s.dot"></div>
                 {{ s.label }}
               </button>
             </div>
-            <p
-              v-if="saveMsg"
-              class="text-[10px] text-green-400 mt-2 text-center"
-            >
+            <p v-if="saveMsg" class="text-[10px] text-green-400 mt-2 text-center">
               {{ saveMsg }}
             </p>
-            <button
-              @click="savePost"
-              :disabled="saving"
-              class="w-full mt-3 py-2 rounded-lg bg-blue-600 text-white text-xs font-medium hover:bg-blue-500 transition-colors disabled:opacity-50"
-            >
+            <button @click="savePost" :disabled="saving"
+              class="w-full mt-3 py-2 rounded-lg bg-blue-600 text-white text-xs font-medium hover:bg-blue-500 transition-colors disabled:opacity-50">
               {{ saving ? "Saving…" : "Save Changes" }}
             </button>
           </div>
-          <div
-            v-else
-            class="rounded-xl theme-card theme-border p-4 text-center"
-          >
+          <div v-else class="rounded-xl theme-card theme-border p-4 text-center">
             <p class="text-xs theme-muted">
               Click any post card to edit it here
             </p>
           </div>
 
           <!-- A/B Critic -->
-          <div
-            v-if="selectedPost"
-            class="rounded-xl border border-amber-500/20 bg-amber-500/5 p-4"
-          >
+          <div v-if="selectedPost" class="rounded-xl border border-amber-500/20 bg-amber-500/5 p-4">
             <div class="flex items-center gap-2 mb-2">
               <span class="text-amber-400">⚡</span>
               <p class="text-xs font-medium text-amber-300">A/B Critic Agent</p>
             </div>
-            <p
-              v-if="!variantB"
-              class="text-[11px] theme-sub leading-relaxed mb-3"
-            >
+            <p v-if="!variantB" class="text-[11px] theme-sub leading-relaxed mb-3">
               Generate a smarter version of this post using AI.
             </p>
-            <div
-              v-if="variantB"
-              class="p-2.5 rounded-lg theme-card theme-border mb-3"
-            >
+            <div v-if="variantB" class="p-2.5 rounded-lg theme-card theme-border mb-3">
               <p class="text-[10px] theme-sub italic leading-relaxed">
                 {{ variantB }}
               </p>
             </div>
             <div v-if="variantB" class="flex gap-2 mb-2">
-              <button
-                @click="applyVariantB"
-                class="flex-1 py-1.5 rounded-lg bg-amber-500/15 text-amber-400 text-[10px] hover:bg-amber-500/25 border border-amber-500/20 transition-colors"
-              >
+              <button @click="applyVariantB"
+                class="flex-1 py-1.5 rounded-lg bg-amber-500/15 text-amber-400 text-[10px] hover:bg-amber-500/25 border border-amber-500/20 transition-colors">
                 Use B
               </button>
-              <button
-                @click="variantB = null"
-                class="flex-1 py-1.5 rounded-lg theme-card theme-border theme-muted text-[10px] hover:theme-text transition-colors"
-              >
+              <button @click="variantB = null"
+                class="flex-1 py-1.5 rounded-lg theme-card theme-border theme-muted text-[10px] hover:theme-text transition-colors">
                 Keep A
               </button>
             </div>
-            <button
-              @click="generateVariantB"
-              :disabled="loadingVariant"
-              class="w-full py-1.5 rounded-lg theme-card theme-border theme-muted text-[10px] hover:theme-text transition-colors"
-            >
+            <button @click="generateVariantB" :disabled="loadingVariant"
+              class="w-full py-1.5 rounded-lg theme-card theme-border theme-muted text-[10px] hover:theme-text transition-colors">
               {{ loadingVariant ? "Generating…" : "✦ Generate Variant B" }}
             </button>
           </div>
@@ -428,19 +266,13 @@
               }}</span>
             </div>
             <div class="space-y-2">
-              <div
-                v-for="t in trends"
-                :key="t.tag"
-                class="flex items-center justify-between"
-              >
+              <div v-for="t in trends" :key="t.tag" class="flex items-center justify-between">
                 <span class="text-[11px] theme-sub">{{ t.tag }}</span>
                 <span class="text-[10px]" :class="t.color">{{ t.change }}</span>
               </div>
             </div>
-            <button
-              @click="injectTrend"
-              class="w-full mt-3 py-1.5 rounded-lg theme-card theme-border theme-muted text-[10px] hover:theme-text transition-colors"
-            >
+            <button @click="injectTrend"
+              class="w-full mt-3 py-1.5 rounded-lg theme-card theme-border theme-muted text-[10px] hover:theme-text transition-colors">
               Inject into next post →
             </button>
           </div>
@@ -449,48 +281,25 @@
     </div>
 
     <!-- ── Generate / Regenerate Modal ── -->
-    <div
-      v-if="showModal"
-      class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-6"
-    >
-      <div
-        class="theme-surface rounded-2xl theme-border max-w-lg w-full p-7 theme-shadow"
-      >
+    <div v-if="showModal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-6">
+      <div class="theme-surface rounded-2xl theme-border max-w-lg w-full p-7 theme-shadow">
         <div class="flex items-center justify-between mb-5">
           <h2 class="font-display text-xl font-600 theme-text">
             {{ isRegenerate ? "Regenerate Calendar" : "Generate New Plan" }}
           </h2>
-          <button
-            @click="showModal = false"
-            class="theme-muted hover:theme-text"
-          >
-            <svg
-              class="w-5 h-5"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-            >
-              <path
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                stroke-width="2"
-                d="M6 18L18 6M6 6l12 12"
-              />
+          <button @click="showModal = false" class="theme-muted hover:theme-text">
+            <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
             </svg>
           </button>
         </div>
 
-        <div
-          v-if="isRegenerate"
-          class="mb-4 p-3 rounded-xl bg-amber-500/10 border border-amber-500/20 text-amber-400 text-xs"
-        >
+        <div v-if="isRegenerate"
+          class="mb-4 p-3 rounded-xl bg-amber-500/10 border border-amber-500/20 text-amber-400 text-xs">
           ⚠️ This will delete the current calendar and generate a new one.
         </div>
 
-        <div
-          v-if="!brandId"
-          class="mb-4 p-3 rounded-xl bg-rose-500/10 border border-rose-500/20 text-rose-400 text-xs"
-        >
+        <div v-if="!brandId" class="mb-4 p-3 rounded-xl bg-rose-500/10 border border-rose-500/20 text-rose-400 text-xs">
           ⚠️ No brand found. Please go to <strong>Brand Vault</strong> first.
         </div>
 
@@ -498,24 +307,18 @@
           <!-- Brief -->
           <div>
             <label class="text-xs theme-sub mb-1.5 block">Campaign Brief</label>
-            <textarea
-              v-model="brief"
-              rows="3"
-              placeholder="e.g. Ramadan iftar campaign for our cold brew line…"
+            <textarea v-model="brief" rows="3" placeholder="e.g. Ramadan iftar campaign for our cold brew line…"
               class="w-full theme-input rounded-xl p-3.5 text-sm theme-text border resize-none focus:outline-none focus:border-blue-500/40"
-              style="border-color: var(--border)"
-            ></textarea>
+              style="border-color: var(--border)"></textarea>
           </div>
 
           <!-- Dialect + Start Date -->
           <div class="grid grid-cols-2 gap-3">
             <div>
               <label class="text-xs theme-sub mb-1.5 block">Dialect</label>
-              <select
-                v-model="selectedDialect"
+              <select v-model="selectedDialect"
                 class="w-full theme-input rounded-xl px-3 py-2.5 text-sm theme-text border focus:outline-none"
-                style="border-color: var(--border)"
-              >
+                style="border-color: var(--border)">
                 <option>Egyptian Arabic</option>
                 <option>Gulf Arabic</option>
                 <option>Levantine Arabic</option>
@@ -525,28 +328,23 @@
             </div>
             <div>
               <label class="text-xs theme-sub mb-1.5 block">Start Date</label>
-              <input
-                type="date"
-                v-model="startDate"
+              <input type="date" v-model="startDate" @change="validateDates"
                 class="w-full theme-input rounded-xl px-3 py-2.5 text-sm theme-text border focus:outline-none"
-                style="border-color: var(--border)"
-                :min="todayStr"
-              />
+                style="border-color: var(--border)" :min="todayDate" />
             </div>
           </div>
 
           <!-- End Date -->
           <div>
             <label class="text-xs theme-sub mb-1.5 block">End Date</label>
-            <input
-              type="date"
-              v-model="endDate"
+            <input type="date" v-model="endDate" @change="validateDates"
               class="w-full theme-input rounded-xl px-3 py-2.5 text-sm theme-text border focus:outline-none"
-              style="border-color: var(--border)"
-              :min="startDate || todayStr"
-            />
+              style="border-color: var(--border)" :min="startDate || todayDate" />
             <p class="text-[10px] theme-muted mt-1">
               {{ durationLabel }}
+            </p>
+            <p v-if="errorMessage" class="text-xs text-rose-400 font-medium mt-2">
+              {{ errorMessage }}
             </p>
           </div>
 
@@ -554,27 +352,18 @@
           <div>
             <label class="text-xs theme-sub mb-1.5 block">Platforms</label>
             <div class="flex flex-wrap gap-2">
-              <button
-                v-for="p in platforms"
-                :key="p.name"
-                @click="p.on = !p.on"
-                class="px-3 py-1.5 rounded-lg text-xs border transition-all"
-                :class="
-                  p.on
-                    ? 'bg-blue-600/20 text-blue-400 border-blue-500/30'
-                    : 'theme-border theme-muted hover:theme-text'
-                "
-              >
+              <button v-for="p in platforms" :key="p.name" @click="p.on = !p.on"
+                class="px-3 py-1.5 rounded-lg text-xs border transition-all" :class="p.on
+                  ? 'bg-blue-600/20 text-blue-400 border-blue-500/30'
+                  : 'theme-border theme-muted hover:theme-text'
+                  ">
                 {{ p.name }}
               </button>
             </div>
           </div>
 
           <!-- Trends preview -->
-          <div
-            v-if="trends.length"
-            class="p-3 rounded-xl bg-amber-500/5 border border-amber-500/15"
-          >
+          <div v-if="trends.length" class="p-3 rounded-xl bg-amber-500/5 border border-amber-500/15">
             <p class="text-[11px] text-amber-400 font-medium mb-1">
               ✦ Trends being injected
             </p>
@@ -594,25 +383,19 @@
         </div>
 
         <div class="flex gap-3 mt-6">
-          <button
-            @click="showModal = false"
-            class="flex-1 py-3 rounded-xl theme-card theme-border theme-sub text-sm hover:theme-text transition-colors"
-          >
+          <button @click="showModal = false"
+            class="flex-1 py-3 rounded-xl theme-card theme-border theme-sub text-sm hover:theme-text transition-colors">
             Cancel
           </button>
-          <button
-            @click="doGenerate"
-            :disabled="
-              generating || !brief || !brandId || !startDate || !endDate
+          <button @click="doGenerate" :disabled="generating || !brief || !brandId || !startDate || !endDate
             "
-            class="flex-1 py-3 rounded-xl bg-blue-600 text-white text-sm font-medium hover:bg-blue-500 transition-colors disabled:opacity-50"
-          >
+            class="flex-1 py-3 rounded-xl bg-blue-600 text-white text-sm font-medium hover:bg-blue-500 transition-colors disabled:opacity-50">
             {{
               generating
                 ? "Generating… (may take ~40s)"
                 : isRegenerate
-                ? "↺ Regenerate"
-                : "✦ Generate Calendar"
+                  ? "↺ Regenerate"
+                  : "✦ Generate Calendar"
             }}
           </button>
         </div>
@@ -620,13 +403,9 @@
     </div>
 
     <!-- ── Delete Confirm Dialog ── -->
-    <div
-      v-if="showDeleteConfirm"
-      class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-6"
-    >
-      <div
-        class="theme-surface rounded-2xl theme-border max-w-sm w-full p-6 theme-shadow"
-      >
+    <div v-if="showDeleteConfirm"
+      class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-6">
+      <div class="theme-surface rounded-2xl theme-border max-w-sm w-full p-6 theme-shadow">
         <h2 class="font-display text-lg font-600 theme-text mb-2">
           Delete Calendar?
         </h2>
@@ -635,17 +414,12 @@
           cannot be undone.
         </p>
         <div class="flex gap-3">
-          <button
-            @click="showDeleteConfirm = false"
-            class="flex-1 py-2.5 rounded-xl theme-card theme-border theme-sub text-sm hover:theme-text transition-colors"
-          >
+          <button @click="showDeleteConfirm = false"
+            class="flex-1 py-2.5 rounded-xl theme-card theme-border theme-sub text-sm hover:theme-text transition-colors">
             Cancel
           </button>
-          <button
-            @click="deleteCalendar"
-            :disabled="deleting"
-            class="flex-1 py-2.5 rounded-xl bg-rose-600 text-white text-sm hover:bg-rose-500 transition-colors disabled:opacity-50"
-          >
+          <button @click="deleteCalendar" :disabled="deleting"
+            class="flex-1 py-2.5 rounded-xl bg-rose-600 text-white text-sm hover:bg-rose-500 transition-colors disabled:opacity-50">
             {{ deleting ? "Deleting…" : "Delete" }}
           </button>
         </div>
@@ -653,26 +427,24 @@
     </div>
 
     <!-- ── Approve success toast ── -->
-    <div
-      v-if="approveMsg"
-      class="fixed bottom-6 right-6 z-50 px-4 py-3 rounded-xl bg-green-600 text-white text-sm font-medium shadow-lg"
-    >
+    <div v-if="approveMsg"
+      class="fixed bottom-6 right-6 z-50 px-4 py-3 rounded-xl bg-green-600 text-white text-sm font-medium shadow-lg">
       ✓ {{ approveMsg }}
     </div>
   </AppLayout>
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from "vue";
+import { ref, computed, onMounted, watch } from "vue";
 import AppLayout from "../components/AppLayout.vue";
 import calendarApi from "../api/calendarApi";
 import postsApi from "../api/postsApi";
 import api from "../api/client";
+import { useCalendarStore } from '../stores/calendarStore'
 
 // ── State ─────────────────────────────────────────────────────────────────────
 const brandId = ref(localStorage.getItem("cf_brandId") || "");
 const activeFilter = ref("All");
-const filters = ["All", "Draft", "Pending", "Approved", "Scheduled"];
 const selectedPost = ref(null);
 const editCopy = ref("");
 const showModal = ref(false);
@@ -680,8 +452,15 @@ const showDeleteConfirm = ref(false);
 const isRegenerate = ref(false);
 const brief = ref("");
 const selectedDialect = ref("Egyptian Arabic");
-const startDate = ref(todayStr());
-const endDate = ref(twoWeeksStr());
+const todayDate = computed(() => {
+  const today = new Date();
+  const year = today.getFullYear();
+  const month = String(today.getMonth() + 1).padStart(2, "0");
+  const day = String(today.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
+});
+const startDate = ref("");
+const endDate = ref("");
 const generating = ref(false);
 const generateError = ref("");
 const loadingCalendar = ref(false);
@@ -692,10 +471,18 @@ const approveMsg = ref("");
 const deleting = ref(false);
 const variantB = ref(null);
 const loadingVariant = ref(false);
+const errorMessage = ref("");
 const currentCalendar = ref(null);
-const calendarWeeks = ref([]);
+// const calendarWeeks = ref([]);
 const trends = ref([]);
 const trendsLastUpdated = ref("");
+const store = useCalendarStore()
+const planApproved = ref(false);
+
+
+// ── Drag & Drop state ─────────────────────────────────────────────────────
+const draggedCell = ref(null)
+const dragOverId = ref(null)
 
 const weekDays = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
 const statuses = [
@@ -722,89 +509,167 @@ const platforms = ref([
 // ── Computed ──────────────────────────────────────────────────────────────────
 const topTrend = computed(() => trends.value[0] || null);
 
-const durationLabel = computed(() => {
-  if (!startDate.value || !endDate.value) return "";
-  const days = Math.round(
+const duration = computed(() => {
+  if (!startDate.value || !endDate.value) {
+    return 0;
+  }
+  return Math.round(
     (new Date(endDate.value) - new Date(startDate.value)) /
-      (1000 * 60 * 60 * 24)
+    (1000 * 60 * 60 * 24)
   );
-  if (days <= 0) return "⚠️ End date must be after start date";
-  return `${days} days · ~${Math.round(days * 0.65)} posts expected`;
 });
 
+
+const durationLabel = computed(() => {
+  if (!startDate.value || !endDate.value) return "";
+  if (duration.value <= 0) return "⚠️ End date must be after start date";
+  return `${duration.value} days · ~${Math.round(duration.value * 0.65)} posts expected`;
+});
+
+// Re-built reactively based on Pinia store array state
+const calendarWeeks = computed(() => {
+  const startStr = currentCalendar.value?.startDate || startDate.value;
+  const endStr = currentCalendar.value?.endDate || endDate.value;
+  if (!startStr || !endStr) return [];
+
+  const start = new Date(startStr);
+  const end = new Date(endStr);
+
+  const dateSlots = [];
+  let current = new Date(start);
+  while (current <= end) {
+    dateSlots.push(current.toISOString().split('T')[0]);
+    current.setDate(current.getDate() + 1);
+  }
+
+  const initialDay = new Date(dateSlots[0]).getDay();
+  const offset = initialDay === 0 ? 6 : initialDay - 1;
+  for (let i = 0; i < offset; i++) {
+    dateSlots.unshift(null);
+  }
+
+  const weeks = [];
+  let weekCells = [];
+  let weekId = 0;
+
+  dateSlots.forEach((dateStr, index) => {
+    if (dateStr === null) {
+      weekCells.push({
+        id: `pad-${index}`,
+        date: "",
+        rawDate: null,
+        posts: [],
+        cellClass: "bg-transparent opacity-30 border-transparent pointer-events-none"
+      });
+    } else {
+      const dayPosts = (store.posts || []).filter(p => {
+        const pDate = p.date || p.scheduledAt;
+        return pDate && pDate.substring(0, 10) === dateStr;
+      });
+
+      const [y, mo, d] = dateStr.split('-').map(Number);
+      const formattedDate = new Date(y, mo - 1, d).toLocaleDateString('en-US', { day: 'numeric', month: 'short' });
+
+      weekCells.push({
+        id: `cell-${dateStr}`,
+        date: formattedDate,
+        rawDate: dateStr,
+        posts: dayPosts,
+        cellClass: dayPosts.length > 0 ? "" : "bg-slate-900/10 border-dashed border-slate-700/30"
+      });
+    }
+
+    if (weekCells.length === 7 || index === dateSlots.length - 1) {
+      while (weekCells.length < 7) {
+        weekCells.push({ id: `fill-${index}-${weekCells.length}`, date: "", rawDate: null, posts: [], cellClass: "bg-transparent" });
+      }
+      weeks.push({ id: weekId++, cells: weekCells });
+      weekCells = [];
+    }
+  });
+
+  return weeks;
+});
+
+// Refactored filters matching Option 1 properties
 const filteredWeeks = computed(() => {
   if (activeFilter.value === "All") return calendarWeeks.value;
-  return calendarWeeks.value
-    .map((week) => ({
-      ...week,
-      cells: week.cells.map((cell) =>
-        !cell.status || cell.status === activeFilter.value
-          ? cell
-          : {
-              ...cell,
-              copy: null,
-              status: null,
-              platform: null,
-              cellClass: "bg-transparent",
-            }
-      ),
+  return calendarWeeks.value.map((week) => ({
+    ...week,
+    cells: week.cells.map((cell) => ({
+      ...cell,
+      posts: cell.posts.filter((p) => {
+        const cleanStatus = p.status ? p.status.toLowerCase().replace("_", " ") : "";
+        return cleanStatus === activeFilter.value.toLowerCase();
+      })
     }))
-    .filter((week) => week.cells.some((c) => c.copy));
+  }));
 });
 
 const calendarDateRange = computed(() => {
   if (!currentCalendar.value) return "";
   const s = new Date(currentCalendar.value.startDate);
   const e = new Date(currentCalendar.value.endDate);
-  return `${s.toLocaleDateString("en-GB", {
-    day: "numeric",
-    month: "short",
-  })} – ${e.toLocaleDateString("en-GB", {
-    day: "numeric",
-    month: "short",
-    year: "numeric",
-  })}`;
+  return `${s.toLocaleDateString("en-GB", { day: "numeric", month: "short" })} – ${e.toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" })}`;
 });
 
+
 // ── Helpers for dates ─────────────────────────────────────────────────────────
-function todayStr() {
-  return new Date().toISOString().split("T")[0];
+function parseLocalDate(dateStr) {
+  const [y, m, d] = dateStr.split('-').map(Number)
+  return new Date(y, m - 1, d)
 }
-function twoWeeksStr() {
-  const d = new Date();
-  d.setDate(d.getDate() + 14);
-  return d.toISOString().split("T")[0];
+function validateDates() {
+  errorMessage.value = ""
+
+  if (startDate.value && startDate.value < todayDate.value) {
+    startDate.value = todayDate.value
+    errorMessage.value = "You cannot pick a date before today."
+  }
+
+  if (endDate.value && startDate.value && endDate.value < startDate.value) {
+    endDate.value = startDate.value
+  }
+
+
+  // console.log("--- Date Selection Changed ---");
+  // console.log("Selected Start Date:", startDate.value);
+  // console.log("Selected End Date:", endDate.value);
+  // console.log("Calculated Duration (Days):", duration.value);
 }
+
+// Initialize startDate when todayDate is computed
+watch(todayDate, (newDate) => {
+  if (!startDate.value) {
+    startDate.value = newDate
+  }
+}, { immediate: true })
 
 // ── Load on mount ─────────────────────────────────────────────────────────────
 onMounted(async () => {
-  // 1. Trends
   try {
     const data = await api.get("/trends");
     trends.value = data.trends.map((t) => ({
       ...t,
       color: t.velocity > 200 ? "text-green-400" : "text-teal-400",
     }));
-    trendsLastUpdated.value = new Date(data.lastUpdated).toLocaleTimeString(
-      "ar-EG"
-    );
+    trendsLastUpdated.value = new Date(data.lastUpdated).toLocaleTimeString("ar-EG");
   } catch (err) {
     console.error(err);
-    trends.value = [];
   }
 
-  // 2. Latest calendar
   if (!brandId.value) return;
   try {
     const calendars = await calendarApi.getBrandCalendars(brandId.value);
     if (calendars?.length) {
       const latest = await calendarApi.getCalendar(calendars[0]._id);
       currentCalendar.value = latest;
-      calendarWeeks.value = buildWeeks(latest.posts || []);
+      store.posts = latest.posts || [];
     }
-  } catch {}
+  } catch (err) {
+    console.error(err);
+  }
 });
-
 // ── Generate / Regenerate ─────────────────────────────────────────────────────
 function openRegenerate() {
   isRegenerate.value = true;
@@ -812,27 +677,20 @@ function openRegenerate() {
 }
 
 async function doGenerate() {
-  if (!brief.value || !brandId.value || !startDate.value || !endDate.value)
-    return;
+  if (!brief.value || !brandId.value || !startDate.value || !endDate.value) return;
   generateError.value = "";
   generating.value = true;
   loadingCalendar.value = true;
   showModal.value = false;
 
   try {
-    // لو regenerate، امسح القديم الأول
-    if (isRegenerate.value && currentCalendar.value) {
-      await calendarApi
-        .deleteCalendar(currentCalendar.value._id)
-        .catch(() => {});
-      currentCalendar.value = null;
-      calendarWeeks.value = [];
-    }
+    validateDates();
 
-    const durationDays = Math.round(
-      (new Date(endDate.value) - new Date(startDate.value)) /
-        (1000 * 60 * 60 * 24)
-    );
+    if (isRegenerate.value && currentCalendar.value) {
+      await calendarApi.deleteCalendar(currentCalendar.value._id).catch(() => { });
+      currentCalendar.value = null;
+      store.posts = [];
+    }
 
     const result = await calendarApi.generate({
       brandId: brandId.value,
@@ -841,17 +699,16 @@ async function doGenerate() {
       platforms: platforms.value.filter((p) => p.on).map((p) => p.name),
       startDate: startDate.value,
       endDate: endDate.value,
-      duration: Math.round((new Date(endDate.value) - new Date(startDate.value)) /(1000 * 60 * 60 * 24)),
+      duration: duration.value,
     });
 
     currentCalendar.value = result.calendar;
-    calendarWeeks.value = buildWeeks(result.posts || []);
+    store.posts = result.posts || [];
     brief.value = "";
     isRegenerate.value = false;
+    planApproved.value = false; 
   } catch (err) {
-    generateError.value = err.message?.includes("timeout")
-      ? "Request timed out — Gemini is busy. Please try again."
-      : err.message || "Generation failed — is your backend running?";
+    generateError.value = err.message || "Generation failed.";
     showModal.value = true;
   } finally {
     generating.value = false;
@@ -865,20 +722,9 @@ async function approvePlan() {
   approving.value = true;
   try {
     await calendarApi.approveCalendar(currentCalendar.value._id);
-    // حدث الـ local state
-    calendarWeeks.value = calendarWeeks.value.map((week) => ({
-      ...week,
-      cells: week.cells.map((cell) =>
-        cell.copy
-          ? {
-              ...cell,
-              status: "Approved",
-              cellClass: "border-green-500/25 bg-green-500/5",
-            }
-          : cell
-      ),
-    }));
+    store.posts = store.posts.map((p) => ({ ...p, status: "approved" }));
     approveMsg.value = "All posts approved!";
+    planApproved.value = true;
     setTimeout(() => (approveMsg.value = ""), 3000);
   } catch (err) {
     alert("Approve failed: " + err.message);
@@ -898,9 +744,10 @@ async function deleteCalendar() {
   try {
     await calendarApi.deleteCalendar(currentCalendar.value._id);
     currentCalendar.value = null;
-    calendarWeeks.value = [];
+    store.posts = [];
     selectedPost.value = null;
     showDeleteConfirm.value = false;
+    isRegenerate.value = false;
   } catch (err) {
     alert("Delete failed: " + err.message);
   } finally {
@@ -908,65 +755,106 @@ async function deleteCalendar() {
   }
 }
 
-// ── Build weeks grid ──────────────────────────────────────────────────────────
+// ── Build weeks grid mapping calendar structure ───────────────────────────
 function buildWeeks(posts) {
-  if (!posts.length) return [];
-  const sorted = [...posts].sort(
-    (a, b) =>
-      new Date(a.date || a.scheduledDate) - new Date(b.date || b.scheduledDate)
-  );
-  const weeks = [];
-  for (let i = 0; i < sorted.length; i += 7) {
-    const chunk = sorted.slice(i, i + 7);
-    while (chunk.length < 7)
-      chunk.push({ _id: `empty-${i}-${chunk.length}`, empty: true });
-    weeks.push({
-      id: i,
-      cells: chunk.map((p) =>
-        p.empty
-          ? {
-              id: p._id,
-              date: "",
-              platform: null,
-              copy: null,
-              status: null,
-              hashtags: [],
-              cellClass: "bg-transparent",
-            }
-          : {
-              id: p._id,
-              date: new Date(p.date || p.scheduledDate).getDate().toString(),
-              platform: (p.platform || "").slice(0, 2).toUpperCase(),
-              copy: p.copyAR || p.copy || "",
-              dialect: p.dialect || "",
-              status: p.status
-                ? p.status.charAt(0).toUpperCase() +
-                  p.status.slice(1).replace("_", " ")
-                : "Draft",
-              hashtags: p.hashtags || [],
-              cellClass: statusToClass(p.status),
-            }
-      ),
-    });
+  if (!currentCalendar.value || !posts) return [];
+
+  const start = new Date(currentCalendar.value.startDate);
+  const end = new Date(currentCalendar.value.endDate);
+
+  // Generate list of all ISO strings spanning the period
+  const dateSlots = [];
+  let current = new Date(start);
+  while (current <= end) {
+    dateSlots.push(current.toISOString().split('T')[0]);
+    current.setDate(current.getDate() + 1);
   }
+
+  // Backfill slots to line up Monday correctly on your grid headers
+  const initialDay = new Date(dateSlots[0]).getDay();
+  const offset = initialDay === 0 ? 6 : initialDay - 1; // Align to Mon index 0
+  for (let i = 0; i < offset; i++) {
+    dateSlots.unshift(null); // Structural pad spacer blocks
+  }
+
+  const weeks = [];
+  let weekCells = [];
+  let weekId = 0;
+
+  dateSlots.forEach((dateStr, index) => {
+    if (dateStr === null) {
+      weekCells.push({
+        id: `pad-${index}`,
+        date: "",
+        rawDate: null,
+        copy: null,
+        cellClass: "bg-transparent opacity-30 border-transparent pointer-events-none"
+      });
+    } else {
+      // Find the post assigned to this explicit calendar date 
+      const post = posts.find(p => {
+        const pDate = p.date || p.scheduledAt || p.scheduledDate;
+        return pDate && pDate.startsWith(dateStr);
+      });
+
+      if (post) {
+        const [y, mo, d] = dateStr.split('-').map(Number);
+        const formattedDate = new Date(y, mo - 1, d)
+          .toLocaleDateString('en-GB', { day: 'numeric', month: 'long' });
+        weekCells.push({
+          id: post._id,
+          date: formattedDate,
+          rawDate: dateStr,
+          platform: (post.platform || "").slice(0, 2).toUpperCase(),
+          copy: post.copyAR || post.copy || "",
+          dialect: post.dialect || "",
+          status: post.status ? post.status.charAt(0).toUpperCase() + post.status.slice(1).replace("_", " ") : "Draft",
+          hashtags: post.hashtags || [],
+          cellClass: statusToClass(post.status),
+        });
+      } else {
+        const [ey, em, ed] = dateStr.split('-').map(Number);
+        weekCells.push({
+          id: `empty-${dateStr}`,
+          date: new Date(ey, em - 1, ed)
+            .toLocaleDateString('en-GB', { day: 'numeric', month: 'long' }),
+          rawDate: dateStr,
+          platform: null,
+          copy: null,
+          status: null,
+          hashtags: [],
+          cellClass: "bg-slate-900/10 border-dashed border-slate-700/30",
+        });
+      }
+    }
+
+    // Wrap columns every 7 days
+    if (weekCells.length === 7 || index === dateSlots.length - 1) {
+      while (weekCells.length < 7) {
+        weekCells.push({ id: `fill-${index}-${weekCells.length}`, date: "", rawDate: null, copy: null, cellClass: "bg-transparent" });
+      }
+      weeks.push({ id: weekId++, cells: weekCells });
+      weekCells = [];
+    }
+  });
+
   return weeks;
 }
 
-function statusToClass(s) {
-  return (
-    {
-      approved: "border-green-500/25 bg-green-500/5",
-      scheduled: "border-blue-500/25 bg-blue-500/5",
-      pending_review: "border-amber-500/20 bg-amber-500/5",
-      draft: "theme-card",
-    }[s] || "theme-card"
-  );
+function statusToClass(status) {
+  return {
+    draft: "border-slate-700 bg-slate-800/40",
+    pending_review: "border-amber-500/20 bg-amber-500/5",
+    approved: "border-green-500/25 bg-green-500/5",
+    scheduled: "border-blue-500/25 bg-blue-500/5",
+    published: "border-teal-500/25 bg-teal-500/5"
+  }[status] || "border-slate-700 bg-slate-800/40";
 }
 
 // ── Post editor ───────────────────────────────────────────────────────────────
-function selectPost(cell) {
-  selectedPost.value = cell;
-  editCopy.value = cell.copy;
+function selectPost(post) {
+  selectedPost.value = post;
+  editCopy.value = post.copyAR || post.copy || post.text || "";
   variantB.value = null;
   saveMsg.value = "";
 }
@@ -975,15 +863,22 @@ async function savePost() {
   if (!selectedPost.value) return;
   saving.value = true;
   saveMsg.value = "";
-  selectedPost.value.copy = editCopy.value;
-  selectedPost.value.cellClass = statusToClass(
-    selectedPost.value.status.toLowerCase().replace(" ", "_")
-  );
+
+  const postId = selectedPost.value._id || selectedPost.value.id;
+  const formattedStatus = selectedPost.value.status.toLowerCase().replace(" ", "_");
+
   try {
-    await postsApi.updatePost(selectedPost.value.id, {
+    await postsApi.updatePost(postId, {
       copyAR: editCopy.value,
-      status: selectedPost.value.status.toLowerCase().replace(" ", "_"),
+      status: formattedStatus,
     });
+
+    store.posts = store.posts.map((p) =>
+      (p._id === postId || p.id === postId)
+        ? { ...p, copyAR: editCopy.value, copy: editCopy.value, status: formattedStatus }
+        : p
+    );
+
     saveMsg.value = "✓ Saved";
   } catch {
     saveMsg.value = "✓ Saved locally";
@@ -994,12 +889,14 @@ async function savePost() {
 }
 
 // ── A/B Variant ───────────────────────────────────────────────────────────────
+
 async function generateVariantB() {
   if (!selectedPost.value) return;
   loadingVariant.value = true;
   variantB.value = null;
   try {
-    const r = await postsApi.generateVariantB(selectedPost.value.id);
+    const postId = selectedPost.value._id || selectedPost.value.id;
+    const r = await postsApi.generateVariantB(postId);
     variantB.value = r.copyAR || r.copyEN || "No variant generated";
   } catch {
     variantB.value = "Could not generate variant";
@@ -1007,14 +904,20 @@ async function generateVariantB() {
     loadingVariant.value = false;
   }
 }
+
 async function applyVariantB() {
   if (!selectedPost.value || !variantB.value) return;
   editCopy.value = variantB.value;
+  selectedPost.value.copyAR = variantB.value;
   selectedPost.value.copy = variantB.value;
+
+  const postId = selectedPost.value._id || selectedPost.value.id;
   variantB.value = null;
   try {
-    await postsApi.applyVariantB(selectedPost.value.id);
-  } catch {}
+    await postsApi.applyVariantB(postId);
+  } catch (err) {
+    console.error(err);
+  }
 }
 
 // ── Inject trend ──────────────────────────────────────────────────────────────
@@ -1023,7 +926,6 @@ function injectTrend() {
   const tag = trends.value[0].tag;
   if (!editCopy.value.includes(tag)) {
     editCopy.value += " " + tag;
-    selectedPost.value.copy = editCopy.value;
   }
 }
 
@@ -1051,4 +953,75 @@ function statusColor(s) {
     }[s] || "text-slate-500"
   );
 }
+
+
+// ── Drag & Drop Handlers ───────────────────────────────────────────────────
+function onDragStart(cell) {
+  // Save the complete post object being dragged
+  draggedCell.value = cell;
+}
+
+async function onDrop(targetCell) {
+  dragOverId.value = null;
+  if (!draggedCell.value || !targetCell.rawDate) return;
+
+  planApproved.value = false;
+
+  const currentPostDate = draggedCell.value.date || draggedCell.value.scheduledAt;
+  if (currentPostDate?.substring(0, 10) === targetCell.rawDate) {
+    draggedCell.value = null;
+    return;
+  }
+
+  const postId = draggedCell.value._id || draggedCell.value.id;
+  const newDate = targetCell.rawDate;
+
+  // If post was approved, reset to draft on move
+  const wasApproved = draggedCell.value.status === 'approved';
+
+  try {
+    // Interfacing directly with your calendarStore.js action endpoint
+    await store.movePostDate(postId, newDate);
+
+    if (wasApproved) {
+      await postsApi.updatePost(postId, { status: 'draft' });
+      store.posts = store.posts.map(p =>
+        (p._id === postId || p.id === postId)
+          ? { ...p, status: 'draft' }
+          : p
+      );
+    }
+  } catch (err) {
+    alert("Could not complete the move: " + err.message);
+  } finally {
+    draggedCell.value = null;
+  }
+}
 </script>
+<style scoped>
+/* Target the scrollbar track and thumb */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: rgba(15, 23, 42, 0.3);
+  /* Dark theme slate track */
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(148, 163, 184, 0.3);
+  /* Subdued slate gray thumb */
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(148, 163, 184, 0.5);
+  /* Slightly brighter on hover */
+}
+
+.aspect-square {
+  aspect-ratio: 1 / 1;
+}
+</style>

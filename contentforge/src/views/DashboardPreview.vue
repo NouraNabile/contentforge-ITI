@@ -28,22 +28,51 @@
           <template v-if="currentCalendar">
             <!-- Approve Plan -->
             <button @click="approvePlan" :disabled="approving || planApproved"
-              class="px-4 py-2 rounded-xl bg-green-600 text-white text-xs font-medium hover:bg-green-500 transition-colors disabled:opacity-50 flex items-center gap-1.5">
-              <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              class="group px-2.5 py-2 rounded-xl bg-green-600 text-white hover:bg-green-500 transition-all duration-200 disabled:opacity-50 flex items-center overflow-hidden">
+              <svg class="w-3.5 h-3.5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
               </svg>
-              {{ approving ? "Approving…" : "Approve Plan" }}
+              <span
+                class="max-w-0 group-hover:max-w-[7rem] overflow-hidden transition-all duration-200 whitespace-nowrap text-xs font-medium group-hover:ml-1.5">
+                {{ approving ? "Approving…" : "Approve Plan" }}
+              </span>
             </button>
+
+            <div class="w-px h-5 bg-white/10 mx-1"></div>
+
+            <!-- Reset Calendar -->
+            <button @click="confirmReset"
+              class="group px-2.5 py-2 rounded-xl border border-zinc-600/50 text-zinc-400 hover:bg-zinc-700/40 transition-all duration-200 flex items-center overflow-hidden">
+              <svg class="w-3.5 h-3.5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                  d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8" />
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3v5h5" />
+              </svg>
+              <span
+                class="max-w-0 group-hover:max-w-[8rem] overflow-hidden transition-all duration-200 whitespace-nowrap text-xs font-medium group-hover:ml-1.5">
+                Reset Calendar
+              </span>
+            </button>
+
+            <div class="w-px h-5 bg-white/10 mx-1"></div>
+
             <!-- Delete -->
             <button @click="confirmDelete"
-              class="px-3 py-2 rounded-xl bg-rose-600/10 text-rose-400 border border-rose-500/20 text-xs hover:bg-rose-600/20 transition-colors flex items-center gap-1.5">
-              <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              class="group px-2.5 py-2 rounded-xl bg-rose-600/10 text-rose-400 border border-rose-500/20 hover:bg-rose-600/20 transition-all duration-200 flex items-center overflow-hidden">
+              <svg class="w-3.5 h-3.5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                   d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
               </svg>
-              Delete
+              <span
+                class="max-w-0 group-hover:max-w-[8rem] overflow-hidden transition-all duration-200 whitespace-nowrap text-xs font-medium group-hover:ml-1.5">
+                Delete Calendar
+              </span>
             </button>
           </template>
+
+          <!-- Separator -->
+          <div class="w-px h-5 bg-white/10 dark:bg-white/10 mx-1"></div>
+
 
           <!-- Generate -->
           <button v-if="!currentCalendar" @click="showModal = true"
@@ -55,12 +84,15 @@
           </button>
           <!-- Regenerate -->
           <button v-if="currentCalendar" @click="openRegenerate"
-            class="px-3 py-2 rounded-xl theme-card theme-border theme-sub text-xs hover:theme-text transition-colors flex items-center gap-1.5">
-            <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            class="group px-2.5 py-2 rounded-xl theme-card theme-border theme-sub hover:theme-text transition-all duration-200 flex items-center overflow-hidden">
+            <svg class="w-3.5 h-3.5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                 d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
             </svg>
-            Regenerate
+            <span
+              class="max-w-0 group-hover:max-w-[8rem] overflow-hidden transition-all duration-200 whitespace-nowrap text-xs font-medium group-hover:ml-1.5">
+              Regenerate Calendar
+            </span>
           </button>
         </div>
       </div>
@@ -402,6 +434,31 @@
       </div>
     </div>
 
+
+    <!-- ── Reset Confirm Dialog ── -->
+    <div v-if="showResetConfirm"
+      class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-6">
+      <div class="theme-surface rounded-2xl theme-border max-w-sm w-full p-6 theme-shadow">
+        <h2 class="font-display text-lg font-600 theme-text mb-2">
+          Reset Calendar?
+        </h2>
+        <p class="text-sm theme-sub mb-6">
+          This will permanently reset the calendar and all its posts. This
+          cannot be undone.
+        </p>
+        <div class="flex gap-3">
+          <button @click="showResetConfirm = false"
+            class="flex-1 py-2.5 rounded-xl theme-card theme-border theme-sub text-sm hover:theme-text transition-colors">
+            Cancel
+          </button>
+          <button @click="resetCalendar" :disabled="resetting"
+            class="flex-1 py-2.5 rounded-xl bg-rose-600 text-white text-sm hover:bg-rose-500 transition-colors disabled:opacity-50">
+            {{ resetting ? "Resetting…" : "Reset" }}
+          </button>
+        </div>
+      </div>
+    </div>
+
     <!-- ── Delete Confirm Dialog ── -->
     <div v-if="showDeleteConfirm"
       class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-6">
@@ -449,6 +506,7 @@ const selectedPost = ref(null);
 const editCopy = ref("");
 const showModal = ref(false);
 const showDeleteConfirm = ref(false);
+const showResetConfirm = ref(false);
 const isRegenerate = ref(false);
 const brief = ref("");
 const selectedDialect = ref("Egyptian Arabic");
@@ -469,11 +527,11 @@ const saveMsg = ref("");
 const approving = ref(false);
 const approveMsg = ref("");
 const deleting = ref(false);
+const resetting = ref(false);
 const variantB = ref(null);
 const loadingVariant = ref(false);
 const errorMessage = ref("");
 const currentCalendar = ref(null);
-// const calendarWeeks = ref([]);
 const trends = ref([]);
 const trendsLastUpdated = ref("");
 const store = useCalendarStore()
@@ -706,7 +764,7 @@ async function doGenerate() {
     store.posts = result.posts || [];
     brief.value = "";
     isRegenerate.value = false;
-    planApproved.value = false; 
+    planApproved.value = false;
   } catch (err) {
     generateError.value = err.message || "Generation failed.";
     showModal.value = true;
@@ -752,6 +810,37 @@ async function deleteCalendar() {
     alert("Delete failed: " + err.message);
   } finally {
     deleting.value = false;
+  }
+}
+
+// ── Reset Calendar ───────────────────────────────────────────────────────────
+function confirmReset() {
+  showResetConfirm.value = true;
+}
+
+async function resetCalendar() {
+  if (!currentCalendar.value) return;
+
+  resetting.value = true;
+  try {
+    // 1. Dispatch reset pipeline execution targeting backend/pinia 
+    await store.resetCalendar(currentCalendar.value._id);
+
+    // 2. Explicitly bind view target variable to reference the renewed data structure
+    currentCalendar.value = store.calendar;
+
+    // 3. Clear component selection state parameters so nothing acts stale
+    selectedPost.value = null;
+    variantB.value = null;
+    planApproved.value = false
+
+    // Close confirmation dialog modal frame
+    showResetConfirm.value = false;
+
+  } catch (err) {
+    alert("Resetting failed: " + err.message);
+  } finally {
+    resetting.value = false;
   }
 }
 

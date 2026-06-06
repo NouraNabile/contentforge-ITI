@@ -41,6 +41,11 @@ const calendarApi = {
   async deleteCalendar(calendarId) {
     return await api.delete(`/calendar/${calendarId}`)
   },
+
+  // POST /api/calendar/:id/reset
+  async resetCalendar(calendarId) {
+    return await api.post(`/calendar/${calendarId}/reset`)
+  },
 }
 
 export default calendarApi

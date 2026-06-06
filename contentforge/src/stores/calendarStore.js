@@ -117,8 +117,29 @@ export const useCalendarStore = defineStore('calendar', () => {
     }
   }
 
+  // ── Reset Calendar State ────────────────────────────────────────────────
+  async function resetCalendar(calendarId) {
+    isLoading.value = true // reusing isLoading indicator
+    error.value = null
+    try {
+      const updatedCalendarData = await calendarApi.resetCalendar(calendarId)
+
+      // Replace active Pinia memory arrays with fresh restored payloads from DB
+      calendar.value = updatedCalendarData
+      posts.value = updatedCalendarData.posts || []
+      lastSaved.value = new Date()
+
+      return updatedCalendarData
+    } catch (err) {
+      error.value = err.message
+      throw err
+    } finally {
+      isLoading.value = false
+    }
+  }
+
   return {
     calendar, posts, isGenerating, isLoading, error, lastSaved,
-    generate, loadCalendar, updatePostStatus, updatePost, getVariantB, approveAll, deletePost, movePostDate
+    generate, loadCalendar, updatePostStatus, updatePost, getVariantB, approveAll, deletePost, movePostDate, resetCalendar
   }
 })

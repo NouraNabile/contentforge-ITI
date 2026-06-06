@@ -42,6 +42,7 @@ app.use("/api/auth", require("./routes/auth"));
 app.use("/api/brand", require("./routes/brand"));
 app.use("/api/calendar", require("./routes/calendar"));
 app.use("/api/posts", require("./routes/posts"));
+console.log('Posts router mounted at /api/posts')
 app.use("/api/trends", require("./routes/trends"));
 app.use("/api/chat", chatRoutes);
 app.use("/api/stats", require("./routes/stats"));

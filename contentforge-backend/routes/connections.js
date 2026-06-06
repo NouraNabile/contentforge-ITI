@@ -1,75 +1,180 @@
-// backend/routes/connections.js
-const express = require('express')
-const router  = express.Router()
-const protect = require('../middleware/auth')
-const { Connection } = require('../models')
-// const Connection = require('../models/Connection')
-const axios = require('axios')
+const express = require('express');
+const router = express.Router();
+const protect = require('../middleware/auth');
+const { Connection } = require('../models');
+const axios = require('axios');
+
+const API_VERSION = process.env.META_API_VERSION || 'v25.0';
+
+// ── Helper: Exchange short-lived → long-lived user token ─────────
+async function exchangeForLongLivedToken(shortLivedToken) {
+  const { data } = await axios.get(
+    `https://graph.facebook.com/${API_VERSION}/oauth/access_token`,
+    {
+      params: {
+        grant_type: 'fb_exchange_token',
+        client_id: process.env.META_APP_ID,
+        client_secret: process.env.META_APP_SECRET,
+        fb_exchange_token: shortLivedToken
+      }
+    }
+  );
+  return data.access_token; // 60-day token
+}
+
+// ── Helper: Get never-expiring page token ────────────────────────
+async function getPageToken(pageId, longLivedUserToken) {
+  const { data } = await axios.get(
+    `https://graph.facebook.com/${API_VERSION}/${pageId}`,
+    {
+      params: {
+        fields: 'access_token',
+        access_token: longLivedUserToken
+      }
+    }
+  );
+  return data.access_token;
+}
 
 // GET /api/connections — get all connections for logged-in user
 router.get('/', protect, async (req, res) => {
   try {
-    const connections = await Connection.find({ user: req.user._id })
-    res.json({ connections })
+    const connections = await Connection.find({ user: req.user._id });
+    res.json({ connections });
   } catch (err) {
-    console.error('[Connections] GET error:', err.message)
-    res.status(500).json({ message: 'Failed to fetch connections' })
+    console.error('[Connections] GET error:', err.message);
+    res.status(500).json({ message: 'Failed to fetch connections' });
   }
-})
+});
 
-// POST /api/connections — create or update a connection
-router.post('/', protect, async (req, res) => {
+// GET /api/connections/meta/auth — generate OAuth URL
+router.get('/meta/auth', protect, (req, res) => {
+  const scopes = [
+    'pages_show_list',
+    'pages_read_engagement',
+    'pages_manage_metadata',
+    'pages_manage_posts',
+    'instagram_basic',
+    'instagram_manage_insights',
+    'instagram_content_publish',
+    'instagram_manage_comments',
+    'read_insights',
+    'email',
+  ].join(',');
+
+  const authUrl =
+    `https://www.facebook.com/${API_VERSION}/dialog/oauth?` +
+    `client_id=${process.env.META_APP_ID}` +
+    `&redirect_uri=${encodeURIComponent(process.env.REDIRECT_URI)}` +
+    `&scope=${scopes}` +
+    `&state=${req.user._id}` +
+    `&response_type=code`;
+
+  res.json({ authUrl });
+});
+
+// GET /api/connections/meta/callback — Meta redirects here
+router.get('/meta/callback', async (req, res) => {
+  const { code, state: userId } = req.query;
+
   try {
-    const { platform, handle, email, connected, stats, permissions, rawData } = req.body
+    // 1. Exchange code for short-lived user token
+    const tokenRes = await axios.get(
+      `https://graph.facebook.com/${API_VERSION}/oauth/access_token`,
+      {
+        params: {
+          client_id: process.env.META_APP_ID,
+          client_secret: process.env.META_APP_SECRET,
+          redirect_uri: process.env.REDIRECT_URI,
+          code
+        }
+      }
+    );
 
-    if (!platform || !handle) {
-      return res.status(400).json({ message: 'Platform and handle are required' })
+    const shortLivedToken = tokenRes.data.access_token;
+    if (!shortLivedToken) throw new Error('No access token from Meta');
+
+    // 2. Exchange for LONG-LIVED user token (60 days)
+    const longLivedUserToken = await exchangeForLongLivedToken(shortLivedToken);
+
+    // 3. Get user pages
+    const pagesRes = await axios.get(
+      `https://graph.facebook.com/${API_VERSION}/me/accounts`,
+      { params: { access_token: longLivedUserToken } }
+    );
+    const pages = pagesRes.data.data || [];
+
+    if (pages.length === 0) {
+      return res.redirect(`${process.env.CLIENT_URL}/connections?error=no_pages`);
     }
 
-    // Delete existing connection for this platform (upsert)
-    await Connection.deleteOne({ user: req.user._id, platform })
+    const connections = [];
 
-    const connection = await Connection.create({
-      user: req.user._id,
-      platform,
-      handle,
-      email: email || null,
-      connected: connected !== undefined ? connected : true,
-      stats: stats || [],
-      permissions: permissions || [],
-      rawData: rawData || {}
-    })
+    for (const page of pages) {
+      // 4. Get NEVER-EXPIRING page token
+      const pageToken = await getPageToken(page.id, longLivedUserToken);
 
-    res.status(201).json(connection)
-  } catch (err) {
-    console.error('[Connections] POST error:', err.message)
-    res.status(500).json({ message: 'Failed to save connection' })  
-  }
-})
+      // 5. Get Instagram Business Account linked to this page
+      const igRes = await axios.get(
+        `https://graph.facebook.com/${API_VERSION}/${page.id}`,
+        {
+          params: {
+            fields: 'name,fan_count,instagram_business_account{id,username,followers_count,media_count,biography}',
+            access_token: pageToken
+          }
+        }
+      );
 
-// GET /api/connections/:platform/status
-router.get('/:platform/status', protect, async (req, res) => {
-  try {
-    const connection = await Connection.findOne({
-      user: req.user._id,
-      platform: new RegExp('^' + req.params.platform + '$', 'i') // case-insensitive
-    })
+      // Facebook connection
+      connections.push({
+        platform: 'Facebook',
+        handle: page.name,
+        pageId: page.id,
+        accessToken: pageToken,
+        tokenType: 'page',
+        connected: true,
+        stats: [
+          { label: 'Followers', value: (page.fan_count || 0).toLocaleString() }
+        ],
+        rawData: { pageId: page.id, pageToken }
+      });
 
-    if (!connection) {
-      return res.status(404).json({ message: 'Connection not found' })
+      // Instagram connection (if linked)
+      if (igRes.data.instagram_business_account) {
+        const ig = igRes.data.instagram_business_account;
+        connections.push({
+          platform: 'Instagram',
+          handle: ig.username,
+          igId: ig.id,
+          pageId: page.id,
+          accessToken: longLivedUserToken,
+          tokenType: 'user',
+          connected: true,
+          stats: [
+            { label: 'Followers', value: (ig.followers_count || 0).toLocaleString() },
+            { label: 'Posts', value: (ig.media_count || 0).toLocaleString() }
+          ],
+          rawData: { igId: ig.id, pageId: page.id, userToken: longLivedUserToken }
+        });
+      }
     }
 
-    res.json({
-      connected: connection.connected,
-      handle: connection.handle,
-      stats: connection.stats,
-      permissions: connection.permissions
-    })
+    // 6. Save to database (upsert — replace old connections)
+    for (const conn of connections) {
+      await Connection.findOneAndUpdate(
+        { user: userId, platform: conn.platform },
+        { user: userId, ...conn },
+        { upsert: true, new: true }
+      );
+    }
+
+    res.redirect(`${process.env.CLIENT_URL}/connections?success=true`);
+
   } catch (err) {
-    console.error('[Connections] Status error:', err.message)
-    res.status(500).json({ message: 'Failed to get status' })
+    console.error('[Meta OAuth] Callback error:', err.response?.data || err.message);
+    res.redirect(`${process.env.CLIENT_URL}/connections?error=${encodeURIComponent(err.message)}`);
   }
-})
+});
 
 // DELETE /api/connections/:platform — disconnect
 router.delete('/:platform', protect, async (req, res) => {
@@ -77,118 +182,15 @@ router.delete('/:platform', protect, async (req, res) => {
     await Connection.deleteOne({
       user: req.user._id,
       platform: new RegExp('^' + req.params.platform + '$', 'i')
-    })
-    res.json({ message: 'Disconnected successfully' })
+    });
+    res.json({ message: 'Disconnected successfully' });
   } catch (err) {
-    console.error('[Connections] DELETE error:', err.message)
-    res.status(500).json({ message: 'Failed to disconnect' })
+    console.error('[Connections] DELETE error:', err.message);
+    res.status(500).json({ message: 'Failed to disconnect' });
   }
-})
+});
 
-// ── META OAUTH: Step 1 - Generate OAuth URL ───────────────────────────────────
-router.get('/meta/auth', protect, (req, res) => {
-  const scopes = [
- 'instagram_business_basic',
-  'instagram_business_manage_insights',
-  'instagram_business_manage_messages',
-  'instagram_business_manage_comments',
-  'instagram_business_content_publish',
-  'pages_show_list',
-  'pages_read_engagement',
-  'pages_manage_posts',
-  'pages_manage_metadata',
-  'read_insights',
-  'public_profile',
-  'email'
-  ].join(',')
-
-  const authUrl = `https://www.facebook.com/v25.0/dialog/oauth?` +
-    `client_id=${process.env.META_APP_ID}` +
-    `&redirect_uri=${encodeURIComponent(process.env.REDIRECT_URI)}` +
-    `&scope=${scopes}` +
-    `&state=${req.user._id}` +
-    `&response_type=code`
-
-  res.json({ authUrl })
-})
-
-// ── META OAUTH: Step 2 - Handle Callback from Meta ───────────────────────────
-router.get('/meta/callback', async (req, res) => {
-  const { code, state } = req.query
-
-  try {
-    const tokenRes = await axios.post('https://graph.facebook.com/v25.0/oauth/access_token', null, {
-      params: {
-        client_id: process.env.META_APP_ID,
-        client_secret: process.env.META_APP_SECRET,
-        redirect_uri: process.env.REDIRECT_URI,
-        code
-      }
-    })
-    
-    const { access_token } = tokenRes.data
-    if (!access_token) throw new Error('Failed to get access token')
-
-    const pagesRes = await axios.get('https://graph.facebook.com/v25.0/me/accounts', {
-      params: { access_token }
-    })
-    const pagesData = pagesRes.data
-
-    const connections = []
-
-    for (const page of pagesData.data || []) {
-      const pageToken = page.access_token
-
-      const igRes = await axios.get(`https://graph.facebook.com/v25.0/${page.id}`, {
-        params: {
-          fields: 'name,fan_count,instagram_account{id,username,followers_count,media_count}',
-          access_token: pageToken
-        }
-      })
-      const igData = igRes.data
-
-      connections.push({
-        platform: 'Facebook',
-        handle: page.name,
-        pageId: page.id,
-        accessToken: pageToken,
-        connected: true,
-        stats: [{ label: 'Followers', value: (page.fan_count || 0).toLocaleString() }],
-        rawData: { pageId: page.id }
-      })
-
-      if (igData.instagram_account) {
-        const ig = igData.instagram_account
-        connections.push({
-          platform: 'Instagram',
-          handle: ig.username,
-          igId: ig.id,
-          pageId: page.id,
-          accessToken: pageToken,
-          connected: true,
-          stats: [
-            { label: 'Followers', value: (ig.followers_count || 0).toLocaleString() },
-            { label: 'Posts', value: (ig.media_count || 0).toLocaleString() }
-          ],
-          rawData: { igId: ig.id, pageId: page.id }
-        })
-      }
-    }
-
-    for (const conn of connections) {
-      await Connection.deleteOne({ user: state, platform: conn.platform })
-      await Connection.create({ user: state, ...conn })
-    }
-
-    res.redirect(`${process.env.CLIENT_URL}/connections?success=true`)
-
-  } catch (err) {
-    console.error('[Meta OAuth] Callback error:', err.response?.data || err.message)
-    res.redirect(`${process.env.CLIENT_URL}/connections?error=true`)
-  }
-})
-
-module.exports = router
+module.exports = router;
 
 // Table
 // Permission	Status	Purpose

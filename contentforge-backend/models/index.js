@@ -150,46 +150,4 @@ const chatMessageSchema = new mongoose.Schema({
 
 const ChatMessage = mongoose.model('ChatMessage', chatMessageSchema)
 
-// ── Connection ────────────────────────────────────────────────────────────────
-// const connectionSchema = new mongoose.Schema({
-//   user:        { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
-//   platform:    { type: String, required: true },   // 'Facebook' | 'Instagram'
-//   handle:      { type: String, default: null },
-//   email:       { type: String, default: null },
-//   connected:   { type: Boolean, default: true },
- 
-//   // Tokens — NEVER expose these to the frontend (keep them server-side only)
-//   accessToken: { type: String, default: null },    // FB: never-expiring Page Token | IG: 60-day User Token
- 
-//   // Platform IDs
-//   pageId:      { type: String, default: null },    // Facebook Page ID (used for both FB and IG)
-//   igId:        { type: String, default: null },    // Instagram Business Account ID
- 
-//   // Display data
-//   stats:       [{ label: String, value: String }],
-//   permissions: [String],
-//   rawData:     { type: mongoose.Schema.Types.Mixed, default: {} },
-// }, { timestamps: true })
-const connectionSchema = new mongoose.Schema({
-  user: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
-  platform: { type: String, required: true }, // 'Facebook' or 'Instagram'
-  handle: { type: String, required: true },   // page name or username
-  pageId: { type: String },                   // Facebook Page ID
-  igId: { type: String },                     // Instagram Business Account ID
-  accessToken: { type: String, required: true },
-  tokenType: { type: String, enum: ['page', 'user'] }, // 'page' = never expires, 'user' = 60 days
-  connected: { type: Boolean, default: true },
-  stats: [{
-    label: String,
-    value: String
-  }],
-  rawData: { type: Object }
-}, { timestamps: true });
-
-// Ensure one connection per user per platform
-connectionSchema.index({ user: 1, platform: 1 }, { unique: true });
-
- 
-const Connection = mongoose.model('Connection', connectionSchema)
-
-module.exports = { User, Brand, Post, Calendar, Trend, ChatMessage, Connection, OriginalCalendar }
+module.exports = { User, Brand, Post, Calendar, Trend, ChatMessage }

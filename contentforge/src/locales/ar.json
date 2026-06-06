@@ -1,0 +1,100 @@
+{
+  "common": {
+    "save": "حفظ",
+    "cancel": "إلغاء",
+    "delete": "حذف",
+    "edit": "تعديل",
+    "approve": "موافقة",
+    "generate": "توليد",
+    "loading": "جاري التحميل...",
+    "connect": "ربط",
+    "disconnect": "إلغاء الربط",
+    "connected": "مرتبط",
+    "disconnected": "غير مرتبط",
+    "or": "أو",
+    "selected": "{n} محدد",
+    "clearSelection": "إلغاء التحديد"
+  },
+  "auth": {
+    "welcomeBack": "مرحباً بعودتك",
+    "createAccount": "إنشاء حساب جديد",
+    "confirmEmail": "تأكيد بريدك الإلكتروني",
+    "signInSub": "سجّل دخولك إلى لوحة علامتك التجارية",
+    "registerSub": "ابدأ توليد المحتوى العربي في دقائق",
+    "otpSub": "أدخل الرمز المكون من 6 أرقام الذي أرسلناه إليك",
+    "fullName": "الاسم الكامل",
+    "phone": "رقم الهاتف",
+    "email": "البريد الإلكتروني",
+    "password": "كلمة المرور",
+    "passwordPlaceholder": "6 أحرف على الأقل",
+    "signIn": "تسجيل الدخول",
+    "signingIn": "جاري تسجيل الدخول…",
+    "createAccountBtn": "إنشاء الحساب",
+    "creatingAccount": "جاري إنشاء الحساب…",
+    "verifyCode": "تحقق من الرمز",
+    "verifying": "جاري التحقق...",
+    "alreadyHaveAccount": "لديك حساب بالفعل؟",
+    "noAccount": "ليس لديك حساب؟",
+    "createOneFree": "أنشئ حساباً مجاناً",
+    "fillAllFields": "يرجى ملء جميع الحقول"
+  },
+  "trial": {
+    "badge": "انتهت التجربة",
+    "title": "انتهت فترة تجربتك المجانية",
+    "subtitle": "انتهت تجربتك المجانية لمدة 14 يوماً. اختر خطة أدناه لمواصلة توليد المحتوى العربي.",
+    "choosePlan": "اختر خطتك",
+    "perMonth": "/ شهر",
+    "starterName": "المبتدئ",
+    "starterDesc": "للأفراد والعلامات الصغيرة",
+    "starterFeature1": "50 منشوراً / شهر",
+    "starterFeature2": "3 ملفات تعريف للعلامة",
+    "starterFeature3": "جميع اللهجات",
+    "starterFeature4": "دعم عبر البريد الإلكتروني",
+    "getStarted": "ابدأ الآن",
+    "proName": "برو",
+    "proDesc": "للوكالات والفرق المتنامية",
+    "proFeature1": "منشورات غير محدودة",
+    "proFeature2": "10 ملفات تعريف للعلامة",
+    "proFeature3": "قائمة انتظار AI ذات أولوية",
+    "proFeature4": "دعم ذو أولوية",
+    "mostPopular": "الأكثر شيوعاً",
+    "getPro": "احصل على برو",
+    "comingSoon": "المدفوعات قادمة قريباً — سنُخطرك عند إطلاقها! 🚀",
+    "signOut": "تسجيل الخروج واستخدام حساب آخر"
+  },
+  "drafts": {
+    "title": "المسودات",
+    "subtitle": "{n} منشور في انتظار المراجعة",
+    "newDraft": "+ مسودة جديدة",
+    "approveAll": "الموافقة على الكل",
+    "approve": "موافقة",
+    "edit": "تعديل",
+    "delete": "حذف"
+  },
+  "branding": {
+    "title": "خزينة العلامة",
+    "subtitle": "هوية علامتك التجارية وصوتها وذاكرتها — مخزّنة بشكل دائم في RAG.",
+    "saveEmbed": "💾 حفظ وإعادة التضمين",
+    "brandName": "اسم العلامة التجارية",
+    "industry": "القطاع / التخصص",
+    "primaryMarket": "السوق الرئيسي"
+  },
+  "chat": {
+    "aiName": "ContentForge AI",
+    "clearChat": "مسح المحادثة"
+  },
+  "connections": {
+    "title": "الاتصالات",
+    "subtitle": "اربط منصاتك الاجتماعية وقاعدة البيانات ومفاتيح API لتفعيل النشر.",
+    "notConnected": "غير مرتبط"
+  },
+  "dashboard": {
+    "title": "تقويم المحتوى",
+    "noPosts": "لا يوجد تقويم بعد — أنشئ خطتك الأولى",
+    "postsPlanned": "{n} منشور مخطط",
+    "approvePlan": "الموافقة على الخطة",
+    "approving": "جاري الموافقة…",
+    "resetCalendar": "إعادة تعيين التقويم",
+    "deleteCalendar": "حذف التقويم"
+  }
+}

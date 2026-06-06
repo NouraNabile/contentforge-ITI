@@ -124,8 +124,10 @@
 import { ref, onMounted,nextTick } from 'vue'
 import { RouterLink, useRouter } from 'vue-router'
 import { useAuthStore } from '../stores/authStore'
+import { useI18n } from 'vue-i18n'
 import api from '../api/client'
 
+const { t } = useI18n()
 const showOTP = ref(false)
 const otpCode = ref('')
 

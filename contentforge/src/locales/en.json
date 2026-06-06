@@ -1,0 +1,100 @@
+{
+  "common": {
+    "save": "Save",
+    "cancel": "Cancel",
+    "delete": "Delete",
+    "edit": "Edit",
+    "approve": "Approve",
+    "generate": "Generate",
+    "loading": "Loading...",
+    "connect": "Connect",
+    "disconnect": "Disconnect",
+    "connected": "Connected",
+    "disconnected": "Disconnected",
+    "or": "or",
+    "selected": "{n} selected",
+    "clearSelection": "Clear selection"
+  },
+  "auth": {
+    "welcomeBack": "Welcome back",
+    "createAccount": "Create your account",
+    "confirmEmail": "Confirm Your Email",
+    "signInSub": "Sign in to your brand dashboard",
+    "registerSub": "Start generating Arabic content in minutes",
+    "otpSub": "Enter the 6-digit code we sent you",
+    "fullName": "Full Name",
+    "phone": "Phone Number",
+    "email": "Email Address",
+    "password": "Password",
+    "passwordPlaceholder": "At least 6 characters",
+    "signIn": "Sign In",
+    "signingIn": "Signing in…",
+    "createAccountBtn": "Create Account",
+    "creatingAccount": "Creating account…",
+    "verifyCode": "Verify Code",
+    "verifying": "Verifying...",
+    "alreadyHaveAccount": "Already have an account?",
+    "noAccount": "Don't have an account?",
+    "createOneFree": "Create one free",
+    "fillAllFields": "Please fill in all fields"
+  },
+  "trial": {
+    "badge": "Trial expired",
+    "title": "Your free trial has ended",
+    "subtitle": "Your 14-day trial of ContentForge has expired. Choose a plan below to keep generating Arabic content for your brand.",
+    "choosePlan": "Choose your plan",
+    "perMonth": "/ month",
+    "starterName": "Starter",
+    "starterDesc": "For individuals & small brands",
+    "starterFeature1": "50 posts / month",
+    "starterFeature2": "3 brand profiles",
+    "starterFeature3": "All dialects",
+    "starterFeature4": "Email support",
+    "getStarted": "Get started",
+    "proName": "Pro",
+    "proDesc": "For agencies & growing teams",
+    "proFeature1": "Unlimited posts",
+    "proFeature2": "10 brand profiles",
+    "proFeature3": "Priority AI queue",
+    "proFeature4": "Priority support",
+    "mostPopular": "Most popular",
+    "getPro": "Get Pro",
+    "comingSoon": "Payments are coming soon — we'll notify you when they're live! 🚀",
+    "signOut": "Sign out and use a different account"
+  },
+  "drafts": {
+    "title": "Drafts",
+    "subtitle": "{n} posts waiting for review",
+    "newDraft": "+ New Draft",
+    "approveAll": "Approve All",
+    "approve": "Approve",
+    "edit": "Edit",
+    "delete": "Delete"
+  },
+  "branding": {
+    "title": "Brand Vault",
+    "subtitle": "Your brand's identity, voice, and memory — stored permanently in RAG.",
+    "saveEmbed": "💾 Save & Re-embed",
+    "brandName": "Brand Name",
+    "industry": "Industry / Niche",
+    "primaryMarket": "Primary Market"
+  },
+  "chat": {
+    "aiName": "ContentForge AI",
+    "clearChat": "Clear chat"
+  },
+  "connections": {
+    "title": "Connections",
+    "subtitle": "Connect your social platforms, database, and API keys to enable publishing and data persistence.",
+    "notConnected": "Not connected"
+  },
+  "dashboard": {
+    "title": "Content Calendar",
+    "noPosts": "No calendar yet — generate your first plan",
+    "postsPlanned": "{n} posts planned",
+    "approvePlan": "Approve Plan",
+    "approving": "Approving…",
+    "resetCalendar": "Reset Calendar",
+    "deleteCalendar": "Delete Calendar"
+  }
+}

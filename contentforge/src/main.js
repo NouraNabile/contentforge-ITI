@@ -2,6 +2,7 @@ import { createApp } from 'vue'
 import { createRouter, createWebHistory } from 'vue-router'
 import { createPinia } from 'pinia'
 import App from './App.vue'
+import i18n from './locales/i18n.js'
 import './style.css'
 
 import LandingPage      from './views/LandingPage.vue'
@@ -57,4 +58,13 @@ document.documentElement.classList.add(saved)
 const app = createApp(App)
 app.use(createPinia())
 app.use(router)
+app.use(i18n)
+
+// ── Persist locale on startup ─────────────────────────────────────────────────
+const savedLocale = localStorage.getItem('cf-locale') || 'en'
+i18n.global.locale.value = savedLocale
+document.documentElement.setAttribute('dir', savedLocale === 'ar' ? 'rtl' : 'ltr')
+document.documentElement.setAttribute('lang', savedLocale)
+
+
 app.mount('#app')

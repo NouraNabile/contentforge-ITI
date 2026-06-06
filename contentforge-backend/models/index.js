@@ -118,6 +118,16 @@ const calendarSchema = new mongoose.Schema({
 }, { timestamps: true })
 const Calendar = mongoose.model('Calendar', calendarSchema)
 
+// ── Original Calendar (snapshot for reset) ────────────────────────────────────
+const originalCalendarSchema = new mongoose.Schema({
+  calendarId:           { type: mongoose.Schema.Types.ObjectId, ref: 'Calendar', required: true, unique: true },
+  originalCalendarData: { type: Object, required: true },
+  originalPostsData:    [{ type: Object, required: true }],
+}, { timestamps: true })
+
+const OriginalCalendar = mongoose.model('OriginalCalendar', originalCalendarSchema)
+
+
 // ── Trend Model ───────────────────────────────────────────────────────────────
 const trendSchema = new mongoose.Schema({
   tag:         { type: String, required: true },
@@ -182,4 +192,4 @@ connectionSchema.index({ user: 1, platform: 1 }, { unique: true });
  
 const Connection = mongoose.model('Connection', connectionSchema)
 
-module.exports = { User, Brand, Post, Calendar, Trend, ChatMessage, Connection }
+module.exports = { User, Brand, Post, Calendar, Trend, ChatMessage, Connection, OriginalCalendar }

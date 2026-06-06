@@ -3,7 +3,7 @@ const express = require('express')
 const router = express.Router()
 const protect = require('../middleware/auth')
 const { Trend } = require("../models");
-const { Brand, Calendar, Post } = require('../models')
+const { Brand, Calendar, Post, OriginalCalendar } = require('../models')
 const { generateCalendar, generateVariantB } = require('../services/geminiService')
 const { retrieveRelevantChunks } = require('../services/embeddingService')
 
@@ -80,6 +80,16 @@ router.post('/generate', protect, async (req, res) => {
   calendar.posts = posts.map(p => p._id)
   await calendar.save()
 
+  try {
+    await OriginalCalendar.create({
+      calendarId: calendar._id,
+      originalCalendarData: calendar.toObject(),
+      originalPostsData: posts.map(p => p.toObject())
+    })
+  } catch (err) {
+    console.error("Failed to snapshot original calendar state:", err)
+  }
+
   res.json({ calendar, posts })
 })
 
@@ -110,11 +120,71 @@ router.post('/:id/approve', protect, async (req, res) => {
   res.json({ message: 'All posts approved' })
 })
 
-// DELETE /api/calendar/:id
+// POST /api/calendar/:id/reset
+router.post('/:id/reset', protect, async (req, res) => {
+  try {
+    const calendarId = req.params.id
+
+    // Find the saved untouched snapshot
+    const snapshot = await OriginalCalendar.findOne({ calendarId })
+    if (!snapshot) {
+      return res.status(404).json({ message: 'Original snapshot not found for this calendar' })
+    }
+
+    // 1. Revert and rewrite all actual posts using snapshot info
+    for (const originalPost of snapshot.originalPostsData) {
+      await Post.findByIdAndUpdate(
+        originalPost._id,
+        {
+          copyAR: originalPost.copyAR,
+          copyEN: originalPost.copyEN,
+          hashtags: originalPost.hashtags,
+          status: originalPost.status || 'draft',
+          scheduledAt: originalPost.scheduledAt,
+          date: originalPost.date,
+          platform: originalPost.platform,
+          imagePrompt: originalPost.imagePrompt,
+          goal: originalPost.goal
+        },
+        { new: true }
+      )
+    }
+
+    // 2. Restore array positioning or any core metadata traits in the real Calendar document
+    const updatedCalendar = await Calendar.findByIdAndUpdate(
+      calendarId,
+      {
+        posts: snapshot.originalCalendarData.posts,
+        status: snapshot.originalCalendarData.status || 'draft'
+      },
+      { new: true }
+    ).populate('posts')
+
+    res.json(updatedCalendar)
+  } catch (error) {
+    console.error('Error resetting calendar:', error)
+    res.status(500).json({ message: 'Server error while resetting calendar structure' })
+  }
+})
+
 router.delete('/:id', protect, async (req, res) => {
-  await Post.deleteMany({ calendar: req.params.id })
-  await Calendar.findByIdAndDelete(req.params.id)  
-  res.json({ message: 'Calendar deleted' })
+  try {
+    const calendarId = req.params.id
+
+    const calendar = await Calendar.findById(calendarId)
+    if (!calendar) {
+      return res.status(404).json({ message: 'Calendar not found' })
+    }
+
+    await Post.deleteMany({ calendar: calendarId })            
+    await OriginalCalendar.deleteOne({ calendarId })         
+    await Calendar.findByIdAndDelete(calendarId)              
+
+    res.json({ message: 'Calendar, posts, and snapshots deleted successfully' })
+  } catch (error) {
+    console.error('Error deleting calendar assets:', error)
+    res.status(500).json({ message: 'Server error while deleting calendar assets' })
+  }
 })
 
 module.exports = router

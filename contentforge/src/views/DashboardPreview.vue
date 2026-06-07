@@ -536,8 +536,8 @@
               }}
             </button>
           </div>
-          
-          // محتاجه تتعمل عربي وانجليزي
+
+          <!-- محتاجه تتعمل عربي وانجليزي -->
           <!-- Image Generator -->
           <div
             v-if="selectedPost"
@@ -966,6 +966,8 @@ const deleting = ref(false);
 const resetting = ref(false);
 const variantB = ref(null);
 const loadingVariant = ref(false);
+const generatingImage = ref(false);
+const imageError = ref("");
 const errorMessage = ref("");
 const currentCalendar = ref(null);
 const trends = ref([]);
@@ -1452,7 +1454,7 @@ async function savePost() {
           }
         : p
     );
-        // تحديث نفس الكائن المختار حالياً بالشاشة
+    // تحديث نفس الكائن المختار حالياً بالشاشة
     selectedPost.value.copyAR = editCopy.value;
     selectedPost.value.status = formattedStatus;
 

@@ -17,20 +17,28 @@ export const useAuthStore = defineStore('auth', () => {
   const userInitial = computed(() => user.value?.name?.[0]?.toUpperCase() || '?')
 
   // ── Actions ───────────────────────────────────────────────────────────────
-  async function login(credentials) {
-    loading.value = true
-    error.value   = null
-    try {
-      const data = await authApi.login(credentials)
-      user.value  = data.user
-      return data
-    } catch (err) {
-      error.value = err.message
-      throw err
-    } finally {
-      loading.value = false
+async function login(credentials) {
+  loading.value = true
+  error.value   = null
+  try {
+    const data = await authApi.login(credentials)
+    user.value  = data.user
+    
+    // ← الإضافة هنا
+    if (data.user?.isAdmin) {
+      window.location.href = '/admin'
+    } else {
+      window.location.href = '/dashboard'
     }
+    
+    return data
+  } catch (err) {
+    error.value = err.message
+    throw err
+  } finally {
+    loading.value = false
   }
+}
 
   async function register(credentials) {
     loading.value = true

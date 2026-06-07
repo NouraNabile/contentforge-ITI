@@ -44,8 +44,7 @@ app.use("/api/calendar", require("./routes/calendar"));
 app.use("/api/posts", require("./routes/posts"));
 app.use("/api/trends", require("./routes/trends"));
 app.use("/api/chat", chatRoutes);
-app.use("/api/stats", require("./routes/stats"));
-app.use("/api/connections", require("./routes/connections"));
+app.use("/api/admin", require("./routes/admin"));
 
 // ── Health check — frontend pings this to check if server is up ───────────────
 app.get("/api/health", (req, res) => {

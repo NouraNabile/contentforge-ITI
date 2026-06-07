@@ -14,6 +14,13 @@ import ConnectionsPage  from './views/ConnectionsPage.vue'
 import LoginPage        from './views/LoginPage.vue'
 import TrialExpiredPage from './views/TrialExpiredPage.vue'
 
+import AdminLayout    from './views/admin/AdminLayout.vue'
+import AdminDashboard from './views/admin/AdminDashboard.vue'
+import AdminUsers     from './views/admin/AdminUsers.vue'
+import AdminTrends    from './views/admin/AdminTrends.vue'
+import AdminPlans     from './views/admin/AdminPlans.vue'
+import AdminSettings  from './views/admin/AdminSettings.vue'
+
 // ── Router ────────────────────────────────────────────────────────────────────
 const router = createRouter({
   history: createWebHistory(),
@@ -25,7 +32,16 @@ const router = createRouter({
     { path: '/branding',    component: BrandingPage,     meta: { requiresAuth: true } },
     { path: '/chat',        component: ChatPage,         meta: { requiresAuth: true } },
     { path: '/connections', component: ConnectionsPage,  meta: { requiresAuth: true } },
-    { path: '/trial-expired', component: TrialExpiredPage }
+    { path: '/trial-expired', component: TrialExpiredPage },
+    {path: '/admin',component: AdminLayout,  meta: { requiresAuth: true, requiresAdmin: true },
+    children: [
+    { path: '',         component: AdminDashboard },
+    { path: 'users',    component: AdminUsers     },
+    { path: 'trends',   component: AdminTrends    },
+    { path: 'plans',    component: AdminPlans     },
+    { path: 'settings', component: AdminSettings  },
+      ]
+    }
   ],
   scrollBehavior(to) {
     if (to.hash) return { el: to.hash, behavior: 'smooth' }
@@ -36,15 +52,12 @@ const router = createRouter({
 // ── Route guard — redirect to login if not authenticated ──────────────────────
 router.beforeEach((to, from, next) => {
   const isLoggedIn = !!localStorage.getItem('cf_token')
-  const hadAccount = !!localStorage.getItem('cf_user') // still exists after 403 clears token? No...
+  const user = JSON.parse(localStorage.getItem('cf_user') || 'null')
 
   if (to.meta.requiresAuth && !isLoggedIn) {
-    // Check if they were redirected due to trial expiry
-    if (window.location.pathname === '/trial-expired' || from.path === '/trial-expired') {
-      next('/trial-expired')
-    } else {
-      next('/login')
-    }
+    return next('/login')
+  } else if (to.meta.requiresAdmin && !user?.isAdmin) {
+    return next('/dashboard')
   } else {
     next()
   }

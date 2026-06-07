@@ -376,7 +376,7 @@
 
 <script setup>
 import AppLayout from "../components/AppLayout.vue";
-import { ref } from "vue";
+import { ref, computed, onMounted } from 'vue'
 import { useI18n } from "vue-i18n";
 import brandApi from "../api/brandApi";
 
@@ -583,46 +583,47 @@ function saveMongo() {
 
 
 const currentBrandId = ref(localStorage.getItem("cf_brandId") || null);
-
-// ── جيبي الـ brand من الـ DB أول ما الصفحة تفتح ──
-// onMounted(async () => {
-//   try {
-//     const brands = await brandApi.getMyBrands();
-//     if (brands?.length) {
-//       const b = brands[0];
-//       currentBrandId.value = b._id;
-//       localStorage.setItem("cf_brandId", b._id); // حدّثي الـ localStorage بالـ ID الصح
-//       // امليلي الـ form بالبيانات الموجودة
-//       brand.value = {
-//         name: b.name || "",
-//         industry: b.industry || "",
-//         website: b.website || "",
-//         targetAudience: b.targetAudience || "",
-//         dialects: b.dialects || [],
-//         tones: b.tones || [],
-//         platforms: b.platforms || [],
-//         avoidTopics: b.avoidTopics || "",
-//       };
-//     }
-//   } catch {
-//     // مش متصل — هيفضل الـ form فاضي
-//   }
-// });
-
+onMounted(async () => {
+  try {
+    const brands = await brandApi.getMyBrands();
+    if (brands?.length) {
+      const b = brands[0];
+      currentBrandId.value = b._id;
+      localStorage.setItem("cf_brandId", b._id);
+      brand.value = {
+        name: b.name || "",
+        industry: b.industry || "",
+        website: b.website || "",
+        audience: b.targetAudience || "",  // ← اتغير
+        dialects: b.dialects || [],
+        tones: b.tones || [],
+        platforms: b.platforms || [],
+        avoidTopics: b.avoidTopics || "",
+        colors: b.colors || [],            // ← مضاف
+        font: b.font || "",                // ← مضاف
+        voice: b.voice || "",              // ← مضاف
+        market: b.market || "",            // ← مضاف
+      };
+    } else {
+      currentBrandId.value = null;
+      localStorage.removeItem("cf_brandId");
+    }
+  } catch (err) {
+    console.error("Brand load error:", err);
+  }
+});
 // ── عدلي الـ saveAll ──
 async function saveAll() {
   try {
-    let result;
     if (currentBrandId.value) {
-      // brand موجود → update
-      result = await brandApi.updateBrand(currentBrandId.value, brand.value);
+      await brandApi.updateBrand(currentBrandId.value, brand.value);
+      await brandApi.embedBrand(currentBrandId.value); // ← مش محتاجة result
     } else {
-      // brand جديد → create
-      result = await brandApi.saveBrand(brand.value);
+      const result = await brandApi.saveBrand(brand.value);
       currentBrandId.value = result.brand._id;
       localStorage.setItem("cf_brandId", result.brand._id);
+      await brandApi.embedBrand(result.brand._id);
     }
-    await brandApi.embedBrand(result.brand._id);
     alert("Saved & embedded successfully!");
   } catch (err) {
     alert("Save failed: " + err.message);

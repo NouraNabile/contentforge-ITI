@@ -24,7 +24,7 @@ const protect = async (req, res, next) => {
     // ----------------------------------------------------
     // الحتة السحرية الجديدة هنا:
     // بنشيك لو الحساب لسه في فترة التجربة (isTrial) والتاريخ الحالي أحدث من تاريخ الانتهاء
-    if (req.user.isTrial && Date.now() > new Date(req.user.trialEndsAt)) {
+    if (req.user && !req.user.isAdmin && req.user.plan === 'free' && req.user.isTrial && Date.now() > new Date(req.user.trialEndsAt)) {
       return res.status(403).json({ 
         message: 'Your 14-day free trial has expired. Please subscribe to continue.' 
       })

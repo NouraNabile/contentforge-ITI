@@ -974,6 +974,8 @@ const trends = ref([]);
 const trendsLastUpdated = ref("");
 const store = useCalendarStore();
 const planApproved = ref(false);
+const imageError = ref("");
+const generatingImage = ref(false);
 
 // ── Drag & Drop state ─────────────────────────────────────────────────────
 const draggedCell = ref(null);

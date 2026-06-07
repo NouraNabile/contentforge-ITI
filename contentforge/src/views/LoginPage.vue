@@ -211,6 +211,67 @@ onMounted(async () => {
 })
 
 
+// async function submit() {
+//   error.value = null
+//   if (!form.value.email || !form.value.password) {
+//     error.value = 'Please fill in all fields'
+//     return
+//   }
+//   if (isRegister.value && (!form.value.name || !form.value.phone)) {
+//     error.value = 'Please fill in all fields'
+//     return
+//   }
+//   loading.value = true
+//   try {
+//     if (isRegister.value) {
+//       await authStore.register(form.value)
+//       success.value = 'Check your email for a verification code'
+//       showOTP.value = true
+//       // ✅ No redirect here — user must verify first
+//     } else {
+//       await authStore.login(form.value)
+//       const userRaw = localStorage.getItem('cf_user')
+//       const user = userRaw ? JSON.parse(userRaw) : null
+
+//       if (localStorage.getItem('cf_token')) {
+//         // 🎯 الحتة السحرية الجديدة: لو أدمن وديه باث الأدمن، لو لأ وديه الـ dashboard العادي
+//         if (user && user.isAdmin === true) {
+//           router.push('/admin/dashboard')
+//         } else {
+//           router.push('/dashboard')
+//         }
+//       } else {
+//         error.value = 'تم تسجيل الدخول ولكن لم يتم حفظ التوكن، تأكدي من كود الـ Store'
+//       }
+//     }
+//   } catch (err) {
+//     error.value = err.message || 'Something went wrong. Is your backend running?'
+//   } finally {
+//     loading.value = false
+//   }
+// }
+
+// // ✅ Now a top-level function, accessible from the template
+// async function verifyEmail() {
+//   error.value = null
+//   try {
+//     loading.value = true
+//     await api.post('/auth/verify-email', {
+//       email: form.value.email,
+//       code: otpInputs.value.join('') // نجمع الأرقام من المصفوفة
+//     })
+//     success.value = 'Email verified successfully 🎉'
+//     // 2. 🚀 السطر السحري: بنعمل تسجيل دخول أوتوماتيك فوراً عشان الـ Store يجيب التوكن ويسيفه
+//     await authStore.login(form.value)
+    
+//     // 3. ننتقل للداش بورد والقلب جامد والتوكن متسيف
+//     router.push('/dashboard')
+//   } catch (err) {
+//     error.value = err.response?.data?.message || 'Invalid or expired code'
+//   } finally {
+//     loading.value = false
+//   }
+// }
 async function submit() {
   error.value = null
   if (!form.value.email || !form.value.password) {
@@ -229,15 +290,19 @@ async function submit() {
       await authStore.register(form.value)
       success.value = t('auth.checkEmail')
       showOTP.value = true
-      // ✅ No redirect here — user must verify first
     } else {
+      // 1. بنعمل تسجيل دخول ونستنى الـ Store يخلص تماماً
       await authStore.login(form.value)
+      
+      // 2. بنشوف التوكن اتسيف ولا لأ
+     await nextTick() 
+      
       if (localStorage.getItem('cf_token')) {
-        // 3. طالما اتسيف، انقل برمش العين والقلب جامد ومحدش هيقدر يطردك!
-        router.push('/dashboard')
-      } else {
-        error.value = t('auth.errorFillAll')
-      }
+      // 3. طالما اتسيف، انقل برمش العين والقلب جامد ومحدش هيقدر يطردك!
+      router.push('/dashboard')
+    } else {
+      error.value = 'تم تسجيل الدخول ولكن لم يتم حفظ التوكن، تأكدي من كود الـ Store'
+    }
     }
   } catch (err) {
     error.value = err.message || t('auth.errorGeneric')
@@ -246,19 +311,18 @@ async function submit() {
   }
 }
 
-// ✅ Now a top-level function, accessible from the template
 async function verifyEmail() {
   error.value = null
   try {
     loading.value = true
     await api.post('/auth/verify-email', {
       email: form.value.email,
-      code: otpInputs.value.join('') // نجمع الأرقام من المصفوفة
+      code: otpInputs.value.join('')
     })
-    success.value = t('auth.verifiedSuccess')
+    success.value = 'Email verified successfully 🎉'
     // 2. 🚀 السطر السحري: بنعمل تسجيل دخول أوتوماتيك فوراً عشان الـ Store يجيب التوكن ويسيفه
     await authStore.login(form.value)
-
+    
     // 3. ننتقل للداش بورد والقلب جامد والتوكن متسيف
     router.push('/dashboard')
   } catch (err) {
@@ -275,7 +339,7 @@ async function demoLogin() {
     error.value = null;
 
     const response = await api.post('/auth/demo');
-
+    
     // 1. السطر السحري: هيطبع لنا شكل الـ response بالظبط في الـ Console عشان نفهمه
     // console.log("الباك إند رجع لنا إيه بالظبط؟ :", response);
 
@@ -285,12 +349,12 @@ async function demoLogin() {
     // 3. بنسيف وأنتِ مطمنة لأننا أمّنا السطرين
     localStorage.setItem('cf_token', responseData.token);
     localStorage.setItem('cf_user', JSON.stringify(responseData.user));
-
+    
     router.push('/dashboard');
-
+    
   } catch (err) {
     console.error("Demo login failed:", err);
-    error.value = err.response?.data?.message || t('auth.errorGeneric');
+    error.value = err.response?.data?.message || 'Something went wrong';
   } finally {
     loading.value = false;
   }

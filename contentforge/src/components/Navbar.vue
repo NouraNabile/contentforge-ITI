@@ -1,35 +1,39 @@
 <!-- Navbar.vue -->
 <template>
-  <nav
-    class="fixed top-0 left-0 right-0 z-50 transition-all duration-300"
-    :class="scrolled ? 'glass border-b border-white/5' : 'bg-transparent'"
-  >
+  <nav class="fixed top-0 left-0 right-0 z-50 transition-all duration-300"
+    :class="scrolled ? 'glass border-b border-white/5' : 'bg-transparent'">
     <div class="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
 
       <!-- Logo -->
       <RouterLink to="/" class="flex items-center gap-2.5 group">
         <div class="w-8 h-8 rounded-lg bg-gradient-to-br from-blue-500 to-teal-400 flex items-center justify-center">
           <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-            <path d="M3 8L7 12L13 4" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="M3 8L7 12L13 4" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
           </svg>
         </div>
         <span class="font-display font-700 text-lg text-white tracking-tight">ContentForge</span>
       </RouterLink>
 
       <!-- Desktop nav -->
-            <div class="hidden md:flex items-center gap-8">
-        <a v-for="link in navLinks" :key="link.labelKey"
-           :href="link.href"
-           class="text-sm text-slate-400 hover:text-white transition-colors duration-200">
+      <div class="hidden md:flex items-center gap-8">
+        <a v-for="link in navLinks" :key="link.labelKey" :href="link.href"
+          class="text-sm text-slate-400 hover:text-white transition-colors duration-200">
           {{ t(link.labelKey) }}
         </a>
       </div>
 
 
       <!-- CTA buttons -->
-            <div class="flex items-center gap-3">
-        <RouterLink to="/dashboard"
-          class="hidden md:block text-sm text-slate-400 hover:text-white transition-colors">
+      <div class="flex items-center gap-3">
+        <button @click="switchLang"
+          class="flex items-center gap-1.5 text-sm text-slate-400 hover:text-white transition-colors px-2 py-1 rounded-lg hover:bg-white/5">
+          <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+              d="M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18zm0 0c-4.97 0-9-4.03-9-9m9 9c4.97 0 9-4.03 9-9M3 12h18M12 3c-2.5 2.5-4 5.5-4 9s1.5 6.5 4 9M12 3c2.5 2.5 4 5.5 4 9s-1.5 6.5-4 9"/>
+          </svg>
+          {{ locale === 'en' ? 'عربي' : 'English' }}
+        </button>
+        <RouterLink to="/dashboard" class="hidden md:block text-sm text-slate-400 hover:text-white transition-colors">
           {{ t('navbar.previewDashboard') }}
         </RouterLink>
         <a href="#get-started"
@@ -46,17 +50,19 @@
 import { ref, onMounted, onUnmounted } from 'vue'
 import { RouterLink } from 'vue-router'
 import { useI18n } from 'vue-i18n'
- 
+import { useLang } from '../composables/useLang.js'
+
 const { t } = useI18n()
+const { locale, switchLang } = useLang()
 
 
 const scrolled = ref(false)
 
 const navLinks = [
-  { labelKey: 'navbar.links.features',    href: '#features'     },
-  { labelKey: 'navbar.links.howItWorks',  href: '#how-it-works' },
-  { labelKey: 'navbar.links.competitors', href: '#competitors'  },
-  { labelKey: 'navbar.links.pricing',     href: '#pricing'      },
+  { labelKey: 'navbar.links.features', href: '#features' },
+  { labelKey: 'navbar.links.howItWorks', href: '#how-it-works' },
+  { labelKey: 'navbar.links.competitors', href: '#competitors' },
+  { labelKey: 'navbar.links.pricing', href: '#pricing' },
 ]
 
 

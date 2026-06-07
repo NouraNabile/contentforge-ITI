@@ -2,6 +2,18 @@
 <template>
   <div class="min-h-screen theme-bg flex items-center justify-center p-6 bg-grid">
 
+    <!-- Language toggle — fixed top right -->
+    <div class="fixed top-4 right-4 z-50">
+      <button @click="switchLang"
+        class="flex items-center gap-1.5 text-xs theme-sub px-3 py-1.5 rounded-lg theme-card theme-border hover:theme-text transition-colors">
+        <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+            d="M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18zm0 0c-4.97 0-9-4.03-9-9m9 9c4.97 0 9-4.03 9-9M3 12h18M12 3c-2.5 2.5-4 5.5-4 9s1.5 6.5 4 9M12 3c2.5 2.5 4 5.5 4 9s-1.5 6.5-4 9" />
+        </svg>
+        {{ locale === 'en' ? 'عربي' : 'English' }}
+      </button>
+    </div>
+
     <div
       class="absolute top-1/3 left-1/2 -translate-x-1/2 w-96 h-96 rounded-full bg-red-600/8 blur-3xl pointer-events-none">
     </div>
@@ -131,8 +143,11 @@
 import { ref } from 'vue'
 import { RouterLink, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
+import { useLang } from '../composables/useLang.js'
+
  
 const { t } = useI18n()
+const { locale, switchLang } = useLang()
 
 
 const router = useRouter()

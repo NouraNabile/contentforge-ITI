@@ -178,7 +178,7 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, watch } from 'vue'
 import { RouterLink, useRoute } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { useTheme } from '../composables/useTheme.js'
@@ -186,9 +186,11 @@ import { useNotifications } from '../composables/useNotifications.js'
 import { useLang } from '../composables/useLang.js'
 import { useAuthStore } from '../stores/authStore'
 import api from '../api/client'
+import { useCalendarStore } from "../stores/calendarStore";
 
 const route = useRoute()
 const authStore = useAuthStore()
+const calendarStore = useCalendarStore();
 const { isDark, toggle: toggleTheme } = useTheme()
 const { notifications, unreadCount, markRead, markAllRead } = useNotifications()
 const { locale, switchLang } = useLang()
@@ -248,6 +250,10 @@ async function fetchStats() {
 }
 
 onMounted(fetchStats)
+
+watch(() => calendarStore.posts, () => {
+  fetchStats();
+}, { deep: true });
 
 // ── Nav items — computed so labels re-render on language switch ───────────────
 const navItems = computed(() => [

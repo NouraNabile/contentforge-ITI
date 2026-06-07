@@ -1,3 +1,4 @@
+<!-- Connections Page -->
 <template>
   <AppLayout>
     <div class="p-7 max-w-4xl mx-auto">
@@ -364,6 +365,7 @@
 import { ref, onMounted, computed } from 'vue'
 import AppLayout from '../components/AppLayout.vue'
 import api from '../api/client'
+import { useI18n } from "vue-i18n";
 
 const socialPlatforms = ref([
   { name:'Instagram', icon:'📸', iconBg:'bg-pink-500/15', connected:true, handle:'@araby.coffee', permissions:['Read posts','Publish','Analytics'], stats:[{label:'Followers',value:'12.4K'},{label:'Posts',value:'234'},{label:'Eng. Rate',value:'4.2%'}] },

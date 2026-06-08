@@ -9,14 +9,16 @@
       "drafts": "Posts Manager",
       "branding": "Brand Vault",
       "chat": "AI Chat",
-      "connections": "Connections"
+      "connections": "Connections",
+      "payment": "Billing"
     },
     "pageTitle": {
       "dashboard": "Calendar",
       "drafts": "Posts Manager",
       "branding": "Brand Vault",
       "chat": "AI Chat",
-      "connections": "Connections"
+      "connections": "Connections",
+      "payment": "Billing & Plans"
     },
     "stats": {
       "generated": "Generated",
@@ -1066,5 +1068,26 @@
       "next": "Next →",
       "pageOf": "Page {page} of {pages}"
     }
+  },
+  "payment": {
+    "title": "Billing & Plans",
+    "subtitle": "Manage your subscription and billing details",
+    "currentPlan": "Current Plan",
+    "renewsOn": "Renews on",
+    "cancelAtEnd": "cancels at end of period",
+    "manageSubscription": "Manage Subscription",
+    "currentPlanBtn": "Current Plan",
+    "statusActive": "Active",
+    "statusTrial": "Trial",
+    "statusPastDue": "Past Due",
+    "statusCanceled": "Canceled",
+    "statusFree": "Free",
+    "successTitle": "You're all set! 🎉",
+    "successMsg": "Your subscription is now active. Welcome aboard!",
+    "cancelTitle": "Payment canceled",
+    "cancelMsg": "No worries — your current plan is unchanged. Upgrade anytime.",
+    "tryAgain": "View Plans",
+    "goToDashboard": "Go to Dashboard",
+    "errorGeneric": "Something went wrong. Please try again."
   }
 }

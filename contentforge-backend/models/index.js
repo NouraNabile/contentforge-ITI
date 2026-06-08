@@ -39,6 +39,7 @@ const userSchema = new mongoose.Schema({
     type: Boolean,
     default: true
   },
+  stripeCustomerId: { type: String },         // Stripe customer ID
   isAdmin:   { type: Boolean, default: false },
   isBlocked: { type: Boolean, default: false },
   lastLoginAt: { type: Date }

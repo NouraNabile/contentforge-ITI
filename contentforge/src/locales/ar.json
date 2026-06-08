@@ -9,14 +9,16 @@
       "drafts": "إدارة المنشورات",
       "branding": "خزينة العلامة",
       "chat": "المحادثة الذكية",
-      "connections": "الاتصالات"
+      "connections": "الاتصالات",
+      "payment": "الفواتير"
     },
     "pageTitle": {
       "dashboard": "التقويم",
       "drafts": "إدارة المنشورات",
       "branding": "خزينة العلامة",
       "chat": "المحادثة الذكية",
-      "connections": "الاتصالات"
+      "connections": "الاتصالات",
+      "payment": "الفواتير والخطط"
     },
     "stats": {
       "generated": "المُولَّد",
@@ -1066,5 +1068,26 @@
       "next": "التالي ←",
       "pageOf": "صفحة {page} من {pages}"
     }
+  },
+  "payment": {
+    "title": "الفواتير والخطط",
+    "subtitle": "إدارة اشتراكك وتفاصيل الدفع",
+    "currentPlan": "الخطة الحالية",
+    "renewsOn": "يتجدد في",
+    "cancelAtEnd": "ينتهي في نهاية الفترة",
+    "manageSubscription": "إدارة الاشتراك",
+    "currentPlanBtn": "خطتك الحالية",
+    "statusActive": "نشط",
+    "statusTrial": "تجريبي",
+    "statusPastDue": "متأخر الدفع",
+    "statusCanceled": "ملغى",
+    "statusFree": "مجاني",
+    "successTitle": "تم الاشتراك بنجاح! 🎉",
+    "successMsg": "اشتراكك أصبح نشطاً الآن. أهلاً بك!",
+    "cancelTitle": "تم إلغاء الدفع",
+    "cancelMsg": "لا مشكلة — خطتك الحالية لم تتغير. يمكنك الترقية في أي وقت.",
+    "tryAgain": "عرض الخطط",
+    "goToDashboard": "الذهاب للوحة التحكم",
+    "errorGeneric": "حدث خطأ ما. حاول مرة أخرى."
   }
 }

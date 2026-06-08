@@ -31,6 +31,10 @@ app.use(
     credentials: true,
   }),
 );
+
+// ── Stripe webhook needs raw body — MUST be before express.json ──────────────
+app.use('/api/payment/webhook', express.raw({ type: 'application/json' }))
+
 app.use(express.json({ limit: "20mb" }));
 app.use(express.urlencoded({ extended: true }));
 
@@ -46,6 +50,7 @@ app.use("/api/trends", require("./routes/trends"));
 app.use("/api/chat", chatRoutes);
 app.use("/api/admin", require("./routes/admin"));
 app.use("/api/stats", require("./routes/stats"));
+app.use("/api/payment", require("./routes/payment"));
 
 // ── Health check — frontend pings this to check if server is up ───────────────
 app.get("/api/health", (req, res) => {

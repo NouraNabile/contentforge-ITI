@@ -13,6 +13,9 @@ import ChatPage         from './views/ChatPage.vue'
 import ConnectionsPage  from './views/ConnectionsPage.vue'
 import LoginPage        from './views/LoginPage.vue'
 import TrialExpiredPage from './views/TrialExpiredPage.vue'
+import PaymentPage from "./views/PaymentPage.vue";
+import PaymentSuccessPage from "./views/PaymentSuccessPage.vue";
+import PaymentCancelPage from "./views/PaymentCancelPage.vue";
 
 import AdminLayout    from './views/admin/AdminLayout.vue'
 import AdminDashboard from './views/admin/AdminDashboard.vue'
@@ -25,29 +28,55 @@ import AdminSettings  from './views/admin/AdminSettings.vue'
 const router = createRouter({
   history: createWebHistory(),
   routes: [
-    { path: '/',            component: LandingPage },
-    { path: '/login',       component: LoginPage },
-    { path: '/dashboard',   component: DashboardPreview, meta: { requiresAuth: true } },
-    { path: '/drafts',      component: PostsManagerPage, meta: { requiresAuth: true } },
-    { path: '/branding',    component: BrandingPage,     meta: { requiresAuth: true } },
-    { path: '/chat',        component: ChatPage,         meta: { requiresAuth: true } },
-    { path: '/connections', component: ConnectionsPage,  meta: { requiresAuth: true } },
-    { path: '/trial-expired', component: TrialExpiredPage },
-    {path: '/admin',component: AdminLayout,  meta: { requiresAuth: true, requiresAdmin: true },
-    children: [
-    { path: '',         component: AdminDashboard },
-    { path: 'users',    component: AdminUsers     },
-    { path: 'trends',   component: AdminTrends    },
-    { path: 'plans',    component: AdminPlans     },
-    { path: 'settings', component: AdminSettings  },
-      ]
-    }
+    { path: "/", component: LandingPage },
+    { path: "/login", component: LoginPage },
+    {
+      path: "/dashboard",
+      component: DashboardPreview,
+      meta: { requiresAuth: true },
+    },
+    {
+      path: "/drafts",
+      component: PostsManagerPage,
+      meta: { requiresAuth: true },
+    },
+    {
+      path: "/branding",
+      component: BrandingPage,
+      meta: { requiresAuth: true },
+    },
+    { path: "/chat", component: ChatPage, meta: { requiresAuth: true } },
+    {
+      path: "/connections",
+      component: ConnectionsPage,
+      meta: { requiresAuth: true },
+    },
+    { path: "/trial-expired", component: TrialExpiredPage },
+    { path: "/payment", component: PaymentPage, meta: { requiresAuth: true } },
+    {
+      path: "/payment/success",
+      component: PaymentSuccessPage,
+      meta: { requiresAuth: true },
+    },
+    { path: "/payment/cancel", component: PaymentCancelPage },
+    {
+      path: "/admin",
+      component: AdminLayout,
+      meta: { requiresAuth: true, requiresAdmin: true },
+      children: [
+        { path: "", component: AdminDashboard },
+        { path: "users", component: AdminUsers },
+        { path: "trends", component: AdminTrends },
+        { path: "plans", component: AdminPlans },
+        { path: "settings", component: AdminSettings },
+      ],
+    },
   ],
   scrollBehavior(to) {
-    if (to.hash) return { el: to.hash, behavior: 'smooth' }
-    return { top: 0 }
-  }
-})
+    if (to.hash) return { el: to.hash, behavior: "smooth" };
+    return { top: 0 };
+  },
+});
 
 // ── Route guard — redirect to login if not authenticated ──────────────────────
 router.beforeEach((to, from, next) => {

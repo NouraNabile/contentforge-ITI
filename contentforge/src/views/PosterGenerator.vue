@@ -18,12 +18,16 @@
           <!-- Image Upload Zone -->
           <div
             class="rounded-2xl theme-surface theme-border p-6 transition-all"
-            :class="{ 'border-blue-500/40 ring-2 ring-blue-500/20': isDragging }"
+            :class="{
+              'border-blue-500/40 ring-2 ring-blue-500/20': isDragging,
+            }"
             @dragover.prevent="isDragging = true"
             @dragleave.prevent="isDragging = false"
             @drop.prevent="handleDrop"
           >
-            <h3 class="font-display font-600 text-base theme-text mb-4 flex items-center gap-2">
+            <h3
+              class="font-display font-600 text-base theme-text mb-4 flex items-center gap-2"
+            >
               📸 Product Image
             </h3>
 
@@ -37,9 +41,7 @@
               <p class="text-sm font-medium theme-text mb-1">
                 Click to upload or drag & drop
               </p>
-              <p class="text-xs theme-muted">
-                JPEG, PNG, WebP · Max 10MB
-              </p>
+              <p class="text-xs theme-muted">JPEG, PNG, WebP · Max 10MB</p>
               <input
                 ref="fileInput"
                 type="file"
@@ -61,19 +63,34 @@
                 class="absolute top-2 right-2 w-8 h-8 rounded-full bg-rose-600 text-white flex items-center justify-center hover:bg-rose-500 transition-colors shadow-lg"
                 title="Remove image"
               >
-                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                <svg
+                  class="w-4 h-4"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M6 18L18 6M6 6l12 12"
+                  />
                 </svg>
               </button>
-              <div class="absolute bottom-2 left-2 text-[10px] theme-muted bg-black/50 px-2 py-1 rounded">
-                {{ selectedFile?.name }} · {{ formatFileSize(selectedFile?.size) }}
+              <div
+                class="absolute bottom-2 left-2 text-[10px] theme-muted bg-black/50 px-2 py-1 rounded"
+              >
+                {{ selectedFile?.name }} ·
+                {{ formatFileSize(selectedFile?.size) }}
               </div>
             </div>
           </div>
 
           <!-- Prompt Input -->
           <div class="rounded-2xl theme-surface theme-border p-6">
-            <h3 class="font-display font-600 text-base theme-text mb-4 flex items-center gap-2">
+            <h3
+              class="font-display font-600 text-base theme-text mb-4 flex items-center gap-2"
+            >
               ✍️ Describe Your Poster
             </h3>
             <textarea
@@ -116,8 +133,19 @@
               fill="none"
               viewBox="0 0 24 24"
             >
-              <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/>
-              <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/>
+              <circle
+                class="opacity-25"
+                cx="12"
+                cy="12"
+                r="10"
+                stroke="currentColor"
+                stroke-width="4"
+              />
+              <path
+                class="opacity-75"
+                fill="currentColor"
+                d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"
+              />
             </svg>
             <span v-if="isGenerating">Generating your poster… (30-60s)</span>
             <span v-else>✨ Generate Poster</span>
@@ -128,8 +156,18 @@
             v-if="error"
             class="px-4 py-3 rounded-xl bg-rose-500/10 border border-rose-500/20 text-rose-400 text-sm flex items-center gap-2"
           >
-            <svg class="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+            <svg
+              class="w-4 h-4 shrink-0"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+              />
             </svg>
             {{ error }}
           </div>
@@ -138,8 +176,12 @@
         <!-- ── RIGHT: Output Panel ─────────────────────────────────────────── -->
         <div class="space-y-5">
           <!-- Generated Poster Display -->
-          <div class="rounded-2xl theme-surface theme-border p-6 min-h-[500px] flex flex-col">
-            <h3 class="font-display font-600 text-base theme-text mb-4 flex items-center gap-2">
+          <div
+            class="rounded-2xl theme-surface theme-border p-6 min-h-[500px] flex flex-col"
+          >
+            <h3
+              class="font-display font-600 text-base theme-text mb-4 flex items-center gap-2"
+            >
               🎨 Generated Poster
             </h3>
 
@@ -148,7 +190,9 @@
               v-if="!generatedImageUrl && !isGenerating"
               class="flex-1 flex flex-col items-center justify-center text-center py-16"
             >
-              <div class="w-20 h-20 rounded-2xl bg-blue-600/10 flex items-center justify-center text-3xl mb-4">
+              <div
+                class="w-20 h-20 rounded-2xl bg-blue-600/10 flex items-center justify-center text-3xl mb-4"
+              >
                 🎨
               </div>
               <p class="text-sm theme-sub mb-1">Your poster will appear here</p>
@@ -163,11 +207,21 @@
               class="flex-1 flex flex-col items-center justify-center py-16"
             >
               <div class="relative w-24 h-24 mb-4">
-                <div class="absolute inset-0 rounded-full border-4 border-blue-500/20"></div>
-                <div class="absolute inset-0 rounded-full border-4 border-t-blue-500 animate-spin"></div>
-                <div class="absolute inset-0 flex items-center justify-center text-2xl">✨</div>
+                <div
+                  class="absolute inset-0 rounded-full border-4 border-blue-500/20"
+                ></div>
+                <div
+                  class="absolute inset-0 rounded-full border-4 border-t-blue-500 animate-spin"
+                ></div>
+                <div
+                  class="absolute inset-0 flex items-center justify-center text-2xl"
+                >
+                  ✨
+                </div>
               </div>
-              <p class="text-sm theme-text font-medium mb-1">AI is designing your poster…</p>
+              <p class="text-sm theme-text font-medium mb-1">
+                AI is designing your poster…
+              </p>
               <p class="text-xs theme-muted">This may take 30–60 seconds</p>
               <!-- Progress Steps -->
               <div class="flex items-center gap-3 mt-6">
@@ -178,9 +232,13 @@
                 >
                   <div
                     class="w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-bold transition-all"
-                    :class="i <= currentStep ? 'bg-blue-600 text-white' : 'bg-forge-800 text-slate-500'"
+                    :class="
+                      i <= currentStep
+                        ? 'bg-blue-600 text-white'
+                        : 'bg-forge-800 text-slate-500'
+                    "
                   >
-                    {{ i < currentStep ? '✓' : i + 1 }}
+                    {{ i < currentStep ? "✓" : i + 1 }}
                   </div>
                   <span
                     class="text-[10px] transition-colors"
@@ -199,7 +257,9 @@
 
             <!-- Result State -->
             <div v-if="generatedImageUrl" class="space-y-4">
-              <div class="rounded-xl overflow-hidden border border-white/10 bg-forge-950/50">
+              <div
+                class="rounded-xl overflow-hidden border border-white/10 bg-forge-950/50"
+              >
                 <img
                   :src="generatedImageUrl"
                   alt="Generated poster"
@@ -214,8 +274,18 @@
                   @click="downloadPoster"
                   class="flex-1 py-2.5 rounded-xl bg-blue-600 text-white text-sm font-medium hover:bg-blue-500 transition-colors flex items-center justify-center gap-2"
                 >
-                  <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
+                  <svg
+                    class="w-4 h-4"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"
+                    />
                   </svg>
                   Download Poster
                 </button>
@@ -223,8 +293,18 @@
                   @click="regenerate"
                   class="flex-1 py-2.5 rounded-xl theme-card theme-border theme-sub text-sm hover:theme-text transition-colors flex items-center justify-center gap-2"
                 >
-                  <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
+                  <svg
+                    class="w-4 h-4"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
+                    />
                   </svg>
                   Regenerate
                 </button>
@@ -239,8 +319,12 @@
           </div>
 
           <!-- Tips Card -->
-          <div class="rounded-2xl border border-amber-500/20 bg-amber-500/5 p-5">
-            <h4 class="text-xs font-medium text-amber-400 mb-2 flex items-center gap-1.5">
+          <div
+            class="rounded-2xl border border-amber-500/20 bg-amber-500/5 p-5"
+          >
+            <h4
+              class="text-xs font-medium text-amber-400 mb-2 flex items-center gap-1.5"
+            >
               <span>💡</span> Tips for better results
             </h4>
             <ul class="space-y-1.5">
@@ -263,7 +347,7 @@
 <script setup>
 import { ref, computed } from "vue";
 import AppLayout from "../components/AppLayout.vue";
-// import posterService from "../services/posterService.js";
+import { posterApi } from "../api"; 
 
 // ── State ─────────────────────────────────────────────────────────────────────
 const fileInput = ref(null);
@@ -288,12 +372,7 @@ const quickPrompts = [
   "Social media ad",
 ];
 
-const generationSteps = [
-  "Uploading",
-  "Analyzing",
-  "Generating",
-  "Finalizing",
-];
+const generationSteps = ["Uploading", "Analyzing", "Generating", "Finalizing"];
 
 const tips = [
   "Use high-quality product images with clear backgrounds for best results.",
@@ -310,17 +389,11 @@ const canGenerate = computed(() => {
 
 // ── Methods ───────────────────────────────────────────────────────────────────
 
-/**
- * Handle file selection from input
- */
 function handleFileSelect(event) {
   const file = event.target.files[0];
   if (file) processFile(file);
 }
 
-/**
- * Handle drag & drop file
- */
 function handleDrop(event) {
   isDragging.value = false;
   const file = event.dataTransfer.files[0];
@@ -331,33 +404,21 @@ function handleDrop(event) {
   }
 }
 
-/**
- * Process and validate selected file
- */
 function processFile(file) {
-  // Validate file type
   const allowedTypes = ["image/jpeg", "image/png", "image/webp", "image/jpg"];
   if (!allowedTypes.includes(file.type)) {
     error.value = "Invalid file type. Please use JPEG, PNG, or WebP.";
     return;
   }
-
-  // Validate file size (10MB)
   if (file.size > 10 * 1024 * 1024) {
     error.value = "File too large. Maximum size is 10MB.";
     return;
   }
-
   selectedFile.value = file;
   error.value = "";
-
-  // Create preview URL
   previewUrl.value = URL.createObjectURL(file);
 }
 
-/**
- * Clear selected image
- */
 function clearImage() {
   selectedFile.value = null;
   previewUrl.value = "";
@@ -365,9 +426,6 @@ function clearImage() {
   if (fileInput.value) fileInput.value.value = "";
 }
 
-/**
- * Append quick prompt tag to current prompt
- */
 function appendPrompt(tag) {
   if (prompt.value) {
     prompt.value += ", " + tag.toLowerCase();
@@ -376,9 +434,6 @@ function appendPrompt(tag) {
   }
 }
 
-/**
- * Main generation function
- */
 async function generatePoster() {
   if (!canGenerate.value) return;
 
@@ -388,7 +443,6 @@ async function generatePoster() {
   imageLoaded.value = false;
   currentStep.value = 0;
 
-  // Simulate step progression for UX
   const stepInterval = setInterval(() => {
     if (currentStep.value < generationSteps.length - 1) {
       currentStep.value++;
@@ -396,15 +450,15 @@ async function generatePoster() {
   }, 8000);
 
   try {
-    const response = await posterService.generatePoster(
+    const response = await posterApi.generatePoster(
       selectedFile.value,
-      prompt.value
+      prompt.value,
     );
 
     if (response.success && response.data?.imageUrl) {
       generatedImageUrl.value = response.data.imageUrl;
       usedPrompt.value = response.data.prompt;
-      currentStep.value = generationSteps.length - 1; // Complete all steps
+      currentStep.value = generationSteps.length - 1;
     } else {
       throw new Error(response.message || "Generation failed");
     }
@@ -420,34 +474,26 @@ async function generatePoster() {
   }
 }
 
-/**
- * Regenerate with same inputs
- */
 function regenerate() {
   generatedImageUrl.value = "";
   generatePoster();
 }
 
-/**
- * Download generated poster
- */
 function downloadPoster() {
   if (!generatedImageUrl.value) return;
-
-  const filename = `contentforge-poster-${Date.now()}.png`;
-  posterService.downloadPoster(generatedImageUrl.value, filename);
+  const link = document.createElement("a");
+  link.href = generatedImageUrl.value;
+  link.download = `contentforge-poster-${Date.now()}.png`;
+  link.target = "_blank";
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
 }
 
-/**
- * Handle image load event
- */
 function onImageLoad() {
   imageLoaded.value = true;
 }
 
-/**
- * Format file size for display
- */
 function formatFileSize(bytes) {
   if (!bytes) return "0 B";
   const sizes = ["B", "KB", "MB", "GB"];
@@ -457,16 +503,12 @@ function formatFileSize(bytes) {
 </script>
 
 <style scoped>
-/* Smooth transitions for drag state */
 .border-dashed {
   transition: all 0.2s ease;
 }
-
-/* Image load animation */
 img {
   animation: fadeIn 0.5s ease;
 }
-
 @keyframes fadeIn {
   from {
     opacity: 0;

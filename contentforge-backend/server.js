@@ -5,9 +5,11 @@ require("express-async-errors");
 const express = require("express");
 const mongoose = require("mongoose");
 const cors = require("cors");
+const path = require("path"); 
 const connectDB = require("./config/db");
 const { startTrendScheduler } = require("./services/trendService");
 const chatRoutes = require("./routes/chat");
+const posterRoutes = require("./routes/posterRouter");
 
 const app = express();
 
@@ -42,11 +44,14 @@ app.use("/api/auth", require("./routes/auth"));
 app.use("/api/brand", require("./routes/brand"));
 app.use("/api/calendar", require("./routes/calendar"));
 app.use("/api/posts", require("./routes/posts"));
-console.log('Posts router mounted at /api/posts')
 app.use("/api/trends", require("./routes/trends"));
 app.use("/api/chat", chatRoutes);
 app.use("/api/stats", require("./routes/stats"));
 app.use("/api/connections", require("./routes/connections"));
+// Mount poster routes at /api/posters
+app.use("/api/posters", posterRoutes);
+// Serve generated images statically
+app.use("/uploads/generated", express.static(path.join(__dirname, "uploads", "generated")));
 
 // ── Health check — frontend pings this to check if server is up ───────────────
 app.get("/api/health", (req, res) => {
@@ -55,7 +60,8 @@ app.get("/api/health", (req, res) => {
     service: "ContentForge API",
     timestamp: new Date().toISOString(),
     mongo: "connected",
-  });
+  });// Serve generated images statically
+  
 });
 
 // ── 404 handler ───────────────────────────────────────────────────────────────

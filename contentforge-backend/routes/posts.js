@@ -19,6 +19,68 @@ async function getConnection(userId, platform) {
     connected: true,
   });
 }
+router.get("/stats/facebook", protect, async (req, res) => {
+  try {
+    const conn = await getConnection(req.user._id, "Facebook");
+    if (!conn)
+      return res.status(400).json({ message: "Facebook not connected" });
+
+    const { data } = await axios.get(`${BASE_URL}/${conn.pageId}`, {
+      params: {
+        fields:
+          "name,fan_count,posts.limit(5){message,created_time,likes.summary(true),comments.summary(true)}",
+        access_token: conn.accessToken,
+      },
+    });
+
+    res.json({
+      pageName: data.name,
+      followers: data.fan_count,
+      recentPosts:
+        data.posts?.data?.map((p) => ({
+          id: p.id,
+          message: p.message,
+          likes: p.likes?.summary?.total_count || 0,
+          comments: p.comments?.summary?.total_count || 0,
+        })) || [],
+    });
+  } catch (err) {
+    res.status(500).json({ message: "Failed to fetch Facebook stats" });
+  }
+});
+
+// GET /api/posts/stats/instagram — Get live Instagram stats
+router.get("/stats/instagram", protect, async (req, res) => {
+  try {
+    const conn = await getConnection(req.user._id, "Instagram");
+    if (!conn)
+      return res.status(400).json({ message: "Instagram not connected" });
+
+    const { data } = await axios.get(`${BASE_URL}/${conn.igId}`, {
+      params: {
+        fields:
+          "username,followers_count,follows_count,media_count,media.limit(5){caption,like_count,comments_count,timestamp}",
+        access_token: conn.accessToken,
+      },
+    });
+
+    res.json({
+      username: data.username,
+      followers: data.followers_count,
+      following: data.follows_count,
+      totalPosts: data.media_count,
+      recentPosts:
+        data.media?.data?.map((p) => ({
+          id: p.id,
+          caption: p.caption,
+          likes: p.like_count,
+          comments: p.comments_count,
+        })) || [],
+    });
+  } catch (err) {
+    res.status(500).json({ message: "Failed to fetch Instagram stats" });
+  }
+});
 // PATCH /api/posts/:id/status
 router.patch("/:id/status", protect, async (req, res) => {
   const { status } = req.body;
@@ -220,76 +282,14 @@ router.post("/:id/publish/facebook", protect, async (req, res) => {
   }
 });
 // GET /api/posts/stats/facebook — Get live Facebook stats
-router.get("/stats/facebook", protect, async (req, res) => {
-  try {
-    const conn = await getConnection(req.user._id, "Facebook");
-    if (!conn)
-      return res.status(400).json({ message: "Facebook not connected" });
-
-    const { data } = await axios.get(`${BASE_URL}/${conn.pageId}`, {
-      params: {
-        fields:
-          "name,fan_count,posts.limit(5){message,created_time,likes.summary(true),comments.summary(true)}",
-        access_token: conn.accessToken,
-      },
-    });
-
-    res.json({
-      pageName: data.name,
-      followers: data.fan_count,
-      recentPosts:
-        data.posts?.data?.map((p) => ({
-          id: p.id,
-          message: p.message,
-          likes: p.likes?.summary?.total_count || 0,
-          comments: p.comments?.summary?.total_count || 0,
-        })) || [],
-    });
-  } catch (err) {
-    res.status(500).json({ message: "Failed to fetch Facebook stats" });
-  }
-});
-
-// GET /api/posts/stats/instagram — Get live Instagram stats
-router.get("/stats/instagram", protect, async (req, res) => {
-  try {
-    const conn = await getConnection(req.user._id, "Instagram");
-    if (!conn)
-      return res.status(400).json({ message: "Instagram not connected" });
-
-    const { data } = await axios.get(`${BASE_URL}/${conn.igId}`, {
-      params: {
-        fields:
-          "username,followers_count,follows_count,media_count,media.limit(5){caption,like_count,comments_count,timestamp}",
-        access_token: conn.accessToken,
-      },
-    });
-
-    res.json({
-      username: data.username,
-      followers: data.followers_count,
-      following: data.follows_count,
-      totalPosts: data.media_count,
-      recentPosts:
-        data.media?.data?.map((p) => ({
-          id: p.id,
-          caption: p.caption,
-          likes: p.like_count,
-          comments: p.comments_count,
-        })) || [],
-    });
-  } catch (err) {
-    res.status(500).json({ message: "Failed to fetch Instagram stats" });
-  }
-});
 
 // DEBUG — print all routes
-console.log('=== POSTS ROUTES ===')
+console.log("=== POSTS ROUTES ===");
 router.stack.forEach((layer) => {
   if (layer.route) {
-    const methods = Object.keys(layer.route.methods).join(',').toUpperCase()
-    console.log(`  ${methods} ${layer.route.path}`)
+    const methods = Object.keys(layer.route.methods).join(",").toUpperCase();
+    console.log(`  ${methods} ${layer.route.path}`);
   }
-})
+});
 
 module.exports = router;

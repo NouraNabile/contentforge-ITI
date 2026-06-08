@@ -1,60 +1,84 @@
-import { createApp } from 'vue'
-import { createRouter, createWebHistory } from 'vue-router'
-import { createPinia } from 'pinia'
-import App from './App.vue'
-import './style.css'
+import { createApp } from "vue";
+import { createRouter, createWebHistory } from "vue-router";
+import { createPinia } from "pinia";
+import App from "./App.vue";
+import "./style.css";
 
-import LandingPage      from './views/LandingPage.vue'
-import DashboardPreview from './views/DashboardPreview.vue'
-import DraftsPage       from './views/DraftsPage.vue'
-import BrandingPage     from './views/BrandingPage.vue'
-import ChatPage         from './views/ChatPage.vue'
-import ConnectionsPage  from './views/ConnectionsPage.vue'
-import LoginPage        from './views/LoginPage.vue'
-import TrialExpiredPage from './views/TrialExpiredPage.vue'
+import LandingPage from "./views/LandingPage.vue";
+import DashboardPreview from "./views/DashboardPreview.vue";
+import DraftsPage from "./views/DraftsPage.vue";
+import BrandingPage from "./views/BrandingPage.vue";
+import ChatPage from "./views/ChatPage.vue";
+import ConnectionsPage from "./views/ConnectionsPage.vue";
+import LoginPage from "./views/LoginPage.vue";
+import TrialExpiredPage from "./views/TrialExpiredPage.vue";
+import PosterGenerator from "./views/PosterGenerator.vue";
+import Toast from "vue-toastification";
+import "vue-toastification/dist/index.css";
 
 // ── Router ────────────────────────────────────────────────────────────────────
 const router = createRouter({
   history: createWebHistory(),
   routes: [
-    { path: '/',            component: LandingPage },
-    { path: '/login',       component: LoginPage },
-    { path: '/dashboard',   component: DashboardPreview, meta: { requiresAuth: true } },
-    { path: '/drafts',      component: DraftsPage,       meta: { requiresAuth: true } },
-    { path: '/branding',    component: BrandingPage,     meta: { requiresAuth: true } },
-    { path: '/chat',        component: ChatPage,         meta: { requiresAuth: true } },
-    { path: '/connections', component: ConnectionsPage,  meta: { requiresAuth: true } },
-    { path: '/trial-expired', component: TrialExpiredPage }
+    { path: "/", component: LandingPage },
+    { path: "/login", component: LoginPage },
+    {
+      path: "/dashboard",
+      component: DashboardPreview,
+      meta: { requiresAuth: true },
+    },
+    { path: "/drafts", component: DraftsPage, meta: { requiresAuth: true } },
+    {
+      path: "/branding",
+      component: BrandingPage,
+      meta: { requiresAuth: true },
+    },
+    { path: "/chat", component: ChatPage, meta: { requiresAuth: true } },
+    {
+      path: "/connections",
+      component: ConnectionsPage,
+      meta: { requiresAuth: true },
+    },
+    {
+      path: "/poster",
+      component: PosterGenerator,
+      meta: { requiresAuth: true },
+    },
+    { path: "/trial-expired", component: TrialExpiredPage },
   ],
   scrollBehavior(to) {
-    if (to.hash) return { el: to.hash, behavior: 'smooth' }
-    return { top: 0 }
-  }
-})
+    if (to.hash) return { el: to.hash, behavior: "smooth" };
+    return { top: 0 };
+  },
+});
 
 // ── Route guard — redirect to login if not authenticated ──────────────────────
 router.beforeEach((to, from, next) => {
-  const isLoggedIn = !!localStorage.getItem('cf_token')
-  const hadAccount = !!localStorage.getItem('cf_user') // still exists after 403 clears token? No...
+  const isLoggedIn = !!localStorage.getItem("cf_token");
+  const hadAccount = !!localStorage.getItem("cf_user"); // still exists after 403 clears token? No...
 
   if (to.meta.requiresAuth && !isLoggedIn) {
     // Check if they were redirected due to trial expiry
-    if (window.location.pathname === '/trial-expired' || from.path === '/trial-expired') {
-      next('/trial-expired')
+    if (
+      window.location.pathname === "/trial-expired" ||
+      from.path === "/trial-expired"
+    ) {
+      next("/trial-expired");
     } else {
-      next('/login')
+      next("/login");
     }
   } else {
-    next()
+    next();
   }
-})
+});
 
 // ── Persist theme on startup ──────────────────────────────────────────────────
-const saved = localStorage.getItem('cf-theme') || 'dark'
-document.documentElement.classList.add(saved)
+const saved = localStorage.getItem("cf-theme") || "dark";
+document.documentElement.classList.add(saved);
 
 // ── Mount app ─────────────────────────────────────────────────────────────────
-const app = createApp(App)
-app.use(createPinia())
-app.use(router)
-app.mount('#app')
+const app = createApp(App);
+app.use(createPinia());
+app.use(router);
+app.use(Toast);
+app.mount("#app");

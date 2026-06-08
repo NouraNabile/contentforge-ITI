@@ -150,4 +150,21 @@ const chatMessageSchema = new mongoose.Schema({
 
 const ChatMessage = mongoose.model('ChatMessage', chatMessageSchema)
 
-module.exports = { User, Brand, Post, Calendar, Trend, ChatMessage }
+// ── Connection ────────────────────────────────────────────────────────────────
+const connectionSchema = new mongoose.Schema({
+  user:        { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
+  platform:    { type: String, required: true },
+  handle:      String,
+  pageId:      String,
+  igId:        String,
+  accessToken: String,
+  tokenType:   String,
+  connected:   { type: Boolean, default: false },
+  stats:       [{ label: String, value: String }],
+  rawData:     { type: Object },
+}, { timestamps: true })
+
+const Connection = mongoose.model('Connection', connectionSchema)
+
+
+module.exports = { User, Brand, Post, Calendar, Trend, ChatMessage, Connection, OriginalCalendar}

@@ -249,9 +249,14 @@
 import { ref, computed, onMounted, onUnmounted } from "vue";
 import AppLayout from "../components/AppLayout.vue";
 import api from "../api/client";
+import { useRoute } from "vue-router";
+import { useToast } from "vue-toastification";
 
 // ── Tab ───────────────────────────────────────────────────────────────────────
 const activeTab = ref("Social Platforms");
+const connections = ref([]);
+const toast = useToast();
+const route = useRoute();
 
 // ── Stats ─────────────────────────────────────────────────────────────────────
 const platformStats = ref({
@@ -265,7 +270,7 @@ const showModal = ref(false);
 const activePlatform = ref(null);
 const formData = ref({});
 const isSubmitting = ref(false);
-const authUrl = ref("")
+const authUrl = ref("");
 
 const currentFields = computed(() =>
   activePlatform.value ? (platformFields[activePlatform.value.name] ?? []) : [],
@@ -414,27 +419,12 @@ const platformFields = {
   ],
 };
 
-// ── Load connections + stats on mount, poll every 60s ───────────────────────
-// onMounted(async () => {
-//   await refreshConnections();
-//   await fetchPlatformStats();
-
-//   // Poll stats every 30 seconds
-//   statsInterval = setInterval(() => {
-//     fetchPlatformStats();
-//   }, 30_000);
-
-//   // Also refresh connections every 60s
-//   setInterval(refreshConnections, 60_000);
-// });
-
-
 async function loadAuthUrl() {
   try {
-    const data = await api.get("/connections/meta-auth")
-    authUrl.value = data.authUrl
+    const data = await api.get("/connections/meta/auth");
+    authUrl.value = data.authUrl;
   } catch (err) {
-    console.error("[Auth URL] Failed to load:", err)
+    console.error("[Auth URL] Failed to load:", err);
   }
 }
 onMounted(async () => {
@@ -494,51 +484,6 @@ async function fetchPlatformStats() {
 }
 
 // ── Connect / Disconnect ──────────────────────────────────────────────────────
-// async function togglePlatform(platform) {
-//   // Coming soon — show alert, do nothing else
-//   if (platform.comingSoon && !platform.connected) {
-//     alert(`${platform.name} integration is coming soon! Stay tuned. 🚀`);
-//     return;
-//   }
-
-//   platform.loading = true;
-
-//   try {
-//     if (!platform.connected) {
-//       // Facebook & Instagram → Meta OAuth popup
-//       if (platform.name === "Facebook" || platform.name === "Instagram") {
-//         const data = await api.get("/connections/meta/auth");
-//         if (data?.authUrl) {
-//           const popup = window.open(
-//             data.authUrl,
-//             "meta-oauth",
-//             "width=600,height=700",
-//           );
-//           const timer = setInterval(async () => {
-//             if (popup?.closed) {
-//               clearInterval(timer);
-//               await refreshConnections();
-//               await fetchPlatformStats();
-//               platform.loading = false;
-//             }
-//           }, 500);
-//           return; // loading will be cleared inside the interval
-//         }
-//       }
-//     } else {
-//       // Disconnect
-//       await api.delete(`/connections/${platform.name.toLowerCase()}`);
-//       platform.connected = false;
-//       platform.handle = null;
-//       platform.stats = [];
-//       platformStats.value[platform.name] = null;
-//     }
-//   } catch (err) {
-//     console.error(`[${platform.name}] togglePlatform error:`, err);
-//   } finally {
-//     platform.loading = false;
-//   }
-// }
 async function togglePlatform(platform) {
   // Coming soon — show alert, do nothing else
   if (platform.comingSoon && !platform.connected) {
@@ -553,7 +498,9 @@ async function togglePlatform(platform) {
       // Facebook & Instagram → Meta OAuth popup
       if (platform.name === "Facebook" || platform.name === "Instagram") {
         const data = await api.get("/connections/meta/auth");
+        console.log("[Meta Auth] Response:", data); // ← add this
         if (data?.authUrl) {
+          console.log("[Meta Auth] Opening popup:", data.authUrl); // ← add this
           const popup = window.open(
             data.authUrl,
             "meta-oauth",

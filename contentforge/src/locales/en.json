@@ -6,14 +6,14 @@
     "switchDark": "Switch to Dark Mode",
     "nav": {
       "calendar": "Calendar",
-      "drafts": "Drafts",
+      "drafts": "Posts Manager",
       "branding": "Brand Vault",
       "chat": "AI Chat",
       "connections": "Connections"
     },
     "pageTitle": {
       "dashboard": "Calendar",
-      "drafts": "Drafts",
+      "drafts": "Posts Manager",
       "branding": "Brand Vault",
       "chat": "AI Chat",
       "connections": "Connections"
@@ -288,6 +288,17 @@
     }
   },
   "dashboard": {
+    "aiImageGenerator": "AI Image Generator",
+    "generatedImage": "Generated image",
+    "noImageYet": "No image generated yet",
+    "generateHint": "Generate one for this post now",
+    "generatingImage": "Generating image...",
+    "generationTime": "~20–40 seconds",
+    "generatingBtnImage": "Generating...",
+    "regenerateBtnImage": "↺ Regenerate Image",
+    "generateBtnImage": "✦ Generate Image",
+    "variantBLabel": "Variant B",
+    "useVariantB": "Use Variant B",
     "title": "Content Calendar",
     "postsPlanned": "posts planned",
     "noCalendar": "No calendar yet — generate your first plan",
@@ -301,7 +312,7 @@
     "posts": "posts",
     "emptyState": "No calendar yet — click {action} to start",
     "generatePlan": "✦ Generate Plan",
-    "generating": "Generating your calendar with Gemini AI…",
+    "generating": "Generating your calendar in few minutes…",
     "generatingHint": "This usually takes 20–40 seconds",
     "status": "Status",
     "editPost": "Edit Post",
@@ -813,5 +824,63 @@
     "post11": "Weekend promo — 2 for 1",
     "post12": "Weekly roundup Arabic",
     "post13": "ترند الأسبوع 🔥"
+  },
+  "posts": {
+    "title": "Posts Manager",
+    "subtitle": "{count} posts total",
+    "empty": "No posts yet",
+    "emptyHint": "Generated posts will appear here once your calendar is created.",
+    "filterAll": "All",
+    "filterDraft": "Draft",
+    "filterPending": "Pending",
+    "filterApproved": "Approved",
+    "filterScheduled": "Scheduled",
+    "filterPublished": "Published",
+    "selected": "{count} selected",
+    "approveAll": "Approve All",
+    "clearSelection": "Clear selection",
+    "approve": "Approve",
+    "edit": "Edit",
+    "editPost": "Edit Post",
+    "copyEN": "English Copy",
+    "copyAR": "Arabic Copy",
+    "platformLabel": "Platform",
+    "statusLabel": "Status",
+    "hashtags": "Hashtags",
+    "hashtagsPlaceholder": "#tag1 #tag2 #tag3",
+    "saving": "Saving…",
+    "savePost": "Save Post",
+    "saveSuccess": "Saved successfully!",
+    "saveError": "Failed to save.",
+    "deleteConfirmTitle": "Delete post?",
+    "deleteConfirmMsg": "This action cannot be undone.",
+    "toastApproved": "Post approved!",
+    "toastDeleted": "Post deleted.",
+    "toastError": "Something went wrong.",
+    "generatedImage": "Generated image",
+    "variantBLabel": "Variant B — A/B Critic",
+    "platform": {
+      "Instagram": "Instagram",
+      "Facebook": "Facebook",
+      "LinkedIn": "LinkedIn",
+      "TwitterX": "Twitter/X",
+      "TikTok": "TikTok"
+    },
+    "status": {
+      "Draft": "Draft",
+      "Pending": "Pending",
+      "Approved": "Approved",
+      "Scheduled": "Scheduled",
+      "Published": "Published"
+    },
+    "dialect": {
+      "egy": "Arabic (EGY)",
+      "gulf": "Arabic (Gulf)",
+      "levantine": "Levantine",
+      "english": "English",
+      "bilingual": "Bilingual"
+    },
+    "useVariantB": "Use B",
+    "variantBApplied": "Variant B applied!"
   }
 }

@@ -97,10 +97,9 @@
     </header>
 
     <!-- BODY -->
-    <div class="flex flex-1 overflow-hidden">
+    <div class="flex flex-1" style="min-height:0">
       <!-- SIDEBAR -->
-      <aside class="w-56 border-r flex flex-col py-5 px-3 shrink-0 theme-sidebar overflow-y-auto scrollbar-thin"
-        style="border-color: var(--border)">
+      <aside class="w-56 border-r flex flex-col py-5 px-3 shrink-0 theme-sidebar overflow-y-auto scrollbar-thin sticky top-0 self-start" style="height:calc(100vh - 57px); border-color: var(--border)">
         <!-- Brand chip -->
         <div class="mb-5 px-2">
           <p class="text-[10px] theme-muted uppercase tracking-wider mb-2 font-medium">
@@ -158,7 +157,7 @@
       </aside>
 
       <!-- PAGE CONTENT -->
-      <main class="flex-1 overflow-auto scrollbar-thin">
+      <main class="flex-1 overflow-y-auto scrollbar-thin">
         <slot/>
       </main>
     </div>
@@ -229,6 +228,8 @@ const stats = ref([
 ])
 
 async function fetchStats() {
+  // لو التوكن مش موجود متبعتش الـ request
+  if (!localStorage.getItem('cf_token')) return
   statsLoading.value = true
   try {
     const data = await api.get('/stats')
@@ -240,7 +241,7 @@ async function fetchStats() {
     ]
     sidebarStats.value = {
       calendars: data.calendars ?? 0,
-      drafts:    data.drafts    ?? 0,
+      drafts:    data.generated ?? 0,
     }
   } catch {
     // keep defaults silently
@@ -249,11 +250,20 @@ async function fetchStats() {
   }
 }
 
-onMounted(fetchStats)
+onMounted(async () => {
+  if (localStorage.getItem('cf_token')) {
+    await fetchStats()
+  } else {
+    // استنى شوية — ممكن التوكن يكون لسه بيتحمل
+    setTimeout(fetchStats, 300)
+  }
+})
 
-watch(() => calendarStore.posts, () => {
-  fetchStats();
-}, { deep: true });
+// بيراقب أي تغيير في البوستات (approve, delete, generate جديد)
+watch(() => calendarStore.posts, fetchStats, { deep: true })
+
+// بيراقب لو اليوزر اتغيّر
+watch(() => authStore.user?._id, fetchStats)
 
 // ── Nav items — computed so labels re-render on language switch ───────────────
 const navItems = computed(() => [

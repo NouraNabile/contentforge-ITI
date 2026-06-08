@@ -7,7 +7,7 @@ import './style.css'
 
 import LandingPage      from './views/LandingPage.vue'
 import DashboardPreview from './views/DashboardPreview.vue'
-import DraftsPage       from './views/DraftsPage.vue'
+import PostsManagerPage  from './views/PostsManagerPage.vue'
 import BrandingPage     from './views/BrandingPage.vue'
 import ChatPage         from './views/ChatPage.vue'
 import ConnectionsPage  from './views/ConnectionsPage.vue'
@@ -28,7 +28,7 @@ const router = createRouter({
     { path: '/',            component: LandingPage },
     { path: '/login',       component: LoginPage },
     { path: '/dashboard',   component: DashboardPreview, meta: { requiresAuth: true } },
-    { path: '/drafts',      component: DraftsPage,       meta: { requiresAuth: true } },
+    { path: '/drafts',      component: PostsManagerPage, meta: { requiresAuth: true } },
     { path: '/branding',    component: BrandingPage,     meta: { requiresAuth: true } },
     { path: '/chat',        component: ChatPage,         meta: { requiresAuth: true } },
     { path: '/connections', component: ConnectionsPage,  meta: { requiresAuth: true } },

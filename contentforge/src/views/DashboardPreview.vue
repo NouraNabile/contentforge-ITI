@@ -252,7 +252,7 @@
                 @dragenter="dragOverId = dayCell.rawDate"
                 @dragleave="dragOverId = null"
                 @drop="onDrop(dayCell)"
-                class="rounded-xl border p-2 flex flex-col min-h-[160px] transition-all bg-forge-900/40"
+                class="rounded-xl border p-2 flex flex-col min-h-[160px] transition-all bg-forge-900/40 relative overflow-hidden"
                 :class="[
                   dragOverId === dayCell.rawDate && dayCell.rawDate
                     ? 'ring-2 ring-amber-400/50 border-amber-400/50 bg-amber-500/5 scale-[1.01]'
@@ -281,7 +281,7 @@
                 </div>
 
                 <div
-                  class="flex flex-col gap-2 flex-1 overflow-y-auto overflow-x-hidden max-h-[280px] custom-scrollbar"
+                  class="flex flex-col gap-2 flex-1 overflow-y-scroll overflow-x-hidden max-h-[340px] no-scrollbar"
                 >
                   <template v-if="dayCell.posts && dayCell.posts.length > 0">
                     <div
@@ -290,8 +290,11 @@
                       draggable="true"
                       @dragstart="onDragStart(post)"
                       @click.stop="selectPost(post)"
-                      class="relative rounded-lg border p-2.5 flex flex-col justify-between transition-all aspect-square w-full cursor-grab hover:scale-[1.02] active:cursor-grabbing shadow-sm"
-                      :class="[statusToClass(post.status)]"
+                      class="relative rounded-lg border p-2.5 flex flex-col justify-between transition-all duration-200 ease-in-out w-full aspect-square cursor-grab shadow-sm shrink-0 select-none active:cursor-grabbing active:scale-[0.97]"
+                      :class="[
+                        statusToClass(post.status),
+                        getHoverStatusClass(post.status),
+                      ]"
                     >
                       <div class="flex items-start justify-between">
                         <span class="text-[9px] font-mono opacity-60 text-left">
@@ -368,269 +371,12 @@
           </div>
         </div>
 
-        <!-- Right panel -->
+        <!-- ── Trends panel (always visible, right side) ── -->
         <div
-          class="w-64 shrink-0 border-l overflow-y-auto p-4 space-y-4"
+          class="w-52 shrink-0 border-l p-4 space-y-3"
           style="border-color: var(--border)"
         >
-          <!-- Post editor -->
-          <div
-            v-if="selectedPost"
-            class="rounded-xl theme-surface theme-border p-4"
-          >
-            <div class="flex items-center justify-between mb-3">
-              <p class="text-xs font-medium theme-text">
-                {{ t("dashboard.editPost") }}
-              </p>
-              <button
-                @click="selectedPost = null"
-                class="theme-muted hover:theme-text"
-              >
-                <svg
-                  class="w-3.5 h-3.5"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                >
-                  <path
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                    stroke-width="2"
-                    d="M6 18L18 6M6 6l12 12"
-                  />
-                </svg>
-              </button>
-            </div>
-            <div class="flex gap-1.5 mb-3 flex-wrap">
-              <span
-                class="text-[10px] px-2 py-0.5 rounded-full font-medium"
-                :class="platformBadge(selectedPost.platform)"
-                >{{
-                  t(
-                    `dashboard.platformName.${selectedPost.platform}`,
-                    selectedPost.platform
-                  )
-                }}</span
-              >
-              <span
-                class="text-[10px] px-2 py-0.5 rounded-full theme-card theme-border theme-muted"
-                >{{ selectedPost.dialect || t("dashboard.arabic") }}</span
-              >
-            </div>
-            <textarea
-              v-model="editCopy"
-              rows="5"
-              class="w-full theme-input rounded-lg p-2.5 text-xs theme-text border focus:outline-none focus:border-blue-500/40 resize-none leading-relaxed"
-              style="border-color: var(--border)"
-            ></textarea>
-            <div class="mt-2 p-2 rounded-lg theme-card theme-border">
-              <p class="text-[9px] theme-muted mb-1">
-                {{ t("dashboard.hashtags") }}
-              </p>
-              <p class="text-[10px] text-blue-400">
-                {{ selectedPost.hashtags?.join(" ") || "—" }}
-              </p>
-            </div>
-            <div class="mt-3 space-y-1">
-              <p class="text-[10px] theme-muted mb-2">
-                {{ t("dashboard.status") }}
-              </p>
-              <button
-                v-for="s in statuses"
-                :key="s.labelKey"
-                @click="selectedPost.status = s.value"
-                class="w-full flex items-center gap-2 px-2.5 py-1.5 rounded-lg text-[10px] transition-colors text-left border"
-                :class="
-                  selectedPost.status === s.value
-                    ? 'bg-blue-600/15 text-blue-400 border-blue-500/20'
-                    : 'theme-sub border-transparent hover:theme-text'
-                "
-              >
-                <div
-                  class="w-1.5 h-1.5 rounded-full shrink-0"
-                  :class="s.dot"
-                ></div>
-                {{ t(s.labelKey) }}
-              </button>
-            </div>
-            <p
-              v-if="saveMsg"
-              class="text-[10px] text-green-400 mt-2 text-center"
-            >
-              {{ saveMsg }}
-            </p>
-            <button
-              @click="savePost"
-              :disabled="saving"
-              class="w-full mt-3 py-2 rounded-lg bg-blue-600 text-white text-xs font-medium hover:bg-blue-500 transition-colors disabled:opacity-50"
-            >
-              {{ saving ? t("dashboard.saving") : t("dashboard.saveChanges") }}
-            </button>
-          </div>
-          <div
-            v-else
-            class="rounded-xl theme-card theme-border p-4 text-center"
-          >
-            <p class="text-xs theme-muted">{{ t("dashboard.clickToEdit") }}</p>
-          </div>
-
-          <!-- A/B Critic -->
-          <div
-            v-if="selectedPost"
-            class="rounded-xl border border-amber-500/20 bg-amber-500/5 p-4"
-          >
-            <div class="flex items-center gap-2 mb-2">
-              <span class="text-amber-400">⚡</span>
-              <p class="text-xs font-medium text-amber-300">
-                {{ t("dashboard.abCritic") }}
-              </p>
-            </div>
-            <p
-              v-if="!variantB"
-              class="text-[11px] theme-sub leading-relaxed mb-3"
-            >
-              {{ t("dashboard.abHint") }}
-            </p>
-            <div
-              v-if="variantB && variantB.copyAR"
-              class="p-2.5 rounded-lg theme-card theme-border mb-3"
-            >
-              <p class="text-[10px] theme-sub italic leading-relaxed">
-                {{ variantB.copyAR }}
-              </p>
-              <div
-                v-if="variantB.hashtags?.length"
-                class="flex flex-wrap gap-1 mt-1.5"
-              >
-                <span
-                  v-for="tag in variantB.hashtags"
-                  :key="tag"
-                  class="text-[9px] text-blue-400"
-                  >#{{ tag.replace("#", "") }}</span
-                >
-              </div>
-            </div>
-            <div v-if="variantB" class="flex gap-2 mb-2">
-              <button
-                @click="applyVariantB"
-                class="flex-1 py-1.5 rounded-lg bg-amber-500/15 text-amber-400 text-[10px] hover:bg-amber-500/25 border border-amber-500/20 transition-colors"
-              >
-                {{ t("dashboard.useB") }}
-              </button>
-              <button
-                @click="variantB = null"
-                class="flex-1 py-1.5 rounded-lg theme-card theme-border theme-muted text-[10px] hover:theme-text transition-colors"
-              >
-                {{ t("dashboard.keepA") }}
-              </button>
-            </div>
-            <button
-              @click="generateVariantB"
-              :disabled="loadingVariant"
-              class="w-full py-1.5 rounded-lg theme-card theme-border theme-muted text-[10px] hover:theme-text transition-colors"
-            >
-              {{
-                loadingVariant
-                  ? t("dashboard.generatingVariant")
-                  : t("dashboard.generateVariantB")
-              }}
-            </button>
-          </div>
-
-          <!-- محتاجه تتعمل عربي وانجليزي -->
-          <!-- Image Generator -->
-          <div
-            v-if="selectedPost"
-            class="rounded-xl border border-blue-500/20 bg-blue-500/5 p-4"
-          >
-            <div class="flex items-center gap-2 mb-3">
-              <span class="text-blue-400">🎨</span>
-              <p class="text-xs font-medium text-blue-300">AI Image</p>
-              <span
-                class="text-[9px] px-1.5 py-0.5 rounded-full bg-blue-600/20 text-blue-400 border border-blue-500/20 ml-auto"
-                >FLUX</span
-              >
-            </div>
-
-            <!-- صورة موجودة -->
-            <div v-if="selectedPost.imageUrl" class="mb-3">
-              <img
-                :src="selectedPost.imageUrl"
-                alt="Generated image"
-                class="w-full rounded-lg object-cover aspect-square border border-blue-500/20"
-              />
-              <p
-                class="text-[9px] theme-muted mt-1.5 leading-relaxed italic line-clamp-2"
-              >
-                {{ selectedPost.imagePrompt }}
-              </p>
-            </div>
-
-            <!-- Empty state -->
-            <div
-              v-else-if="!generatingImage"
-              class="mb-3 py-6 flex flex-col items-center gap-2 rounded-lg theme-card theme-border"
-            >
-              <span class="text-2xl opacity-30">🖼️</span>
-              <p class="text-[10px] theme-muted text-center">
-                No image yet —<br />generate one for this post
-              </p>
-            </div>
-
-            <!-- Loading -->
-            <div
-              v-if="generatingImage"
-              class="mb-3 py-6 flex flex-col items-center gap-2 rounded-lg theme-card theme-border"
-            >
-              <svg
-                class="w-6 h-6 animate-spin text-blue-400"
-                fill="none"
-                viewBox="0 0 24 24"
-              >
-                <circle
-                  class="opacity-25"
-                  cx="12"
-                  cy="12"
-                  r="10"
-                  stroke="currentColor"
-                  stroke-width="4"
-                />
-                <path
-                  class="opacity-75"
-                  fill="currentColor"
-                  d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"
-                />
-              </svg>
-              <p class="text-[10px] theme-muted">Generating image…</p>
-              <p class="text-[9px] theme-muted opacity-60">~20–40 seconds</p>
-            </div>
-
-            <p v-if="imageError" class="text-[10px] text-rose-400 mb-2">
-              {{ imageError }}
-            </p>
-
-            <button
-              @click="generateImage"
-              :disabled="generatingImage"
-              class="w-full py-1.5 rounded-lg text-[10px] font-medium transition-colors disabled:opacity-50"
-              :class="
-                selectedPost.imageUrl
-                  ? 'theme-card theme-border theme-muted hover:theme-text'
-                  : 'bg-blue-600 text-white hover:bg-blue-500'
-              "
-            >
-              {{
-                generatingImage
-                  ? "Generating…"
-                  : selectedPost.imageUrl
-                  ? "↺ Regenerate Image"
-                  : "✦ Generate Image"
-              }}
-            </button>
-          </div>
-
-          <!-- Trends -->
-          <div class="rounded-xl theme-surface theme-border p-4">
+          <div class="rounded-xl theme-surface theme-border p-3">
             <div class="flex items-center justify-between mb-3">
               <p class="text-xs font-medium theme-text">
                 🔥 {{ t("dashboard.trendingNow") }}
@@ -659,6 +405,452 @@
         </div>
       </div>
     </div>
+
+    <!-- ── Post Detail Modal ── -->
+    <Teleport to="body">
+      <Transition name="modal-fade">
+        <div
+          v-if="selectedPost"
+          class="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6"
+          @click.self="selectedPost = null"
+        >
+          <!-- Backdrop -->
+          <div class="absolute inset-0 bg-black/70 backdrop-blur-sm"></div>
+
+          <!-- Modal card -->
+          <div
+            class="relative w-full max-w-2xl max-h-[90vh] flex flex-col rounded-2xl theme-surface theme-shadow overflow-hidden"
+            style="border: 1px solid var(--border)"
+          >
+            <!-- ── Modal Header ── -->
+            <div
+              class="flex items-center gap-3 px-6 py-4 border-b shrink-0"
+              style="border-color: var(--border)"
+            >
+              <!-- Platform + dialect badges -->
+              <span
+                class="text-[11px] px-2.5 py-1 rounded-full font-medium"
+                :class="platformBadge(selectedPost.platform)"
+              >
+                {{
+                  t(
+                    `dashboard.platformName.${selectedPost.platform}`,
+                    selectedPost.platform
+                  )
+                }}
+              </span>
+              <span
+                class="text-[11px] px-2.5 py-1 rounded-full theme-card theme-border theme-muted"
+              >
+                {{ selectedPost.dialect || t("dashboard.arabic") }}
+              </span>
+              <!-- Status badge -->
+              <span
+                class="text-[11px] px-2.5 py-1 rounded-full font-medium ml-auto"
+                :class="
+                  statuses.find((s) => s.value === selectedPost.status)
+                    ?.dot?.replace('bg-', 'bg-')
+                    ?.replace('-500', '-500/20') || 'bg-slate-500/20'
+                "
+                :style="{}"
+              >
+                {{
+                  t(
+                    statuses.find((s) => s.value === selectedPost.status)
+                      ?.labelKey || "",
+                    selectedPost.status
+                  )
+                }}
+              </span>
+              <!-- Date -->
+              <span class="text-[11px] theme-muted">{{
+                selectedPost.scheduledDate
+                  ? new Date(selectedPost.scheduledDate).toLocaleDateString(
+                      locale === "ar" ? "ar-EG" : "en-GB",
+                      { day: "numeric", month: "short" }
+                    )
+                  : ""
+              }}</span>
+              <!-- Close -->
+              <button
+                @click="selectedPost = null"
+                class="w-8 h-8 rounded-xl theme-card theme-border flex items-center justify-center theme-muted hover:theme-text transition-colors ml-2"
+              >
+                <svg
+                  class="w-4 h-4"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M6 18L18 6M6 6l12 12"
+                  />
+                </svg>
+              </button>
+            </div>
+
+            <!-- ── Tabs ── -->
+            <div
+              class="flex gap-0 border-b shrink-0"
+              style="border-color: var(--border)"
+            >
+              <button
+                v-for="tab in modalTabs"
+                :key="tab.id"
+                @click="activeModalTab = tab.id"
+                class="flex items-center gap-1.5 px-5 py-3 text-xs font-medium transition-all border-b-2 -mb-px"
+                :class="
+                  activeModalTab === tab.id
+                    ? 'border-blue-500 text-blue-400'
+                    : 'border-transparent theme-sub hover:theme-text'
+                "
+              >
+                {{ tab.icon }} {{ tab.label }}
+              </button>
+            </div>
+
+            <!-- ── Scrollable Body ── -->
+            <div class="flex-1 overflow-y-auto">
+              <!-- TAB: Edit -->
+              <div v-if="activeModalTab === 'edit'" class="p-6 space-y-5">
+                <!-- EN Copy -->
+                <div>
+                  <label
+                    class="text-xs font-medium theme-sub mb-2 flex items-center gap-1.5"
+                  >
+                    <span
+                      class="w-4 h-4 rounded bg-slate-500/20 text-[9px] flex items-center justify-center text-slate-400 font-bold"
+                      >EN</span
+                    >
+                    {{ t("dashboard.editPost") }}
+                  </label>
+                  <textarea
+                    v-model="editCopy"
+                    rows="4"
+                    class="w-full theme-input rounded-xl p-3.5 text-sm theme-text border focus:outline-none focus:border-blue-500/40 resize-none leading-relaxed"
+                    style="border-color: var(--border)"
+                  ></textarea>
+                </div>
+                <!-- AR Copy (read-only preview) -->
+                <div v-if="selectedPost.copyAR">
+                  <label
+                    class="text-xs font-medium theme-sub mb-2 flex items-center gap-1.5"
+                  >
+                    <span
+                      class="w-4 h-4 rounded bg-blue-500/20 text-[9px] flex items-center justify-center text-blue-400 font-bold"
+                      >ع</span
+                    >
+                    {{ t("dashboard.arabic") }}
+                  </label>
+                  <p
+                    class="text-sm theme-sub leading-relaxed text-right p-3.5 rounded-xl theme-card theme-border font-arabic"
+                    dir="rtl"
+                  >
+                    {{ selectedPost.copyAR }}
+                  </p>
+                </div>
+                <!-- Hashtags -->
+                <div>
+                  <label class="text-xs font-medium theme-sub mb-2 block">
+                    # {{ t("dashboard.hashtags") }}
+                  </label>
+                  <div
+                    class="flex flex-wrap gap-1.5 p-3 rounded-xl theme-card theme-border"
+                  >
+                    <span
+                      v-for="tag in selectedPost.hashtags"
+                      :key="tag"
+                      class="text-xs px-2 py-0.5 rounded-full bg-blue-600/15 text-blue-400 border border-blue-500/20"
+                    >
+                      #{{ tag }}
+                    </span>
+                    <span
+                      v-if="!selectedPost.hashtags?.length"
+                      class="text-xs theme-muted"
+                      >—</span
+                    >
+                  </div>
+                </div>
+                <!-- Status -->
+                <div>
+                  <label class="text-xs font-medium theme-sub mb-2 block">
+                    {{t("dashboard.status")}}
+                  </label>
+                  <div class="flex flex-wrap gap-2">
+                    <button
+                      v-for="s in statuses"
+                      :key="s.labelKey"
+                      @click="selectedPost.status = s.value"
+                      class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs transition-all border"
+                      :class="
+                        selectedPost.status === s.value
+                          ? 'bg-blue-600/15 text-blue-400 border-blue-500/20'
+                          : 'theme-sub border-transparent theme-card hover:theme-text'
+                      "
+                    >
+                      <div
+                        class="w-1.5 h-1.5 rounded-full shrink-0"
+                        :class="s.dot"
+                      ></div>
+                      {{ t(s.labelKey) }}
+                    </button>
+                  </div>
+                </div>
+                <!-- Save feedback -->
+                <p v-if="saveMsg" class="text-xs text-green-400 text-center">
+                  {{ saveMsg }}
+                </p>
+              </div>
+
+              <!-- TAB: A/B Critic -->
+              <div v-if="activeModalTab === 'ab'" class="p-6">
+                <div
+                  class="rounded-xl border border-amber-500/20 bg-amber-500/5 p-5"
+                >
+                  <div class="flex items-center gap-2 mb-4">
+                    <span class="text-lg">⚡</span>
+                    <p class="text-sm font-medium text-amber-300">
+                      {{ t("dashboard.abCritic") }}
+                    </p>
+                  </div>
+                  <!-- No variant yet -->
+                  <p
+                    v-if="!variantB"
+                    class="text-sm theme-sub leading-relaxed mb-5"
+                  >
+                    {{ t("dashboard.abHint") }}
+                  </p>
+                  <!-- Variant result -->
+                  <div v-if="variantB" class="space-y-3 mb-5">
+                    <div
+                      v-if="variantB.copyAR"
+                      class="p-4 rounded-xl theme-card theme-border"
+                    >
+                      <p
+                        class="text-[10px] text-amber-400/70 mb-2 uppercase tracking-wider"
+                      >
+                        Variant B — Arabic
+                      </p>
+                      <p
+                        class="text-sm theme-text leading-relaxed text-right font-arabic"
+                        dir="rtl"
+                      >
+                        {{ variantB.copyAR }}
+                      </p>
+                    </div>
+                    <div
+                      v-if="variantB.copyEN"
+                      class="p-4 rounded-xl theme-card theme-border"
+                    >
+                      <p
+                        class="text-[10px] text-amber-400/70 mb-2 uppercase tracking-wider"
+                      >
+                        Variant B — English
+                      </p>
+                      <p class="text-sm theme-text leading-relaxed">
+                        {{ variantB.copyEN }}
+                      </p>
+                    </div>
+                    <div
+                      v-if="variantB.hashtags?.length"
+                      class="flex flex-wrap gap-1.5"
+                    >
+                      <span
+                        v-for="tag in variantB.hashtags"
+                        :key="tag"
+                        class="text-xs text-amber-400"
+                        >#{{ tag.replace("#", "") }}</span
+                      >
+                    </div>
+                    <div class="flex gap-3 pt-2">
+                      <button
+                        @click="applyVariantB"
+                        class="flex-1 py-2.5 rounded-xl bg-amber-500/15 text-amber-400 text-sm hover:bg-amber-500/25 border border-amber-500/20 transition-colors font-medium"
+                      >
+                        ✓ {{ t("dashboard.useB") }}
+                      </button>
+                      <button
+                        @click="variantB = null"
+                        class="flex-1 py-2.5 rounded-xl theme-card theme-border theme-muted text-sm hover:theme-text transition-colors"
+                      >
+                        {{ t("dashboard.keepA") }}
+                      </button>
+                    </div>
+                  </div>
+                  <button
+                    @click="generateVariantB"
+                    :disabled="loadingVariant"
+                    class="w-full py-2.5 rounded-xl theme-card theme-border theme-sub text-sm hover:theme-text transition-colors disabled:opacity-50"
+                  >
+                    {{
+                      loadingVariant
+                        ? t("dashboard.generatingVariant")
+                        : t("dashboard.generateVariantB")
+                    }}
+                  </button>
+                </div>
+              </div>
+
+              <!-- TAB: AI Image -->
+              <div v-if="activeModalTab === 'image'" class="p-6">
+                <div
+                  class="rounded-xl border border-blue-500/20 bg-blue-500/5 p-5"
+                >
+                  <div class="flex items-center gap-2 mb-4">
+                    <span class="text-lg">🎨</span>
+                    <p class="text-sm font-medium text-blue-300">
+                      {{ t("dashboard.aiImageGenerator") }}
+                    </p>
+                    <span
+                      class="text-[10px] px-2 py-0.5 rounded-full bg-blue-600/20 text-blue-400 border border-blue-500/20 ml-auto"
+                      >FLUX</span
+                    >
+                  </div>
+
+                  <div
+                    class="w-full h-[260px] sm:h-[300px] mb-4 flex items-center justify-center overflow-hidden rounded-xl bg-slate-950/40 border border-blue-500/10"
+                  >
+                    <div
+                      v-if="selectedPost.imageUrl"
+                      class="w-full h-full p-1 flex items-center justify-center"
+                    >
+                      <img
+                        :src="selectedPost.imageUrl"
+                        :alt="t('dashboard.generatedImage')"
+                        class="max-w-full max-h-full rounded-lg object-contain opacity-95 hover:opacity-100 transition-opacity"
+                      />
+                    </div>
+
+                    <div
+                      v-else-if="!generatingImage"
+                      class="w-full h-full flex flex-col items-center justify-center gap-2 text-center p-4"
+                    >
+                      <span class="text-3xl opacity-25">🖼️</span>
+                      <p class="text-sm theme-muted">
+                        {{ t("dashboard.noImageYet") }}<br />
+                        <span class="text-xs opacity-60">{{
+                          t("dashboard.generateHint")
+                        }}</span>
+                      </p>
+                    </div>
+
+                    <div
+                      v-else-if="generatingImage"
+                      class="w-full h-full flex flex-col items-center justify-center gap-3 p-4"
+                    >
+                      <div class="relative flex items-center justify-center">
+                        <svg
+                          class="w-9 h-9 animate-spin text-blue-500"
+                          fill="none"
+                          viewBox="0 0 24 24"
+                        >
+                          <circle
+                            class="opacity-25"
+                            cx="12"
+                            cy="12"
+                            r="10"
+                            stroke="currentColor"
+                            stroke-width="4"
+                          />
+                          <path
+                            class="opacity-75"
+                            fill="currentColor"
+                            d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"
+                          />
+                        </svg>
+                        <span class="absolute text-xs scale-75 animate-pulse"
+                          >🪄</span
+                        >
+                      </div>
+                      <div class="text-center">
+                        <p
+                          class="text-sm font-medium text-blue-300 animate-pulse"
+                        >
+                          {{ t("dashboard.generatingImage") }}
+                        </p>
+                        <p class="text-[11px] theme-muted opacity-60 mt-0.5">
+                          {{ t("dashboard.generationTime") }}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+
+                  <p
+                    v-if="imageError"
+                    class="text-xs text-rose-400 mb-3 text-center bg-rose-500/10 py-1.5 px-3 rounded-lg border border-rose-500/15"
+                  >
+                    {{ imageError }}
+                  </p>
+
+                  <button
+                    @click="generateImage"
+                    :disabled="generatingImage"
+                    class="w-full py-2.5 rounded-xl text-sm font-medium transition-colors disabled:opacity-50 shadow-md"
+                    :class="
+                      selectedPost.imageUrl
+                        ? 'theme-card theme-border theme-sub hover:theme-text'
+                        : 'bg-blue-600 text-white hover:bg-blue-500'
+                    "
+                  >
+                    {{
+                      generatingImage
+                        ? t("dashboard.generatingBtnImage")
+                        : selectedPost.imageUrl
+                        ? t("dashboard.regenerateBtnImage")
+                        : t("dashboard.generateBtnImage")
+                    }}
+                  </button>
+                </div>
+              </div>
+            </div>
+            <!-- ── Modal Footer (Save) ── -->
+            <div
+              class="flex items-center justify-between gap-3 px-6 py-4 border-t shrink-0"
+              style="border-color: var(--border)"
+            >
+              <button
+                @click="selectedPost = null"
+                class="px-5 py-2.5 rounded-xl theme-card theme-border theme-sub text-sm hover:theme-text transition-colors"
+              >
+                {{ t("common.cancel") || "Cancel" }}
+              </button>
+              <button
+                @click="savePost"
+                :disabled="saving"
+                class="px-6 py-2.5 rounded-xl bg-blue-600 text-white text-sm font-medium hover:bg-blue-500 transition-colors disabled:opacity-50 flex items-center gap-2"
+              >
+                <svg
+                  v-if="saving"
+                  class="w-4 h-4 animate-spin"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                >
+                  <circle
+                    class="opacity-25"
+                    cx="12"
+                    cy="12"
+                    r="10"
+                    stroke="currentColor"
+                    stroke-width="4"
+                  />
+                  <path
+                    class="opacity-75"
+                    fill="currentColor"
+                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"
+                  />
+                </svg>
+                {{
+                  saving ? t("dashboard.saving") : t("dashboard.saveChanges")
+                }}
+              </button>
+            </div>
+          </div>
+        </div>
+      </Transition>
+    </Teleport>
 
     <!-- ── Generate / Regenerate Modal ── -->
     <div
@@ -933,13 +1125,26 @@ import api from "../api/client";
 import { useI18n } from "vue-i18n";
 import { useCalendarStore } from "../stores/calendarStore";
 
-const { t } = useI18n();
+const { t, locale } = useI18n();
 
 // ── State ─────────────────────────────────────────────────────────────────────
 const brandId = ref(localStorage.getItem("cf_brandId") || "");
 const activeFilter = ref("All");
 const selectedPost = ref(null);
 const editCopy = ref("");
+const activeModalTab = ref("edit");
+
+// Reset tab when opening a new post
+watch(selectedPost, (val) => {
+  if (val) activeModalTab.value = "edit";
+});
+
+const modalTabs = computed(() => [
+  { id: "edit", icon: "✏️", label: t("dashboard.editPost") || "Edit" },
+  { id: "ab", icon: "⚡", label: t("dashboard.abCritic") || "A/B Critic" },
+  { id: "image", icon: "🎨", label: "AI Image" },
+]);
+
 const showModal = ref(false);
 const showDeleteConfirm = ref(false);
 const showResetConfirm = ref(false);
@@ -1020,6 +1225,7 @@ const legend = [
   { labelKey: "dashboard.statusScheduled", dot: "bg-blue-400" },
   { labelKey: "dashboard.statusPending", dot: "bg-amber-400" },
   { labelKey: "dashboard.statusDraft", dot: "bg-slate-500" },
+  { labelKey: "dashboard.statusPublished", dot: "bg-teal-400" },
 ];
 
 const platforms = ref([
@@ -1412,15 +1618,50 @@ function buildWeeks(posts) {
 }
 
 function statusToClass(status) {
-  return (
-    {
-      draft: "border-slate-700 bg-slate-800/40",
-      pending_review: "border-amber-500/20 bg-amber-500/5",
-      approved: "border-green-500/25 bg-green-500/5",
-      scheduled: "border-blue-500/25 bg-blue-500/5",
-      published: "border-teal-500/25 bg-teal-500/5",
-    }[status] || "border-slate-700 bg-slate-800/40"
-  );
+  if (!status) return 'bg-slate-500/5 border-slate-500/20 text-slate-400';
+  
+  switch (status.toLowerCase()) {
+    case 'approved':
+      return 'bg-green-500/10 border-green-500/20 text-green-400';
+    
+    case 'scheduled':
+      // المجدول: أزرق سيان ناصع
+      return 'bg-cyan-500/10 border-cyan-500/20 text-cyan-400';
+      
+    case 'published':
+      // المنشور: تم التغيير إلى البنفسجي المضيء ليكون واضحاً ومختلفاً عن المجدول
+      return 'bg-indigo-500/15 border-indigo-500/25 text-indigo-300';
+      
+    case 'pending':
+      // الانتظار: تم التغيير إلى البرتقالي/الذهبي الواضح ليفترق عن الرمادي
+      return 'bg-amber-500/10 border-amber-500/20 text-amber-400';
+      
+    case 'draft':
+    default:
+      // المسودة: رمادي فضي واضح
+      return 'bg-slate-500/5 border-slate-500/20 text-slate-300';
+  }
+}
+
+// 3. تحديث تأثير الـ Hover المتناسق مع الألوان الجديدة
+function getHoverStatusClass(status) {
+  if (!status) return '';
+  
+  switch (status.toLowerCase()) {
+    case 'approved':
+      return 'hover:bg-green-500/20 hover:border-green-500/60 hover:shadow-green-500/10';
+    case 'scheduled':
+      return 'hover:bg-cyan-500/20 hover:border-cyan-500/60 hover:shadow-cyan-500/10';
+    case 'published':
+      // هوفر ناصع جداً للمنشور
+      return 'hover:bg-indigo-500/25 hover:border-indigo-400/70 hover:shadow-indigo-500/15 hover:brightness-110';
+    case 'pending':
+      // هوفر دافئ ومضيء للانتظار
+      return 'hover:bg-amber-500/20 hover:border-amber-400/60 hover:shadow-amber-500/10';
+    case 'draft':
+    default:
+      return 'hover:bg-slate-500/20 hover:border-slate-400/60 hover:shadow-slate-400/10 hover:brightness-125';
+  }
 }
 
 // ── Post editor ───────────────────────────────────────────────────────────────
@@ -1575,17 +1816,16 @@ function platformBadge(p) {
   );
 }
 
-function statusColor(s) {
-  return (
-    {
-      Approved: "text-green-400",
-      Scheduled: "text-blue-400",
-      Pending: "text-amber-400",
-      "Pending Review": "text-amber-400",
-      Draft: "text-slate-500",
-      Published: "text-teal-400",
-    }[s] || "text-slate-500"
-  );
+// 2. تحديث ألوان نقطة الحالة والنص السفلي (Status Dot)
+function statusColor(status) {
+  if (!status) return 'text-slate-400';
+  switch (status.toLowerCase()) {
+    case 'approved': return 'text-green-400';
+    case 'scheduled': return 'text-cyan-400';
+    case 'published': return 'text-indigo-400'; // تفتيح المنشور
+    case 'pending': return 'text-amber-400';   // تمييز الانتظار
+    case 'draft': default: return 'text-slate-400';
+  }
 }
 
 // ── Drag & Drop Handlers ───────────────────────────────────────────────────
@@ -1621,7 +1861,25 @@ async function onDrop(targetCell) {
   }
 }
 </script>
+
 <style scoped>
+.modal-fade-enter-active,
+.modal-fade-leave-active {
+  transition: opacity 0.2s ease;
+}
+.modal-fade-enter-from,
+.modal-fade-leave-to {
+  opacity: 0;
+}
+.modal-fade-enter-active .relative,
+.modal-fade-leave-active .relative {
+  transition: transform 0.2s ease;
+}
+.modal-fade-enter-from .relative,
+.modal-fade-leave-to .relative {
+  transform: scale(0.97) translateY(8px);
+}
+
 ::-webkit-scrollbar {
   width: 8px;
   height: 8px;
@@ -1642,5 +1900,15 @@ async function onDrop(targetCell) {
 
 .aspect-square {
   aspect-ratio: 1 / 1;
+}
+
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+/* إخفاء شريط التمرير لمتصفح فايرفوكس وإنترنت إكسبلورر */
+.no-scrollbar {
+  -ms-overflow-style: none; /* IE and Edge */
+  scrollbar-width: none; /* Firefox */
 }
 </style>

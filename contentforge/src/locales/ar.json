@@ -6,14 +6,14 @@
     "switchDark": "التبديل إلى الوضع الداكن",
     "nav": {
       "calendar": "التقويم",
-      "drafts": "المسودات",
+      "drafts": "إدارة المنشورات",
       "branding": "خزينة العلامة",
       "chat": "المحادثة الذكية",
       "connections": "الاتصالات"
     },
     "pageTitle": {
       "dashboard": "التقويم",
-      "drafts": "المسودات",
+      "drafts": "إدارة المنشورات",
       "branding": "خزينة العلامة",
       "chat": "المحادثة الذكية",
       "connections": "الاتصالات"
@@ -271,6 +271,17 @@
     }
   },
   "dashboard": {
+    "aiImageGenerator": "مولد الصور بالذكاء الاصطناعي",
+    "generatedImage": "الصورة التي تم إنشاؤها",
+    "noImageYet": "لم يتم إنشاء صورة بعد",
+    "generateHint": "قم بإنشاء واحدة لهذا المنشور الآن",
+    "generatingImage": "جاري إنشاء الصورة الآن...",
+    "generationTime": "يستغرق الأمر حوالي ٢٠-٤٠ ثانية",
+    "generatingBtnImage": "جاري الإنشاء...",
+    "regenerateBtnImage": "↺ إعادة توليد الصورة",
+    "generateBtnImage": "✦ إنشاء صورة بالذكاء الاصطناعي",
+    "variantBLabel": "نسخة تجريبية B",
+    "useVariantB": "اعتماد النسخة B",
     "noCalendar": "لا يوجد تقويم بعد — أنشئ خطتك الأولى",
     "trending": "رائج",
     "approvePlan": "اعتماد الخطة",
@@ -282,7 +293,7 @@
     "posts": "منشورات",
     "emptyState": "لا يوجد جدول زمني بعد — اضغط على {action} للبدء",
     "generatePlan": "✦ إنشاء خطة",
-    "generating": "جارٍ إنشاء تقويمك باستخدام Gemini AI…",
+    "generating": "جارٍ إنشاء تقويمك باستخدام خلاص بضع دقائق…",
     "generatingHint": "يستغرق هذا عادةً 20–40 ثانية",
     "status": "الحالة",
     "editPost": "تعديل المنشور",
@@ -814,5 +825,63 @@
     "post11": "عرض نهاية الأسبوع — اثنين بسعر واحد",
     "post12": "ملخص الأسبوع بالعربي",
     "post13": "ترند الأسبوع 🔥"
+  },
+  "posts": {
+    "title": "إدارة المنشورات",
+    "subtitle": "{count} منشور إجمالاً",
+    "empty": "لا توجد منشورات بعد",
+    "emptyHint": "المنشورات المُولَّدة ستظهر هنا بمجرد إنشاء التقويم.",
+    "filterAll": "الكل",
+    "filterDraft": "مسودة",
+    "filterPending": "قيد المراجعة",
+    "filterApproved": "معتمد",
+    "filterScheduled": "مجدوَل",
+    "filterPublished": "منشور",
+    "selected": "{count} محدد",
+    "approveAll": "اعتماد الكل",
+    "clearSelection": "إلغاء التحديد",
+    "approve": "اعتماد",
+    "edit": "تعديل",
+    "editPost": "تعديل المنشور",
+    "copyEN": "النص الإنجليزي",
+    "copyAR": "النص العربي",
+    "platformLabel": "المنصة",
+    "statusLabel": "الحالة",
+    "hashtags": "الوسوم",
+    "hashtagsPlaceholder": "#وسم1 #وسم2 #وسم3",
+    "saving": "جارٍ الحفظ…",
+    "savePost": "حفظ المنشور",
+    "saveSuccess": "تم الحفظ بنجاح!",
+    "saveError": "فشل الحفظ.",
+    "deleteConfirmTitle": "حذف المنشور؟",
+    "deleteConfirmMsg": "لا يمكن التراجع عن هذا الإجراء.",
+    "toastApproved": "تم اعتماد المنشور!",
+    "toastDeleted": "تم حذف المنشور.",
+    "toastError": "حدث خطأ ما.",
+    "generatedImage": "صورة مُولَّدة",
+    "variantBLabel": "النسخة B — ناقد A/B",
+    "platform": {
+      "Instagram": "إنستغرام",
+      "Facebook": "فيسبوك",
+      "LinkedIn": "لينكدإن",
+      "TwitterX": "تويتر/X",
+      "TikTok": "تيك توك"
+    },
+    "status": {
+      "Draft": "مسودة",
+      "Pending": "قيد المراجعة",
+      "Approved": "معتمد",
+      "Scheduled": "مجدوَل",
+      "Published": "منشور"
+    },
+    "dialect": {
+      "egy": "العربية المصرية",
+      "gulf": "العربية الخليجية",
+      "levantine": "العربية الشامية",
+      "english": "الإنجليزية",
+      "bilingual": "ثنائي اللغة"
+    },
+    "useVariantB": "استخدم B",
+    "variantBApplied": "تم تطبيق النسخة B!"
   }
 }

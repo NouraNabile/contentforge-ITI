@@ -1,3 +1,4 @@
+BrandingPage.vue
 <template>
   <AppLayout>
     <div class="p-7 max-w-5xl mx-auto">
@@ -624,9 +625,9 @@ async function saveAll() {
       localStorage.setItem("cf_brandId", result.brand._id);
       await brandApi.embedBrand(result.brand._id);
     }
-    alert("Saved & embedded successfully!");
+    alert(t('branding.savedSuccess'))
   } catch (err) {
-    alert("Save failed: " + err.message);
+    alert(t('branding.saveFailed', { msg: err.message }))
   }
 }
 function handleLogo(e) {

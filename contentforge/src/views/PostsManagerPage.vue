@@ -1,4 +1,4 @@
-<!-- Posts Manager Page -->
+<!-- PostsManagerPage.vue -->
 <template>
   <AppLayout>
     <div class="p-4 sm:p-7">

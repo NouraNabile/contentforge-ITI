@@ -1,4 +1,4 @@
-<!-- Login Page -->
+<!-- LoginPage.vue -->
 <template>
   <div class="min-h-screen theme-bg flex items-center justify-center p-6 bg-grid">
 
@@ -301,7 +301,7 @@ async function submit() {
       // 3. طالما اتسيف، انقل برمش العين والقلب جامد ومحدش هيقدر يطردك!
       router.push('/dashboard')
     } else {
-      error.value = 'تم تسجيل الدخول ولكن لم يتم حفظ التوكن، تأكدي من كود الـ Store'
+      error.value = t('auth.errorTokenMissing')
     }
     }
   } catch (err) {
@@ -319,7 +319,7 @@ async function verifyEmail() {
       email: form.value.email,
       code: otpInputs.value.join('')
     })
-    success.value = 'Email verified successfully 🎉'
+    success.value = t('auth.verifiedSuccess')
     // 2. 🚀 السطر السحري: بنعمل تسجيل دخول أوتوماتيك فوراً عشان الـ Store يجيب التوكن ويسيفه
     await authStore.login(form.value)
     

@@ -184,13 +184,14 @@ import { computed } from 'vue'
 const { t, locale } = useI18n()
 
 const sidebarItems = [
-  { label: 'dashboard.calendar', icon: 'M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z', badge: '12' },
-  { label: 'dashboard.brandVault', icon: 'M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10' },
-  { label: 'dashboard.imageGen', icon: 'M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z' },
-  { label: 'dashboard.analytics', icon: 'M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z' },
-  { label: 'dashboard.publish', icon: 'M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z' },
-  { label: 'dashboard.settings', icon: 'M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z' },
+  { label: 'mockup.nav.calendar', icon: 'M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z', badge: '12' },
+  { label: 'mockup.nav.brandVault', icon: 'M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10' },
+  { label: 'mockup.nav.imageGen', icon: 'M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z' },
+  { label: 'mockup.nav.analytics', icon: 'M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z' },
+  { label: 'mockup.nav.publish', icon: 'M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z' },
+  { label: 'mockup.nav.settings', icon: 'M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z' },
 ]
+
 
 const weekDays = computed(() => [
   t('dashboard.day.mon'), t('dashboard.day.tue'), t('dashboard.day.wed'),
@@ -200,21 +201,22 @@ const weekDays = computed(() => [
 
 
 const calendarCells = [
-  { id: 1, date: '26', post: 'Ramadan morning routine ☕', platform: 'IG', status: 'Approved', classes: 'border-green-500/25 bg-green-500/5', dateClass: 'text-white', platformClass: 'bg-pink-500/20 text-pink-400', textClass: 'text-slate-300', statusClass: 'text-green-400' },
-  { id: 2, date: '27', post: 'لمة العيلة والقهوة', platform: 'FB', status: 'Scheduled', classes: 'border-blue-500/25 bg-blue-500/5', dateClass: 'text-white', platformClass: 'bg-blue-500/20 text-blue-400', textClass: 'text-slate-300', statusClass: 'text-blue-400' },
-  { id: 3, date: '28', post: 'Product carousel — new flavors', platform: 'IG', status: 'Draft', classes: 'border-white/8 bg-forge-800/30', dateClass: 'text-slate-400', platformClass: 'bg-pink-500/20 text-pink-400', textClass: 'text-slate-400', statusClass: 'text-slate-500' },
-  { id: 4, date: '29', post: null, platform: null, status: null, classes: 'border-white/5 bg-transparent', dateClass: 'text-slate-600', platformClass: '', textClass: '', statusClass: '' },
-  { id: 5, date: '30', post: 'Brand story thread', platform: 'LI', status: 'Pending', classes: 'border-amber-500/20 bg-amber-500/5', dateClass: 'text-white', platformClass: 'bg-blue-600/20 text-blue-300', textClass: 'text-slate-300', statusClass: 'text-amber-400' },
-  { id: 6, date: '31', post: 'اختار طعمك المفضل 🎯', platform: 'IG', status: 'Draft', classes: 'border-white/8 bg-forge-800/30', dateClass: 'text-slate-400', platformClass: 'bg-pink-500/20 text-pink-400', textClass: 'text-slate-300', statusClass: 'text-slate-500' },
-  { id: 7, date: '1', post: null, platform: null, status: null, classes: 'border-white/5 bg-transparent', dateClass: 'text-slate-600', platformClass: '', textClass: '', statusClass: '' },
-  { id: 8, date: '2', post: 'Customer highlight reel', platform: 'FB', status: 'Approved', classes: 'border-green-500/25 bg-green-500/5', dateClass: 'text-white', platformClass: 'bg-blue-500/20 text-blue-400', textClass: 'text-slate-300', statusClass: 'text-green-400' },
-  { id: 9, date: '3', post: 'Tip: قهوتك أحسن بـ...', platform: 'IG', status: 'Scheduled', classes: 'border-blue-500/25 bg-blue-500/5', dateClass: 'text-white', platformClass: 'bg-pink-500/20 text-pink-400', textClass: 'text-slate-300', statusClass: 'text-blue-400' },
-  { id: 10, date: '4', post: null, platform: null, status: null, classes: 'border-white/5 bg-transparent', dateClass: 'text-slate-600', platformClass: '', textClass: '', statusClass: '' },
-  { id: 11, date: '5', post: 'Weekend promo — 2 for 1', platform: 'IG', status: 'Pending', classes: 'border-amber-500/20 bg-amber-500/5', dateClass: 'text-white', platformClass: 'bg-pink-500/20 text-pink-400', textClass: 'text-slate-300', statusClass: 'text-amber-400' },
-  { id: 12, date: '6', post: 'Weekly roundup Arabic', platform: 'LI', status: 'Draft', classes: 'border-white/8 bg-forge-800/30', dateClass: 'text-slate-400', platformClass: 'bg-blue-600/20 text-blue-300', textClass: 'text-slate-400', statusClass: 'text-slate-500' },
-  { id: 13, date: '7', post: 'ترند الأسبوع 🔥', platform: 'IG', status: 'Draft', classes: 'border-white/8 bg-forge-800/30', dateClass: 'text-slate-400', platformClass: 'bg-pink-500/20 text-pink-400', textClass: 'text-slate-400', statusClass: 'text-slate-500' },
-  { id: 14, date: '8', post: null, platform: null, status: null, classes: 'border-white/5 bg-transparent', dateClass: 'text-slate-600', platformClass: '', textClass: '', statusClass: '' },
+  { id: 1, date: '26', post: true, postKey: 'mockup.post1', platform: 'IG', status: true, statusKey: 'dashboard.statusApproved', classes: 'border-green-500/25 bg-green-500/5', dateClass: 'text-white', platformClass: 'bg-pink-500/20 text-pink-400', textClass: 'text-slate-300', statusClass: 'text-green-400' },
+  { id: 2, date: '27', post: true, postKey: 'mockup.post2', platform: 'FB', status: true, statusKey: 'dashboard.statusScheduled', classes: 'border-blue-500/25 bg-blue-500/5', dateClass: 'text-white', platformClass: 'bg-blue-500/20 text-blue-400', textClass: 'text-slate-300', statusClass: 'text-blue-400' },
+  { id: 3, date: '28', post: true, postKey: 'mockup.post3', platform: 'IG', status: true, statusKey: 'dashboard.statusDraft', classes: 'border-white/8 bg-forge-800/30', dateClass: 'text-slate-400', platformClass: 'bg-pink-500/20 text-pink-400', textClass: 'text-slate-400', statusClass: 'text-slate-500' },
+  { id: 4, date: '29', post: null, postKey: null, platform: null, status: null, statusKey: null, classes: 'border-white/5 bg-transparent', dateClass: 'text-slate-600', platformClass: '', textClass: '', statusClass: '' },
+  { id: 5, date: '30', post: true, postKey: 'mockup.post5', platform: 'LI', status: true, statusKey: 'dashboard.statusPending', classes: 'border-amber-500/20 bg-amber-500/5', dateClass: 'text-white', platformClass: 'bg-blue-600/20 text-blue-300', textClass: 'text-slate-300', statusClass: 'text-amber-400' },
+  { id: 6, date: '31', post: true, postKey: 'mockup.post6', platform: 'IG', status: true, statusKey: 'dashboard.statusDraft', classes: 'border-white/8 bg-forge-800/30', dateClass: 'text-slate-400', platformClass: 'bg-pink-500/20 text-pink-400', textClass: 'text-slate-300', statusClass: 'text-slate-500' },
+  { id: 7, date: '1', post: null, postKey: null, platform: null, status: null, statusKey: null, classes: 'border-white/5 bg-transparent', dateClass: 'text-slate-600', platformClass: '', textClass: '', statusClass: '' },
+  { id: 8, date: '2', post: true, postKey: 'mockup.post8', platform: 'FB', status: true, statusKey: 'dashboard.statusApproved', classes: 'border-green-500/25 bg-green-500/5', dateClass: 'text-white', platformClass: 'bg-blue-500/20 text-blue-400', textClass: 'text-slate-300', statusClass: 'text-green-400' },
+  { id: 9, date: '3', post: true, postKey: 'mockup.post9', platform: 'IG', status: true, statusKey: 'dashboard.statusScheduled', classes: 'border-blue-500/25 bg-blue-500/5', dateClass: 'text-white', platformClass: 'bg-pink-500/20 text-pink-400', textClass: 'text-slate-300', statusClass: 'text-blue-400' },
+  { id: 10, date: '4', post: null, postKey: null, platform: null, status: null, statusKey: null, classes: 'border-white/5 bg-transparent', dateClass: 'text-slate-600', platformClass: '', textClass: '', statusClass: '' },
+  { id: 11, date: '5', post: true, postKey: 'mockup.post11', platform: 'IG', status: true, statusKey: 'dashboard.statusPending', classes: 'border-amber-500/20 bg-amber-500/5', dateClass: 'text-white', platformClass: 'bg-pink-500/20 text-pink-400', textClass: 'text-slate-300', statusClass: 'text-amber-400' },
+  { id: 12, date: '6', post: true, postKey: 'mockup.post12', platform: 'LI', status: true, statusKey: 'dashboard.statusDraft', classes: 'border-white/8 bg-forge-800/30', dateClass: 'text-slate-400', platformClass: 'bg-blue-600/20 text-blue-300', textClass: 'text-slate-400', statusClass: 'text-slate-500' },
+  { id: 13, date: '7', post: true, postKey: 'mockup.post13', platform: 'IG', status: true, statusKey: 'dashboard.statusDraft', classes: 'border-white/8 bg-forge-800/30', dateClass: 'text-slate-400', platformClass: 'bg-pink-500/20 text-pink-400', textClass: 'text-slate-400', statusClass: 'text-slate-500' },
+  { id: 14, date: '8', post: null, postKey: null, platform: null, status: null, statusKey: null, classes: 'border-white/5 bg-transparent', dateClass: 'text-slate-600', platformClass: '', textClass: '', statusClass: '' },
 ]
+
 
 const statuses = [
   { labelKey: 'dashboard.statusDraft', dot: 'bg-slate-500', active: false },

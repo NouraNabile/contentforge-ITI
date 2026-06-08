@@ -1,4 +1,4 @@
-<!-- Chat Page -->
+<!-- ChatPage.vue -->
 <template>
   <AppLayout>
     <div class="flex h-full overflow-hidden">

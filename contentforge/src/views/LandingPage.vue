@@ -1,4 +1,4 @@
-<!-- Landing Page -->
+<!-- LandingPage.vue -->
 <template>
   <div class="min-h-screen bg-forge-950">
     <Navbar />

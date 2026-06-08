@@ -1,4 +1,4 @@
-<!-- Trial Expired Page -->
+<!-- TrialExpiredPage.vue -->
 <template>
   <div class="min-h-screen theme-bg flex items-center justify-center p-6 bg-grid">
 

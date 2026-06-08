@@ -1,3 +1,4 @@
+<!-- AdminUsers.vue -->
 <template>
   <div class="admin-users">
 
@@ -5,17 +6,17 @@
     <div class="toolbar">
       <div class="search-wrap">
         <svg class="search-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-        <input v-model="search" type="text" placeholder="Search by name or email…" class="search-input" @input="onSearch"/>
+        <input v-model="search" type="text" :placeholder="t('admin.users.searchPlaceholder')" class="search-input" @input="onSearch"/>
       </div>
       <div class="filters">
         <select v-model="planFilter" @change="fetchUsers(1)" class="filter-select">
-          <option value="">All plans</option>
-          <option value="free">Free</option>
-          <option value="pro">Pro</option>
-          <option value="enterprise">Enterprise</option>
+          <option value="">{{ t('admin.users.allPlans') }}</option>
+          <option value="free">{{ t('admin.plan.free') }}</option>
+          <option value="pro">{{ t('admin.plan.pro') }}</option>
+          <option value="enterprise">{{ t('admin.plan.enterprise') }}</option>
         </select>
       </div>
-      <div class="total-badge">{{ total }} users</div>
+      <div class="total-badge">{{ t('admin.users.totalCount', { n: total }) }}</div>
     </div>
 
     <!-- Table -->
@@ -24,24 +25,24 @@
         <table class="admin-table">
           <thead>
             <tr>
-              <th>User</th>
-              <th>Phone</th>
-              <th>Plan</th>
-              <th>Trial Ends</th>
-              <th>Verified</th>
-              <th>Joined</th>
-              <th>Actions</th>
+              <th>{{ t('admin.table.user') }}</th>
+              <th>{{ t('admin.table.phone') }}</th>
+              <th>{{ t('admin.table.plan') }}</th>
+              <th>{{ t('admin.table.trialEnds') }}</th>
+              <th>{{ t('admin.table.verified') }}</th>
+              <th>{{ t('admin.table.joined') }}</th>
+              <th>{{ t('admin.table.actions') }}</th>
             </tr>
           </thead>
           <tbody>
-            <tr v-if="loading"><td colspan="7" class="empty-row">Loading users…</td></tr>
-            <tr v-else-if="!users.length"><td colspan="7" class="empty-row">No users found</td></tr>
+            <tr v-if="loading"><td colspan="7" class="empty-row">{{ t('admin.loading') }}</td></tr>
+            <tr v-else-if="!users.length"><td colspan="7" class="empty-row">{{ t('admin.users.noUsers') }}</td></tr>
             <tr v-else v-for="u in users" :key="u._id" :class="{ blocked: u.isBlocked }">
               <td>
                 <div class="user-cell">
                   <div class="user-avatar" :class="{ blocked: u.isBlocked }">{{ u.name?.[0]?.toUpperCase() }}</div>
                   <div>
-                    <p class="user-name">{{ u.name }} <span v-if="u.isAdmin" class="admin-tag">Admin</span></p>
+                    <p class="user-name">{{ u.name }} <span v-if="u.isAdmin" class="admin-tag">{{ t('admin.role') }}</span></p>
                     <p class="user-email">{{ u.email }}</p>
                   </div>
                 </div>
@@ -58,9 +59,9 @@
               <td>
                 <div class="action-row">
                   <button class="act-btn block-btn" @click="toggleBlock(u)" :disabled="u.isAdmin">
-                    {{ u.isBlocked ? 'Unblock' : 'Block' }}
+                    {{ u.isBlocked ? t('admin.action.unblock') : t('admin.action.block') }}
                   </button>
-                  <button class="act-btn edit-btn" @click="openEdit(u)">Edit</button>
+                  <button class="act-btn edit-btn" @click="openEdit(u)">{{ t('admin.action.edit') }}</button>
                   <button class="act-btn delete-btn" @click="confirmDelete(u)" :disabled="u.isAdmin">✕</button>
                 </div>
               </td>
@@ -71,9 +72,9 @@
 
       <!-- Pagination -->
       <div class="pagination" v-if="pages > 1">
-        <button class="page-btn" :disabled="page === 1"       @click="fetchUsers(page - 1)">← Prev</button>
-        <span class="page-info">Page {{ page }} of {{ pages }}</span>
-        <button class="page-btn" :disabled="page === pages"   @click="fetchUsers(page + 1)">Next →</button>
+        <button class="page-btn" :disabled="page === 1"       @click="fetchUsers(page - 1)">{{ t('admin.pagination.prev') }}</button>
+        <span class="page-info">{{ t('admin.pagination.pageOf', { page, pages }) }}</span>
+        <button class="page-btn" :disabled="page === pages"   @click="fetchUsers(page + 1)">{{ t('admin.pagination.next') }}</button>
       </div>
     </div>
 
@@ -81,32 +82,32 @@
     <div v-if="editUser" class="modal-overlay" @click.self="editUser = null">
       <div class="modal">
         <div class="modal-header">
-          <h3>Edit User — {{ editUser.name }}</h3>
+          <h3>{{ t('admin.users.editTitle', { name: editUser.name }) }}</h3>
           <button class="modal-close" @click="editUser = null">✕</button>
         </div>
         <div class="modal-body">
-          <label class="field-label">Plan</label>
+          <label class="field-label">{{ t('admin.table.plan') }}</label>
           <select v-model="editForm.plan" class="filter-select full">
-            <option value="free">Free</option>
-            <option value="pro">Pro</option>
-            <option value="enterprise">Enterprise</option>
+            <option value="free">{{ t('admin.plan.free') }}</option>
+<option value="pro">{{ t('admin.plan.pro') }}</option>
+<option value="enterprise">{{ t('admin.plan.enterprise') }}</option>
           </select>
 
-          <label class="field-label">Trial Active</label>
+          <label class="field-label">{{ t('admin.users.trialActive') }}</label>
           <div class="toggle-row">
             <input type="checkbox" v-model="editForm.isTrial" id="isTrial"/>
-            <label for="isTrial" class="toggle-label">{{ editForm.isTrial ? 'Yes' : 'No' }}</label>
+            <label for="isTrial" class="toggle-label">{{ editForm.isTrial ? t('common.yes') : t('common.no') }}</label>
           </div>
 
           <div v-if="editForm.isTrial">
-            <label class="field-label">Trial Ends At</label>
+            <label class="field-label">{{ t('admin.users.trialEndsAt') }}</label>
             <input type="date" v-model="editForm.trialEndsAt" class="filter-select full"/>
           </div>
 
-          <label class="field-label">Email Verified</label>
+          <label class="field-label">{{ t('admin.users.emailVerified') }}</label>
           <div class="toggle-row">
             <input type="checkbox" v-model="editForm.isVerified" id="isVerified"/>
-            <label for="isVerified" class="toggle-label">{{ editForm.isVerified ? 'Verified' : 'Not verified' }}</label>
+            <label for="isVerified" class="toggle-label">{{ editForm.isVerified ? t('admin.users.verified') : t('admin.users.notVerified') }}</label>
           </div>
           <!-- Is Admin -->
           <div class="form-group flex items-center gap-2" style="margin-bottom: 1.5rem; display: flex; align-items: center; gap: 0.5rem; color: #fff;">
@@ -116,14 +117,14 @@
             v-model="editForm.isAdmin" 
             class="custom-checkbox"
           />
-          <label for="is-admin" class="checkbox-label">Is Admin</label>
+          <label for="is-admin" class="checkbox-label">{{ t('admin.users.isAdmin') }}</label>
         </div>
         </div>
         <div class="modal-footer">
           <button class="act-btn edit-btn" @click="saveEdit" :disabled="saving">
-            {{ saving ? 'Saving…' : 'Save changes' }}
+            {{ saving ? t('admin.users.saving') : t('admin.users.saveChanges') }}
           </button>
-          <button class="act-btn cancel" @click="editUser = null">Cancel</button>
+          <button class="act-btn cancel" @click="editUser = null">{{ t('common.cancel') }}</button>
         </div>
       </div>
     </div>
@@ -132,19 +133,19 @@
     <div v-if="deleteTarget" class="modal-overlay" @click.self="deleteTarget = null">
       <div class="modal modal-sm">
         <div class="modal-header">
-          <h3>Delete User</h3>
+          <h3>{{ t('admin.users.deleteTitle') }}</h3>
           <button class="modal-close" @click="deleteTarget = null">✕</button>
         </div>
         <div class="modal-body">
           <p style="color:var(--sub,#6b7280); font-size:14px;">
-            Are you sure you want to permanently delete <strong style="color:var(--text,#f0f2f5)">{{ deleteTarget.name }}</strong>? This cannot be undone.
+            {{ t('admin.users.deleteConfirm', { name: deleteTarget.name }) }}
           </p>
         </div>
         <div class="modal-footer">
           <button class="act-btn delete-btn" @click="doDelete" :disabled="saving">
-            {{ saving ? 'Deleting…' : 'Yes, delete' }}
+            {{ saving ? t('admin.users.deleting') : t('admin.users.confirmDelete') }}
           </button>
-          <button class="act-btn" @click="deleteTarget = null">Cancel</button>
+          <button class="act-btn" @click="deleteTarget = null">{{ t('common.cancel') }}</button>
         </div>
       </div>
     </div>
@@ -155,6 +156,9 @@
 <script setup>
 import { ref, onMounted } from 'vue'
 import adminApi from '../../api/adminApi'
+import { useI18n } from 'vue-i18n'
+
+const { t } = useI18n()
 
 const users        = ref([])
 const loading      = ref(true)
@@ -240,10 +244,13 @@ async function doDelete() {
 function planLabel(u) {
   if (u.isTrial) {
     const days = Math.ceil((new Date(u.trialEndsAt) - Date.now()) / 86400000)
-    return days > 0 ? `Trial (${days}d)` : 'Trial expired'
+    return days > 0
+      ? t('admin.plan.trialDays', { days })
+      : t('admin.plan.trialExpired')
   }
-  return u.plan || 'free'
+  return u.plan || t('admin.plan.free')
 }
+
 function planClass(u) {
   if (u.isTrial) return new Date(u.trialEndsAt) > Date.now() ? 'trial' : 'expired'
   if (u.plan === 'pro') return 'pro'
@@ -258,6 +265,36 @@ onMounted(() => fetchUsers())
 </script>
 
 <style scoped>
+[dir="rtl"] .admin-table th,
+[dir="rtl"] .admin-table td {
+  text-align: right;
+}
+
+[dir="rtl"] .user-cell {
+  flex-direction: row;
+}
+
+[dir="rtl"] .toolbar {
+  flex-direction: row-reverse;
+}
+
+[dir="rtl"] .search-icon {
+  left: auto;
+  right: 12px;
+}
+
+[dir="rtl"] .search-input {
+  padding: 9px 36px 9px 12px;
+}
+
+[dir="rtl"] .action-row {
+  justify-content: flex-end;
+}
+
+[dir="rtl"] .pagination {
+  flex-direction: row-reverse;
+}
+
 .admin-users { display: flex; flex-direction: column; gap: 1.25rem; }
 
 .toolbar { display: flex; align-items: center; gap: 1rem; flex-wrap: wrap; }

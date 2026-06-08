@@ -28,9 +28,9 @@
           <p class="text-slate-400 text-sm leading-relaxed mb-5">{{ t(`features.big.${feat.key}.description`) }}</p>
 
           <div class="space-y-2">
-            <div v-for="point in feat.points" :key="point" class="flex items-center gap-2 text-sm text-slate-400">
+            <div v-for="(point, i) in Array.from({ length: feat.pointCount })" :key="i" class="flex items-center gap-2 text-sm text-slate-400">
               <div class="w-1 h-1 rounded-full shrink-0" :class="feat.dotColor"></div>
-              {{ t(`features.big.${feat.key}.points.p${i}`) }}
+              {{ t(`features.big.${feat.key}.points.p${i + 1}`) }}
             </div>
           </div>
         </div>

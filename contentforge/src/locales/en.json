@@ -62,7 +62,14 @@
     "checkEmail": "Check your email for a verification code",
     "verifiedSuccess": "Email verified successfully 🎉",
     "errorFillAll": "Please fill in all fields",
-    "errorInvalidCode": "Invalid or expired code"
+    "errorInvalidCode": "Invalid or expired code",
+    "guest": "Guest",
+    "plan": {
+      "free": "Free",
+      "pro": "Pro",
+      "enterprise": "Enterprise"
+    },
+    "errorTokenMissing": "Login succeeded but token was not saved. Please try again."
   },
   "trial": {
     "badge": "Trial Expired",
@@ -186,7 +193,8 @@
       "levantine": "Levantine",
       "english": "English",
       "bilingual": "Bilingual"
-    }
+    },
+    "clearSelection": "Clear selection"
   },
   "chat": {
     "clearChat": "Clear chat",
@@ -403,7 +411,8 @@
     "imageGen": "Image Gen",
     "analytics": "Analytics",
     "publish": "Publish",
-    "settings": "Settings"
+    "settings": "Settings",
+    "dialectLabel": "Dialect"
   },
   "competitors": {
     "eyebrow": "Why ContentForge",
@@ -882,5 +891,180 @@
     },
     "useVariantB": "Use B",
     "variantBApplied": "Variant B applied!"
+  },
+  "notifications": {
+    "calendarGenerated": {
+      "title": "Calendar Generated",
+      "message": "Your 2-week Ramadan campaign is ready to review."
+    },
+    "trendAlert": {
+      "title": "Trend Alert",
+      "message": "#رمضان_كريم is up 340% in Egypt right now."
+    },
+    "postPending": {
+      "title": "Post Pending Review",
+      "message": "\"Suhoor Energy\" post needs approval before 8 AM."
+    },
+    "brandUpdated": {
+      "title": "Brand Voice Updated",
+      "message": "Your brand vault was re-embedded successfully."
+    },
+    "postPublished": {
+      "title": "Post Published",
+      "message": "Instagram post published — 1.2K impressions so far."
+    },
+    "time": {
+      "justNow": "Just now",
+      "2min": "2 min ago",
+      "15min": "15 min ago",
+      "1hr": "1 hr ago",
+      "3hr": "3 hr ago",
+      "5hr": "5 hr ago"
+    }
+  },
+  "admin": {
+    "panel": "Admin Panel",
+    "role": "Administrator",
+    "userMode": "user mode",
+    "logout": "Logout",
+    "loading": "Loading…",
+    "nav": {
+      "dashboard": "Dashboard",
+      "users": "Users",
+      "trends": "Trends",
+      "plans": "Plans & Trials",
+      "settings": "Settings"
+    },
+    "page": {
+      "dashboardSub": "Platform overview & key metrics",
+      "usersSub": "Manage all registered users",
+      "trendsSub": "Top Arabic content trends",
+      "plansSub": "Subscription & trial management",
+      "settingsSub": "Platform configuration"
+    },
+    "stats": {
+      "totalUsers": "Total Users",
+      "newThisWeek": "+{n} this week",
+      "newUsers24h": "New Users (24h)",
+      "registeredLast24h": "Registered in last 24h",
+      "pendingVerification": "Pending Verification",
+      "awaitingOtp": "Awaiting OTP",
+      "newPosts24h": "New Posts (24h)",
+      "contentGenerated": "Content generated"
+    },
+    "dashboard": {
+      "recentUsers": "Recent Users",
+      "viewAll": "View all →",
+      "platformHealth": "Platform Health",
+      "topTrends": "Top Arabic Trends",
+      "manage": "Manage →",
+      "noUsers": "No users yet"
+    },
+    "health": {
+      "uptime": "Server Uptime",
+      "activeTrials": "Active Trials",
+      "pendingVerif": "Pending Verifications",
+      "newThisWeek": "New this week",
+      "vsLastWeek": "vs last week",
+      "totalUsers": "Total users"
+    },
+    "table": {
+      "user": "User",
+      "plan": "Plan",
+      "verified": "Verified",
+      "joined": "Joined",
+      "action": "Action",
+      "actions": "Actions",
+      "status": "Status",
+      "phone": "Phone",
+      "trialEnds": "Trial Ends"
+    },
+    "plan": {
+      "free": "free",
+      "pro": "pro",
+      "enterprise": "enterprise",
+      "trialDaysLeft": "Trial ({days}d left)",
+      "trialDays": "Trial ({days}d)",
+      "trialExpired": "Trial expired",
+      "trialActive": "Active"
+    },
+    "action": {
+      "block": "Block",
+      "unblock": "Unblock",
+      "edit": "Edit"
+    },
+    "plans": {
+      "freeUsers": "Free Users",
+      "activeTrials": "Active Trials",
+      "proUsers": "Pro Users",
+      "enterprise": "Enterprise",
+      "expiredTrials": "Expired Trials",
+      "trialUsers": "Trial Users",
+      "tabActive": "Active",
+      "tabExpired": "Expired",
+      "noActive": "No active trial users",
+      "noExpired": "No expired trial users",
+      "trialEnds": "Trial Ends",
+      "daysLeft": "Days Left",
+      "extend7": "+7 days",
+      "daysAgo": "{n}d ago",
+      "daysRemaining": "{n}d left"
+    },
+    "settings": {
+      "trialTitle": "Trial Settings",
+      "emailTitle": "Email & OTP",
+      "infoTitle": "Platform Info",
+      "trialDuration": "Trial Duration",
+      "trialDurationDesc": "Days a new user gets on the free trial",
+      "blockByPhone": "Block multi-account by phone",
+      "blockByPhoneDesc": "Prevent same phone from creating multiple trial accounts",
+      "demoEnabled": "Demo account enabled",
+      "demoEnabledDesc": "Allow users to try the app with the demo account",
+      "unitDays": "days",
+      "otpExpiry": "OTP Expiry",
+      "otpExpiryDesc": "Minutes before verification code expires",
+      "sendWarning": "Send expiry warning email",
+      "sendWarningDesc": "Email users 3 days before their trial ends",
+      "unitMin": "min",
+      "version": "Version",
+      "environment": "Environment",
+      "backend": "Backend",
+      "jwtExpiry": "JWT Expiry",
+      "envDev": "Development",
+      "envProd": "Production",
+      "saveNote": "⚠ Settings are local config only — backend env variables are not updated via this panel.",
+      "saved": "✓ Saved",
+      "saveBtn": "Save settings",
+      "jwtExpiryVal": "7 days"
+    },
+    "users": {
+      "searchPlaceholder": "Search by name or email…",
+      "allPlans": "All plans",
+      "totalCount": "{n} users",
+      "noUsers": "No users found",
+      "editTitle": "Edit User — {name}",
+      "trialActive": "Trial Active",
+      "trialEndsAt": "Trial Ends At",
+      "emailVerified": "Email Verified",
+      "verified": "Verified",
+      "notVerified": "Not verified",
+      "isAdmin": "Is Admin",
+      "saving": "Saving…",
+      "saveChanges": "Save changes",
+      "deleteTitle": "Delete User",
+      "deleteConfirm": "Are you sure you want to permanently delete {name}? This cannot be undone.",
+      "deleting": "Deleting…",
+      "confirmDelete": "Yes, delete"
+    },
+    "trends": {
+      "title": "Top Arabic Trends",
+      "count": "{n} topics",
+      "empty": "No trends data yet"
+    },
+    "pagination": {
+      "prev": "← Prev",
+      "next": "Next →",
+      "pageOf": "Page {page} of {pages}"
+    }
   }
 }

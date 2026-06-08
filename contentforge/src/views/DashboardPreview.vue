@@ -1,4 +1,4 @@
-<!-- Dashboard Preview -->
+<!-- DashboardPreview.vue-->
 <template>
   <AppLayout>
     <div class="flex flex-col h-full">
@@ -921,7 +921,7 @@
           <div class="grid grid-cols-2 gap-3">
             <div>
               <label class="text-xs theme-sub mb-1.5 block">{{
-                t("dashboard.dialect")
+                t("dashboard.dialectLabel")
               }}</label>
               <select
                 v-model="selectedDialect"

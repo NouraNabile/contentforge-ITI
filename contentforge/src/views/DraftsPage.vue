@@ -1,4 +1,4 @@
-<!-- Drafts Page -->
+<!-- DraftsPage.vue -->
 <template>
   <AppLayout>
     <div class="p-7">

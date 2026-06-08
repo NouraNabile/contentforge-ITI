@@ -8,8 +8,8 @@ const userSchema = new mongoose.Schema({
   email:      { type: String, required: true, unique: true, lowercase: true },
   password:   { type: String, required: true, minlength: 6 },
  // الخانات الجديدة لفترة التجربة
-  plan: { type: String, enum: ['free','starter','growth','agency'], default: 'free' },
-  isVerified: { type: Boolean, default: false },
+  plan: { type: String, enum: ['free','starter','growth','agency','enterprise'], default: 'free' },
+  isVerified: { type: Boolean, default: false },// الميل حقيقي
   verificationCode: String,
   verificationCodeExpires: Date,
 
@@ -37,8 +37,11 @@ const userSchema = new mongoose.Schema({
   },
   hasUsedTrial: {
     type: Boolean,
-    default: true // بيبقى true علطول لأنه بدأ الـ Trial بتاعته فعلياً بمجرد التسجيل
-  }
+    default: true
+  },
+  isAdmin:   { type: Boolean, default: false },
+  isBlocked: { type: Boolean, default: false },
+  lastLoginAt: { type: Date }
 }, { timestamps: true })
 
 userSchema.pre('save', async function(next) {
@@ -69,6 +72,8 @@ const brandSchema = new mongoose.Schema({
     content:   String,
     embedding: [Number],
     source:    { type: String, enum: ['guidelines','past_posts'] },
+    isAdmin:   { type: Boolean, default: false },
+    isBlocked: { type: Boolean, default: false },
   }],
 }, { timestamps: true })
 const Brand = mongoose.model('Brand', brandSchema)

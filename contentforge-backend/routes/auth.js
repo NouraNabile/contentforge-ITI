@@ -101,6 +101,11 @@ router.post('/login', async (req, res) => {
   if (!user.isVerified)
     return res.status(403).json({ message: 'Please verify your email first' });
 
+  if (user.isBlocked)
+  return res.status(403).json({ message: 'Your account has been blocked. Please contact support.' });
+
+  user.lastLoginAt = new Date()   // ← add this
+  await user.save()
   const token = signToken(user._id);
 
   res.json({
@@ -109,7 +114,8 @@ router.post('/login', async (req, res) => {
       id: user._id,
       name: user.name,
       email: user.email,
-      plan: user.plan
+      plan: user.plan,
+      isAdmin: user.isAdmin
     }
   });
 });
@@ -128,7 +134,8 @@ router.post('/demo', async (req, res) => {
     let user = await User.findOne({ email: demoEmail });
 
     if (!user) {
-      const trialEndsAt = new Date(Date.now() + 14 * 24 * 60 * 60 * 1000);
+      const trialEndsAt = new Date();
+      trialEndsAt.setDate(trialEndsAt.getDate() + 14);
 
       user = await User.create({
         name: "Demo User",

@@ -43,6 +43,12 @@ const postsApi = {
     return await api.patch(`/posts/${postId}/schedule`, { scheduledAt });
   },
 
+  // ── Get ALL posts for a brand (all statuses) ────────────────────────────────
+  // GET /api/posts/all/:brandId
+  async getAllPosts(brandId) {
+    return await api.get(`/posts/all/${brandId}`);
+  },
+  
   // ── Get all drafts for a brand ──────────────────────────────────────────────
   // GET /api/posts/drafts/:brandId
   async getDrafts(brandId) {
@@ -66,6 +72,14 @@ const postsApi = {
   // Body: { date: ISO date string }
   async updateDate(postId, date) {
     return await api.patch(`/posts/${postId}/date`, { date });
+  },
+
+  // ── Generate AI image for a post ───────────────────────────────────────────
+  // POST /api/posts/:id/generate-image
+  // Gemini builds a unique prompt → FLUX generates the image → saved in DB
+  // Returns: { imageUrl, imagePrompt }
+  async generateImage(postId) {
+    return await api.post(`/posts/${postId}/generate-image`);
   },
 
   // ── Publish to Facebook ───────────────────────────────────────────────────

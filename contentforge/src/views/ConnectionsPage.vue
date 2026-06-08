@@ -1,3 +1,4 @@
+<!-- ConnectionsPage.vue -->
 <template>
   <AppLayout>
     <div class="p-7 max-w-4xl mx-auto">
@@ -11,6 +12,7 @@
       </div>
 
       <!-- ───── SOCIAL PLATFORMS TAB ───── -->
+      <div v-if="activeTab === 'Social Platforms'">
       <div v-if="activeTab === 'Social Platforms'">
         <div class="grid md:grid-cols-2 gap-4">
           <div

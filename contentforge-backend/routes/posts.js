@@ -2,7 +2,7 @@
 const express = require("express");
 const router = express.Router();
 const protect = require("../middleware/auth");
-const { Post } = require("../models");
+const { Post, Brand } = require("../models");
 const { generateVariantB } = require("../services/geminiService");
 
 const { Connection } = require("../models");
@@ -81,6 +81,8 @@ router.get("/stats/instagram", protect, async (req, res) => {
     res.status(500).json({ message: "Failed to fetch Instagram stats" });
   }
 });
+const { generatePostImage } = require("../services/imageService");
+
 // PATCH /api/posts/:id/status
 router.patch("/:id/status", protect, async (req, res) => {
   const { status } = req.body;
@@ -206,6 +208,14 @@ router.patch("/:id/schedule", protect, async (req, res) => {
   }
 });
 
+// GET /api/posts/all/:brandId — all posts (all statuses) for Posts Manager page
+router.get("/all/:brandId", protect, async (req, res) => {
+  const posts = await Post.find({ brand: req.params.brandId }).sort(
+    "-createdAt",
+  );
+  res.json(posts);
+});
+
 // GET /api/posts/drafts/:brandId
 router.get("/drafts/:brandId", protect, async (req, res) => {
   const drafts = await Post.find({
@@ -233,6 +243,61 @@ router.patch("/:id/date", protect, async (req, res) => {
   );
   if (!post) return res.status(404).json({ message: "Post not found" });
   res.json(post);
+});
+
+// POST /api/posts/:id/generate-image ─────────────────────────────────────────
+// 1. Gemini يبني image prompt مخصص للبوست
+// 2. Hugging Face FLUX يولد الصورة
+// 3. بتتحفظ في MongoDB وبترجع للـ frontend
+router.post("/:id/generate-image", protect, async (req, res) => {
+  try {
+    const post = await Post.findById(req.params.id);
+    if (!post) return res.status(404).json({ message: "Post not found" });
+
+    const brand = await Brand.findById(post.brand);
+    if (!brand) return res.status(404).json({ message: "Brand not found" });
+
+    const isRegenerate = !!post.imageUrl; // لو عنده صورة قديمة = regenerate
+
+    console.log(
+      `[Posts] ${isRegenerate ? "Regenerating" : "Generating"} image for post ${post._id} (${post.platform})`,
+    );
+
+    // لو regenerate — امسح الـ prompt القديم عشان Gemini يعمل واحد جديد مختلف
+    if (isRegenerate) {
+      post.imagePrompt = null;
+    }
+
+    const { imagePrompt, imageUrl } = await generatePostImage({
+      post,
+      brand,
+      regenerate: isRegenerate, // بنبعته للـ service عشان يغير الـ seed
+    });
+
+    if (!imageUrl) {
+      return res.status(503).json({
+        message: "Image generation not available — set HF_API_TOKEN in .env",
+      });
+    }
+
+    post.imagePrompt = imagePrompt;
+    post.imageUrl = imageUrl;
+    await post.save();
+
+    res.json({
+      message: isRegenerate
+        ? "Image regenerated successfully"
+        : "Image generated successfully",
+      imageUrl,
+      imagePrompt,
+      regenerated: isRegenerate,
+    });
+  } catch (err) {
+    console.error("[Posts] Image generation error:", err.message);
+    res
+      .status(500)
+      .json({ message: "Image generation failed: " + err.message });
+  }
 });
 
 // ________________________Platform Connection___________________________

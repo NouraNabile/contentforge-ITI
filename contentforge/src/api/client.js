@@ -18,7 +18,7 @@ const BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000/api'
 // ── Create the axios instance ─────────────────────────────────────────────────
 const api = axios.create({
   baseURL: BASE_URL,
-  timeout: 30000,          // 30 seconds — AI generation can be slow
+  timeout: 60000,          // 60 seconds — AI generation can be slow
   headers: {
     'Content-Type': 'application/json',
   },
@@ -27,7 +27,7 @@ const api = axios.create({
 // ── REQUEST interceptor — attach JWT token automatically ──────────────────────
 api.interceptors.request.use(
   (config) => {
-    const token = localStorage.getItem('cf_token')
+    const token = localStorage.getItem('cf_token') || localStorage.getItem('auth_token')
     if (token) {
       config.headers.Authorization = `Bearer ${token}`
     }

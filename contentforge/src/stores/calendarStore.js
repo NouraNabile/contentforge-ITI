@@ -2,6 +2,7 @@
 import { defineStore } from 'pinia'
 import { ref } from 'vue'
 import { calendarApi, postsApi } from '../api'
+import i18n from '../locales/i18n.js'
 
 export const useCalendarStore = defineStore('calendar', () => {
 
@@ -112,7 +113,7 @@ export const useCalendarStore = defineStore('calendar', () => {
       // 4. Revert both if server fails
       post.date = originalDate
       post.scheduledAt = originalDate
-      error.value = "Failed to save post placement. Reverting..."
+      error.value = i18n.global.t('dashboard.moveFailed')
       console.error(err)
     }
   }

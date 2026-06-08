@@ -401,7 +401,7 @@ async function callHuggingFace(prompt, width, height) {
   const response = await fetch(HF_URL, {
     method: "POST",
     headers: {
-      Authorization: `Bearer ${HF_TOKEN}`,
+      'Authorization': `Bearer ${HF_TOKEN}`,
       "Content-Type": "application/json",
     },
     body: JSON.stringify({

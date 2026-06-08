@@ -18,7 +18,7 @@ const BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000/api'
 // ── Create the axios instance ─────────────────────────────────────────────────
 const api = axios.create({
   baseURL: BASE_URL,
-  timeout: 30000,          // 30 seconds — AI generation can be slow
+  timeout: 60000,          // 60 seconds — AI generation can be slow
   headers: {
     'Content-Type': 'application/json',
   },

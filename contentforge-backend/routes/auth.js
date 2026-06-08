@@ -101,6 +101,9 @@ router.post('/login', async (req, res) => {
   if (!user.isVerified)
     return res.status(403).json({ message: 'Please verify your email first' });
 
+  if (user.isBlocked)
+  return res.status(403).json({ message: 'Your account has been blocked. Please contact support.' });
+
   user.lastLoginAt = new Date()   // ← add this
   await user.save()
   const token = signToken(user._id);

@@ -1,4 +1,3 @@
-<!-- HowItWorks.vue -->
 <template>
   <section id="how-it-works" class="py-24 bg-forge-950 relative overflow-hidden">
 
@@ -8,8 +7,9 @@
 
       <!-- Section header -->
       <div class="text-center mb-16">
-        <span class="text-xs font-medium text-blue-400 uppercase tracking-widest mb-4 block">{{ t('howItWorks.eyebrow')
-          }}</span>
+        <span class="text-xs font-medium text-blue-400 uppercase tracking-widest mb-4 block">
+          {{ t('howItWorks.eyebrow') }}
+        </span>
         <h2 class="font-display text-4xl md:text-5xl font-700 text-white mb-4">
           {{ t('howItWorks.heading') }}<br />
           <span class="text-gradient-blue">{{ t('howItWorks.headingAccent') }}</span>
@@ -17,21 +17,20 @@
         <p class="text-slate-400 max-w-xl mx-auto">
           {{ t('howItWorks.subheading') }}
         </p>
-
       </div>
 
-      <!-- Step connector line (desktop) -->
-      <div
-        class="hidden md:block absolute left-1/2 top-[380px] bottom-24 w-px bg-gradient-to-b from-blue-500/30 via-teal-500/20 to-transparent -translate-x-1/2 z-0">
-      </div>
+      <!-- Step connector line — desktop only -->
+      <div class="hidden md:block absolute left-1/2 top-[380px] bottom-24 w-px bg-gradient-to-b from-blue-500/30 via-teal-500/20 to-transparent -translate-x-1/2 z-0"></div>
 
       <!-- Steps -->
-      <div class="space-y-6">
-        <div v-for="(step, i) in steps" :key="step.number" class="relative flex flex-col md:flex-row items-center gap-8"
+      <div class="space-y-8 md:space-y-6">
+        <div
+          v-for="(step, i) in steps" :key="step.number"
+          class="relative flex flex-col md:flex-row items-center gap-6 md:gap-8"
           :class="i % 2 === 1 ? 'md:flex-row-reverse' : ''">
 
           <!-- Step content -->
-          <div class="flex-1 max-w-md">
+          <div class="flex-1 max-w-md w-full">
             <div class="flex items-center gap-3 mb-4">
               <div
                 class="w-8 h-8 rounded-full border flex items-center justify-center text-xs font-bold font-display shrink-0"
@@ -40,27 +39,29 @@
               </div>
               <span class="text-xs text-slate-500 uppercase tracking-wider">Step {{ step.number }}</span>
             </div>
-            <h3 class="font-display text-2xl font-600 text-white mb-3">{{ t(`howItWorks.steps.${step.key}.title`) }}
+            <h3 class="font-display text-xl md:text-2xl font-600 text-white mb-3">
+              {{ t(`howItWorks.steps.${step.key}.title`) }}
             </h3>
-            <p class="text-slate-400 leading-relaxed mb-4">{{ t(`howItWorks.steps.${step.key}.description`) }}</p>
+            <p class="text-slate-400 leading-relaxed mb-4 text-sm md:text-base">
+              {{ t(`howItWorks.steps.${step.key}.description`) }}
+            </p>
             <ul class="space-y-2">
               <li v-for="n in 3" :key="n" class="flex items-start gap-2 text-sm text-slate-400">
-                <svg class="w-4 h-4 text-teal-400 mt-0.5 shrink-0" fill="none" viewBox="0 0 24 24"
-                  stroke="currentColor">
+                <svg class="w-4 h-4 text-teal-400 mt-0.5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
                 </svg>
                 {{ t(`howItWorks.steps.${step.key}.b${n}`) }}
               </li>
             </ul>
-
           </div>
 
           <!-- Step visual card -->
           <div class="flex-1 max-w-md w-full">
-            <div class="rounded-2xl border-subtle p-5 bg-forge-900" :class="step.cardGlow">
+            <div class="rounded-2xl border-subtle p-4 md:p-5 bg-forge-900" :class="step.cardGlow">
               <component :is="step.visual" />
             </div>
           </div>
+
         </div>
       </div>
     </div>

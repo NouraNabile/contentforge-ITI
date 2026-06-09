@@ -1134,7 +1134,12 @@
     "cancelMsg": "No worries — your current plan is unchanged. Upgrade anytime.",
     "tryAgain": "View Plans",
     "goToDashboard": "Go to Dashboard",
-    "errorGeneric": "Something went wrong. Please try again."
+    "errorGeneric": "Something went wrong. Please try again.",
+    "noCharge": "No charge made",
+    "dataSecure": "Your data is safe",
+    "tryAgainAnytime": "Try again anytime",
+    "needHelp": "Having trouble?",
+    "contactSupport": "Contact support"
   },
   "contact": {
     "badge": "Get in touch",

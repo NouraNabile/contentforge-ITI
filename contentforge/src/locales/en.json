@@ -71,7 +71,14 @@
       "pro": "Pro",
       "enterprise": "Enterprise"
     },
-    "errorTokenMissing": "Login succeeded but token was not saved. Please try again."
+    "errorTokenMissing": "Login succeeded but token was not saved. Please try again.",
+    "leftHeadline": "Create content that",
+    "leftAccent": "resonates in Arabic",
+    "leftSub": "AI-powered content calendar built for MENA brands. Generate, schedule, and publish in your dialect.",
+    "feature1": "AI generation in Egyptian, Gulf & Levantine Arabic",
+    "feature2": "2-week calendar generated in under 30 seconds",
+    "feature3": "Brand vault — your voice, always consistent",
+    "tryDemo": "Try demo account"
   },
   "trial": {
     "badge": "Trial Expired",

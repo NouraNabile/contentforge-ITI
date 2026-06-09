@@ -51,6 +51,7 @@ app.use("/api/chat", chatRoutes);
 app.use("/api/admin", require("./routes/admin"));
 app.use("/api/stats", require("./routes/stats"));
 app.use("/api/payment", require("./routes/payment"));
+app.use("/api/top-posts", require("./routes/topPosts"));
 
 // ── Health check — frontend pings this to check if server is up ───────────────
 app.get("/api/health", (req, res) => {

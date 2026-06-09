@@ -458,8 +458,7 @@
         "title": "مقارنة بـ PostFlex AI",
         "desc": "PostFlex AI يحتوي على جدولة محدودة وقوالب أقل. ContentForge يقدم استراتيجية أسبوعين كاملة مدعومة بالذكاء الاصطناعي مع وعي بالتوجهات الثقافية."
       }
-    },
-    "scrollHint": "اسحب للمقارنة"
+    }
   },
   "common": {
     "cancel": "إلغاء",
@@ -522,7 +521,7 @@
     "embedded": "مُضمَّن",
     "engagementPlaceholder": "التفاعل (مثل: 2.4K إعجاب)",
     "postContentPlaceholder": "الصق محتوى المنشور #{n} هنا...",
-    "addPost": "+ إضافة منشور",
+    "addPost": "إضافة منشور",
     "embedRAG": "تضمين في RAG",
     "ragStatus": "حالة مسار RAG",
     "postsEmbedded": "المنشورات المُضمَّنة",
@@ -558,7 +557,44 @@
       "levantine": "العربية (شامي)",
       "english": "الإنجليزية",
       "bilingual": "ثنائي اللغة"
-    }
+    },
+    "tpEmpty": "لا توجد منشورات بعد. أضف أفضل منشوراتك لتحسين توليد المحتوى.",
+    "tpAddFirst": "+ أضف أول منشور",
+    "tpAddTitle": "إضافة منشور متميز",
+    "tpModeManual": "يدوي",
+    "tpModeLink": "من رابط",
+    "tpModeDoc": "من ملف",
+    "tpLinkPlaceholder": "https://instagram.com/p/...",
+    "tpLinkHint": "سنجلب محتوى المنشور. أدخل الإحصائيات يدوياً.",
+    "tpLinkError": "تعذّر جلب الرابط. حاول الإدخال اليدوي.",
+    "tpDocDrop": "اضغط لرفع PDF أو Word أو صورة",
+    "tpExtract": "استخراج بالذكاء الاصطناعي",
+    "tpExtracting": "جارٍ الاستخراج…",
+    "tpDocError": "تعذّر استخراج البيانات من الملف.",
+    "tpFetch": "جلب",
+    "tpPlatform": "المنصة",
+    "tpDate": "التاريخ",
+    "tpContent": "نص المنشور",
+    "tpContentPlaceholder": "الصق نص المنشور هنا…",
+    "tpPostUrl": "رابط المنشور (اختياري)",
+    "tpPostUrlPlaceholder": "https://...",
+    "tpStats": "إحصائيات التفاعل",
+    "tpSavePost": "حفظ المنشور",
+    "tpEmbedDone": "تم تضمين {count} منشور في RAG ✓",
+    "tpContentRequired": "النص أو الرابط مطلوب.",
+    "statLikes": "الإعجابات",
+    "statComments": "التعليقات",
+    "statShares": "المشاركات",
+    "statReach": "الوصول",
+    "statSaves": "الحفظ",
+    "statEngagement": "نسبة التفاعل",
+    "avgEngagement": "متوسط التفاعل",
+    "totalPosts": "إجمالي المنشورات",
+    "embedding": "جارٍ التضمين…",
+    "uploadingPdf": "جاري رفع الـ PDF…",
+    "pdfUploaded": "تم رفع الـ PDF بنجاح ✓",
+    "pdfError": "فشل رفع الـ PDF",
+    "saveBrandFirst": "من فضلك احفظ الـ Brand أولاً"
   },
   "landing": {
     "cta": {

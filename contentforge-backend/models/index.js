@@ -155,4 +155,26 @@ const chatMessageSchema = new mongoose.Schema({
 
 const ChatMessage = mongoose.model('ChatMessage', chatMessageSchema)
 
-module.exports = { User, Brand, Post, Calendar, Trend, ChatMessage, OriginalCalendar }
+// ── TopPost ───────────────────────────────────────────────────────────────────
+const TopPostSchema = new mongoose.Schema({
+  brand:    { type: mongoose.Schema.Types.ObjectId, ref: 'Brand', required: true },
+  platform: { type: String, enum: ['Instagram','Facebook','LinkedIn','Twitter/X','TikTok'] },
+  content:  { type: String },
+  imageUrl: { type: String },
+  postUrl:  { type: String },
+  date:     { type: String },
+  stats: {
+    likes:       { type: Number, default: 0 },
+    comments:    { type: Number, default: 0 },
+    shares:      { type: Number, default: 0 },
+    reach:       { type: Number, default: 0 },
+    saves:       { type: Number, default: 0 },
+    engagementRate: { type: Number, default: 0 },
+  },
+  source:   { type: String, enum: ['manual','link','doc'], default: 'manual' },
+  embedded: { type: Boolean, default: false },
+}, { timestamps: true })
+
+const TopPost = mongoose.model('TopPost', TopPostSchema)
+
+module.exports = { User, Brand, Post, Calendar, Trend, ChatMessage, OriginalCalendar, TopPost }

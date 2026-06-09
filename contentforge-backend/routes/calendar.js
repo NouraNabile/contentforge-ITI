@@ -1,28 +1,36 @@
 // backend/routes/calendar.js
-const express = require('express')
-const router = express.Router()
-const protect = require('../middleware/auth')
+const express = require("express");
+const router = express.Router();
+const protect = require("../middleware/auth");
 const { Trend } = require("../models");
-const { Brand, Calendar, Post, OriginalCalendar } = require('../models')
-const { generateCalendar, generateVariantB } = require('../services/geminiService')
-const { retrieveRelevantChunks } = require('../services/embeddingService')
+const { Brand, Calendar, Post, OriginalCalendar } = require("../models");
+const {
+  generateCalendar,
+  generateVariantB,
+} = require("../services/geminiService");
+const { retrieveRelevantChunks } = require("../services/embeddingService");
 
 // POST /api/calendar/generate
-router.post('/generate', protect, async (req, res) => {
-  const { brandId, brief, dialect, platforms, startDate,
-    endDate,
-    duration } = req.body
+router.post("/generate", protect, async (req, res) => {
+  const { brandId, brief, dialect, platforms, startDate, endDate, duration } =
+    req.body;
 
-  console.log(req.body)
+  console.log(req.body);
 
   if (!brandId || !brief)
-    return res.status(400).json({ message: 'brandId and brief are required' })
+    return res.status(400).json({ message: "brandId and brief are required" });
 
-  const brand = await Brand.findById(brandId)
-  if (!brand) return res.status(404).json({ message: 'Brand not found' })
+  const brand = await Brand.findById(brandId);
+  if (!brand) return res.status(404).json({ message: "Brand not found" });
 
   // 1. Retrieve relevant RAG chunks
-  const chunks = await retrieveRelevantChunks(brandId, brief)
+  const chunks = await retrieveRelevantChunks(brandId, brief);
+
+  // 1b. Fetch top posts if the brand has any (not required)
+  const { TopPost } = require("../models");
+  const topPosts = await TopPost.find({ brand: brandId })
+    .sort("-stats.engagementRate")
+    .limit(5);
 
   // 2. Live trends (hardcoded for demo — replace with trendService scraper)
   // const trends = ['#رمضان_كريم', '#قهوة_الصباح', 'Cold brew Egypt 2026', '#سحور']
@@ -44,91 +52,102 @@ router.post('/generate', protect, async (req, res) => {
   let postsData;
   try {
     postsData = await generateCalendar({
-      brief, brand, trends,
-      dialect: dialect || brand.dialects[0] || 'Egyptian Arabic',
+      brief,
+      brand,
+      trends,
+      dialect: dialect || brand.dialects[0] || "Egyptian Arabic",
       platforms: platforms || brand.platforms,
-      brandContext: chunks.join('\n\n'),
+      brandContext: chunks.join("\n\n"),
+      topPosts,
       startDate,
-      endDate,   
-      duration
+      endDate,
+      duration,
     });
   } catch (err) {
     return res.status(503).json({
       message:
-        'AI service is temporarily busy. Please try again in a few moments.',
+        "AI service is temporarily busy. Please try again in a few moments.",
     });
   }
 
   // 4. Create calendar document
   const calendar = await Calendar.create({
-    brand: brandId, user: req.user._id,
+    brand: brandId,
+    user: req.user._id,
     title: brief.slice(0, 60),
-    brief, dialect,
+    brief,
+    dialect,
     platforms: platforms || brand.platforms,
     startDate: startDate ? new Date(startDate) : new Date(),
-    endDate: endDate ? new Date(endDate) : new Date(Date.now() + 14 * 24 * 60 * 60 * 1000),
+    endDate: endDate
+      ? new Date(endDate)
+      : new Date(Date.now() + 14 * 24 * 60 * 60 * 1000),
     trendsUsed: trends,
-    status: 'ready',
-  })
+    status: "ready",
+  });
 
   // 5. Save each post
   const posts = await Post.insertMany(
-    postsData.map(p => ({ ...p, brand: brandId, calendar: calendar._id }))
-  )
+    postsData.map((p) => ({ ...p, brand: brandId, calendar: calendar._id })),
+  );
 
   // 6. Link posts to calendar
-  calendar.posts = posts.map(p => p._id)
-  await calendar.save()
+  calendar.posts = posts.map((p) => p._id);
+  await calendar.save();
 
   try {
     await OriginalCalendar.create({
       calendarId: calendar._id,
       originalCalendarData: calendar.toObject(),
-      originalPostsData: posts.map(p => p.toObject())
-    })
+      originalPostsData: posts.map((p) => p.toObject()),
+    });
   } catch (err) {
-    console.error("Failed to snapshot original calendar state:", err)
+    console.error("Failed to snapshot original calendar state:", err);
   }
 
-  res.json({ calendar, posts })
-})
+  res.json({ calendar, posts });
+});
 
 // GET /api/calendar/brand/:brandId — all calendars for a brand
-router.get('/brand/:brandId', protect, async (req, res) => {
-  const calendars = await Calendar.find({ brand: req.params.brandId }).sort('-createdAt')
-  res.json(calendars)
-})
+router.get("/brand/:brandId", protect, async (req, res) => {
+  const calendars = await Calendar.find({ brand: req.params.brandId }).sort(
+    "-createdAt",
+  );
+  res.json(calendars);
+});
 
 // GET /api/calendar/:id — single calendar with posts
-router.get('/:id', protect, async (req, res) => {
-  const calendar = await Calendar.findById(req.params.id).populate('posts')
-  if (!calendar) return res.status(404).json({ message: 'Calendar not found' })
-  res.json(calendar)
-})
+router.get("/:id", protect, async (req, res) => {
+  const calendar = await Calendar.findById(req.params.id).populate("posts");
+  if (!calendar) return res.status(404).json({ message: "Calendar not found" });
+  res.json(calendar);
+});
 
 // POST /api/calendar/:id/approve — approve all posts
-router.post('/:id/approve', protect, async (req, res) => {
-  const calendar = await Calendar.findById(req.params.id)
-  if (!calendar) return res.status(404).json({ message: 'Calendar not found' })
+router.post("/:id/approve", protect, async (req, res) => {
+  const calendar = await Calendar.findById(req.params.id);
+  if (!calendar) return res.status(404).json({ message: "Calendar not found" });
 
   await Post.updateMany(
-    { calendar: calendar._id, status: { $in: ['draft', 'pending_review'] } },
-    { status: 'approved' }
-  )
-  calendar.status = 'approved'
-  await calendar.save()
-  res.json({ message: 'All posts approved' })
-})
+    { calendar: calendar._id, status: { $in: ["draft", "pending_review"] } },
+    { status: "approved" },
+  );
+  calendar.status = "approved";
+  await calendar.save();
+  res.json({ message: "All posts approved" });
+});
 
 // POST /api/calendar/:id/reset
-router.post('/:id/reset', protect, async (req, res) => {
+router.post("/:id/reset", protect, async (req, res) => {
   try {
-    const calendarId = req.params.id
+    const calendarId = req.params.id;
 
     // Find the saved untouched snapshot
-    const snapshot = await OriginalCalendar.findOne({ calendarId })
+    const snapshot = await OriginalCalendar.findOne({ calendarId });
     if (!snapshot) {
-      return res.status(404).json({ message: 'Original snapshot not found for this calendar' })
+      return res
+        .status(404)
+        .json({ message: "Original snapshot not found for this calendar" });
     }
 
     // 1. Revert and rewrite all actual posts using snapshot info
@@ -139,15 +158,15 @@ router.post('/:id/reset', protect, async (req, res) => {
           copyAR: originalPost.copyAR,
           copyEN: originalPost.copyEN,
           hashtags: originalPost.hashtags,
-          status: originalPost.status || 'draft',
+          status: originalPost.status || "draft",
           scheduledAt: originalPost.scheduledAt,
           date: originalPost.date,
           platform: originalPost.platform,
           imagePrompt: originalPost.imagePrompt,
-          goal: originalPost.goal
+          goal: originalPost.goal,
         },
-        { new: true }
-      )
+        { new: true },
+      );
     }
 
     // 2. Restore array positioning or any core metadata traits in the real Calendar document
@@ -155,36 +174,42 @@ router.post('/:id/reset', protect, async (req, res) => {
       calendarId,
       {
         posts: snapshot.originalCalendarData.posts,
-        status: snapshot.originalCalendarData.status || 'draft'
+        status: snapshot.originalCalendarData.status || "draft",
       },
-      { new: true }
-    ).populate('posts')
+      { new: true },
+    ).populate("posts");
 
-    res.json(updatedCalendar)
+    res.json(updatedCalendar);
   } catch (error) {
-    console.error('Error resetting calendar:', error)
-    res.status(500).json({ message: 'Server error while resetting calendar structure' })
+    console.error("Error resetting calendar:", error);
+    res
+      .status(500)
+      .json({ message: "Server error while resetting calendar structure" });
   }
-})
+});
 
-router.delete('/:id', protect, async (req, res) => {
+router.delete("/:id", protect, async (req, res) => {
   try {
-    const calendarId = req.params.id
+    const calendarId = req.params.id;
 
-    const calendar = await Calendar.findById(calendarId)
+    const calendar = await Calendar.findById(calendarId);
     if (!calendar) {
-      return res.status(404).json({ message: 'Calendar not found' })
+      return res.status(404).json({ message: "Calendar not found" });
     }
 
-    await Post.deleteMany({ calendar: calendarId })            
-    await OriginalCalendar.deleteOne({ calendarId })         
-    await Calendar.findByIdAndDelete(calendarId)              
+    await Post.deleteMany({ calendar: calendarId });
+    await OriginalCalendar.deleteOne({ calendarId });
+    await Calendar.findByIdAndDelete(calendarId);
 
-    res.json({ message: 'Calendar, posts, and snapshots deleted successfully' })
+    res.json({
+      message: "Calendar, posts, and snapshots deleted successfully",
+    });
   } catch (error) {
-    console.error('Error deleting calendar assets:', error)
-    res.status(500).json({ message: 'Server error while deleting calendar assets' })
+    console.error("Error deleting calendar assets:", error);
+    res
+      .status(500)
+      .json({ message: "Server error while deleting calendar assets" });
   }
-})
+});
 
-module.exports = router
+module.exports = router;

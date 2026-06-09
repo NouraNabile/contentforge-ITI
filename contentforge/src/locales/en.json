@@ -476,8 +476,7 @@
         "title": "vs. PostFlex AI",
         "desc": "PostFlex AI has limited scheduling and fewer templates. ContentForge delivers a complete AI-generated 2-week strategy with live cultural trend awareness."
       }
-    },
-    "scrollHint": "Swipe to compare"
+    }
   },
   "branding": {
     "title": "Brand Vault",
@@ -522,7 +521,7 @@
     "embedded": "Embedded",
     "engagementPlaceholder": "Engagement (e.g. 2.4K likes)",
     "postContentPlaceholder": "Paste post #{n} content here...",
-    "addPost": "+ Add Post",
+    "addPost": "Add Post",
     "embedRAG": "Embed in RAG",
     "ragStatus": "RAG Pipeline Status",
     "postsEmbedded": "Posts Embedded",
@@ -558,7 +557,44 @@
       "levantine": "Levantine Arabic",
       "english": "English",
       "bilingual": "Bilingual"
-    }
+    },
+    "tpEmpty": "No top posts yet. Add your best performing posts to improve AI generation.",
+    "tpAddFirst": "+ Add your first post",
+    "tpAddTitle": "Add Top Performing Post",
+    "tpModeManual": "Manual",
+    "tpModeLink": "From Link",
+    "tpModeDoc": "From File",
+    "tpLinkPlaceholder": "https://instagram.com/p/...",
+    "tpLinkHint": "We'll fetch the post content. Fill in the stats manually.",
+    "tpLinkError": "Couldn't fetch the link. Try manual entry.",
+    "tpDocDrop": "Click to upload PDF, Word, or screenshot",
+    "tpExtract": "Extract with AI",
+    "tpExtracting": "Extracting…",
+    "tpDocError": "Couldn't extract data from file.",
+    "tpFetch": "Fetch",
+    "tpPlatform": "Platform",
+    "tpDate": "Date",
+    "tpContent": "Post Content",
+    "tpContentPlaceholder": "Paste the post text here…",
+    "tpPostUrl": "Post URL (optional)",
+    "tpPostUrlPlaceholder": "https://...",
+    "tpStats": "Engagement Stats",
+    "tpSavePost": "Save Post",
+    "tpEmbedDone": "{count} posts embedded in RAG ✓",
+    "tpContentRequired": "Content or URL is required.",
+    "statLikes": "Likes",
+    "statComments": "Comments",
+    "statShares": "Shares",
+    "statReach": "Reach",
+    "statSaves": "Saves",
+    "statEngagement": "Eng. Rate",
+    "avgEngagement": "Avg. Engagement",
+    "totalPosts": "Total Posts",
+    "embedding": "Embedding…",
+    "uploadingPdf": "Uploading PDF…",
+    "pdfUploaded": "PDF uploaded successfully ✓",
+    "pdfError": "Failed to upload PDF",
+    "saveBrandFirst": "Please save your brand first"
   },
   "landing": {
     "cta": {

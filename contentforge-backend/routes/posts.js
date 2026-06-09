@@ -66,7 +66,17 @@ router.post("/:id/variant-b", protect, async (req, res) => {
   const post = await Post.findById(req.params.id).populate("brand");
   if (!post) return res.status(404).json({ message: "Post not found" });
 
-  const variantB = await generateVariantB({ post, brand: post.brand });
+  // جلب top posts للـ brand لو موجودة (not required)
+  const { TopPost } = require("../models");
+  const topPosts = await TopPost.find({ brand: post.brand._id })
+    .sort("-stats.engagementRate")
+    .limit(3);
+
+  const variantB = await generateVariantB({
+    post,
+    brand: post.brand,
+    topPosts,
+  });
   post.variantB = variantB;
   await post.save();
   res.json(variantB);

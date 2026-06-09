@@ -27,24 +27,20 @@ router.get("/stats/facebook", protect, async (req, res) => {
 
     const { data } = await axios.get(`${BASE_URL}/${conn.pageId}`, {
       params: {
-        fields:
-          "name,fan_count,posts.limit(5){message,created_time,likes.summary(true),comments.summary(true)}",
+        fields: "name,fan_count,feed.limit(1).summary(true)",
         access_token: conn.accessToken,
       },
     });
 
+    console.log("[Facebook Stats] raw:", JSON.stringify(data));
+
     res.json({
       pageName: data.name,
       followers: data.fan_count,
-      recentPosts:
-        data.posts?.data?.map((p) => ({
-          id: p.id,
-          message: p.message,
-          likes: p.likes?.summary?.total_count || 0,
-          comments: p.comments?.summary?.total_count || 0,
-        })) || [],
+      totalPosts: data.feed?.summary?.total_count ?? 0,
     });
   } catch (err) {
+    console.error("[Facebook Stats] error:", err.response?.data || err.message);
     res.status(500).json({ message: "Failed to fetch Facebook stats" });
   }
 });
@@ -301,7 +297,64 @@ router.post("/:id/generate-image", protect, async (req, res) => {
 });
 
 // ________________________Platform Connection___________________________
+// Instagram publish
+router.post("/:id/publish/instagram", protect, async (req, res) => {
+  try {
+    const post = await Post.findById(req.params.id);
+    if (!post) return res.status(404).json({ message: "Post not found" });
 
+    const conn = await getConnection(req.user._id, "Instagram");
+    if (!conn)
+      return res.status(400).json({ message: "Instagram not connected" });
+
+    if (!post.imageUrl) {
+      return res
+        .status(400)
+        .json({ message: "Instagram posts require an image" });
+    }
+
+    const caption =
+      (post.copyEN || post.copyAR || "") +
+      (post.hashtags?.length ? "\n\n" + post.hashtags.join(" ") : "");
+
+    // Step 1: Create container
+    const { data: container } = await axios.post(
+      `${BASE_URL}/${conn.igId}/media`,
+      null,
+      {
+        params: {
+          image_url: post.imageUrl,
+          caption,
+          access_token: conn.accessToken,
+        },
+      },
+    );
+
+    // Step 2: Publish
+    const { data: published } = await axios.post(
+      `${BASE_URL}/${conn.igId}/media_publish`,
+      null,
+      { params: { creation_id: container.id, access_token: conn.accessToken } },
+    );
+
+    post.status = "published";
+    post.publishedAt = new Date();
+    post.metaPostId = published.id;
+    await post.save();
+
+    res.json({ success: true, postId: published.id, platform: "Instagram" });
+  } catch (err) {
+    console.error(
+      "[Instagram Publish] Error:",
+      err.response?.data || err.message,
+    );
+    res.status(500).json({
+      message:
+        err.response?.data?.error?.message || "Failed to publish to Instagram",
+    });
+  }
+});
+// Facebook publish
 router.post("/:id/publish/facebook", protect, async (req, res) => {
   try {
     // 1. Get your internal post

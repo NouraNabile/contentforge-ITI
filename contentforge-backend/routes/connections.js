@@ -153,8 +153,7 @@ router.get("/meta/callback", async (req, res) => {
         `https://graph.facebook.com/${API_VERSION}/${page.id}`,
         {
           params: {
-            fields:
-              "name,fan_count,instagram_business_account{id,username,followers_count,media_count,biography}",
+      fields: "name,fan_count,feed.limit(1).summary(true),instagram_business_account{id,username,followers_count,media_count}",
             access_token: pageToken,
           },
         },
@@ -169,7 +168,10 @@ router.get("/meta/callback", async (req, res) => {
         tokenType: "page",
         connected: true,
         stats: [
-          { label: "Followers", value: (page.fan_count || 0).toLocaleString() },
+          { label: "Followers", value: page.fan_count || 0 },
+          {
+            label: "Posts",
+            value: igRes.data.feed?.summary?.total_count || 0 },
         ],
         rawData: { pageId: page.id, pageToken },
       });

@@ -1,26 +1,33 @@
 // backend/middleware/upload.js
 // ─────────────────────────────────────────────────────────────────────────────
 // Multer configuration for handling image uploads in the Poster Generator
-// Stores files temporarily in /uploads/posters/ for AI processing
 // ─────────────────────────────────────────────────────────────────────────────
 
 const multer = require("multer");
 const path = require("path");
 const fs = require("fs");
 
-// Ensure upload directory exists
+// ── Ensure upload directory exists (works on all OS) ─────────────────────────
 const uploadDir = path.join(__dirname, "..", "uploads", "posters");
-if (!fs.existsSync(uploadDir)) {
-  fs.mkdirSync(uploadDir, { recursive: true });
+
+function ensureDirExists(dirPath) {
+  if (!fs.existsSync(dirPath)) {
+    fs.mkdirSync(dirPath, { recursive: true });
+    console.log(`[Upload] Created directory: ${dirPath}`);
+  }
 }
+
+// Create directory on module load
+ensureDirExists(uploadDir);
 
 // ── Storage configuration ───────────────────────────────────────────────────
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
+    // Double-check directory exists before each upload (safety net)
+    ensureDirExists(uploadDir);
     cb(null, uploadDir);
   },
   filename: (req, file, cb) => {
-    // Unique filename: timestamp-random.ext
     const uniqueSuffix = Date.now() + "-" + Math.round(Math.random() * 1e9);
     const ext = path.extname(file.originalname).toLowerCase();
     cb(null, `poster-${uniqueSuffix}${ext}`);
@@ -55,7 +62,6 @@ const upload = multer({
 // ── Error handling wrapper ──────────────────────────────────────────────────
 function handleUploadError(err, req, res, next) {
   if (err instanceof multer.MulterError) {
-    // Multer-specific errors
     if (err.code === "LIMIT_FILE_SIZE") {
       return res.status(400).json({
         success: false,

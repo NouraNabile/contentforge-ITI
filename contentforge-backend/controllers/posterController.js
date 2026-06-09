@@ -45,7 +45,9 @@ async function createPoster(req, res) {
       });
     }
 
-    console.log(`[PosterController] Generating poster for: ${req.file.originalname}`);
+    console.log(
+      `[PosterController] Generating poster for: ${req.file.originalname}`,
+    );
     console.log(`[PosterController] Prompt: ${prompt.substring(0, 100)}...`);
 
     // ── Call service layer ──────────────────────────────────────────────────

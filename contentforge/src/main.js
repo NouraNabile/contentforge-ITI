@@ -11,6 +11,7 @@ import PostsManagerPage from './views/PostsManagerPage.vue'
 import BrandingPage from './views/BrandingPage.vue'
 import ChatPage from './views/ChatPage.vue'
 import ConnectionsPage from './views/ConnectionsPage.vue'
+import PosterGen from './views/PosterGenerator.vue'
 import LoginPage from './views/LoginPage.vue'
 import TrialExpiredPage from './views/TrialExpiredPage.vue'
 import PaymentPage from "./views/PaymentPage.vue";
@@ -52,6 +53,7 @@ const router = createRouter({
       component: ConnectionsPage,
       meta: { requiresAuth: true },
     },
+    { path: "/poster", component: PosterGen },
     { path: "/trial-expired", component: TrialExpiredPage },
     { path: "/payment", component: PaymentPage, meta: { requiresAuth: true } },
     {

@@ -1,4 +1,3 @@
-<
 <template>
   <AppLayout>
     <div class="p-7 max-w-4xl mx-auto">

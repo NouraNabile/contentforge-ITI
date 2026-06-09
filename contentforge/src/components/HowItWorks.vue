@@ -1,3 +1,4 @@
+<!-- HowItWorks.vue -->
 <template>
   <section id="how-it-works" class="py-24 bg-forge-950 relative overflow-hidden">
 

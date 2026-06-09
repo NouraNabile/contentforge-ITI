@@ -9,14 +9,16 @@
       "drafts": "إدارة المنشورات",
       "branding": "خزينة العلامة",
       "chat": "المحادثة الذكية",
-      "connections": "الاتصالات"
+      "connections": "الاتصالات",
+      "payment": "الفواتير"
     },
     "pageTitle": {
       "dashboard": "التقويم",
       "drafts": "إدارة المنشورات",
       "branding": "خزينة العلامة",
       "chat": "المحادثة الذكية",
-      "connections": "الاتصالات"
+      "connections": "الاتصالات",
+      "payment": "الفواتير والخطط"
     },
     "stats": {
       "generated": "المُولَّد",
@@ -33,7 +35,7 @@
     "welcomeBack": "مرحباً بعودتك",
     "subtitle": "سجّل دخولك إلى حساب ContentForge",
     "email": "البريد الإلكتروني",
-    "emailPlaceholder": "example@example.com",
+    "emailPlaceholder": "example{'@'}example.com",
     "password": "كلمة المرور",
     "passwordPlaceholder": "6 أحرف على الأقل",
     "forgotPassword": "نسيت كلمة المرور؟",
@@ -69,7 +71,15 @@
       "pro": "احترافي",
       "enterprise": "مؤسسي"
     },
-    "errorTokenMissing": "تم تسجيل الدخول ولكن لم يتم حفظ التوكن، يرجى المحاولة مرة أخرى."
+    "errorTokenMissing": "تم تسجيل الدخول ولكن لم يتم حفظ التوكن، يرجى المحاولة مرة أخرى.",
+    "leftHeadline": "أنشئ محتوى يصل",
+    "leftAccent": "إلى قلب جمهورك",
+    "leftSub": "تقويم محتوى مدعوم بالذكاء الاصطناعي مصمم خصيصاً للعلامات التجارية في منطقة الشرق الأوسط.",
+    "feature1": "توليد محتوى بالعامية المصرية والخليجية والشامية",
+    "feature2": "تقويم أسبوعين في أقل من 30 ثانية",
+    "feature3": "خزنة العلامة التجارية — صوتك دائماً متسق",
+    "tryDemo": "جرّب الحساب التجريبي",
+    "backHome": "الرئيسية"
   },
   "trial": {
     "badge": "انتهت التجربة",
@@ -272,7 +282,7 @@
       "username": "اسم المستخدم",
       "usernamePlaceholder": "@yourhandle",
       "email": "البريد الإلكتروني",
-      "emailPlaceholder": "you@email.com",
+      "emailPlaceholder": "you{'@'}email.com",
       "channelName": "اسم القناة",
       "channelNamePlaceholder": "اسم قناتك"
     }
@@ -449,7 +459,8 @@
         "title": "مقارنة بـ PostFlex AI",
         "desc": "PostFlex AI يحتوي على جدولة محدودة وقوالب أقل. ContentForge يقدم استراتيجية أسبوعين كاملة مدعومة بالذكاء الاصطناعي مع وعي بالتوجهات الثقافية."
       }
-    }
+    },
+    "scrollHint": "اسحب للمقارنة"
   },
   "common": {
     "cancel": "إلغاء",
@@ -512,7 +523,7 @@
     "embedded": "مُضمَّن",
     "engagementPlaceholder": "التفاعل (مثل: 2.4K إعجاب)",
     "postContentPlaceholder": "الصق محتوى المنشور #{n} هنا...",
-    "addPost": "+ إضافة منشور",
+    "addPost": "إضافة منشور",
     "embedRAG": "تضمين في RAG",
     "ragStatus": "حالة مسار RAG",
     "postsEmbedded": "المنشورات المُضمَّنة",
@@ -548,7 +559,44 @@
       "levantine": "العربية (شامي)",
       "english": "الإنجليزية",
       "bilingual": "ثنائي اللغة"
-    }
+    },
+    "tpEmpty": "لا توجد منشورات بعد. أضف أفضل منشوراتك لتحسين توليد المحتوى.",
+    "tpAddFirst": "+ أضف أول منشور",
+    "tpAddTitle": "إضافة منشور متميز",
+    "tpModeManual": "يدوي",
+    "tpModeLink": "من رابط",
+    "tpModeDoc": "من ملف",
+    "tpLinkPlaceholder": "https://instagram.com/p/...",
+    "tpLinkHint": "سنجلب محتوى المنشور. أدخل الإحصائيات يدوياً.",
+    "tpLinkError": "تعذّر جلب الرابط. حاول الإدخال اليدوي.",
+    "tpDocDrop": "اضغط لرفع PDF أو Word أو صورة",
+    "tpExtract": "استخراج بالذكاء الاصطناعي",
+    "tpExtracting": "جارٍ الاستخراج…",
+    "tpDocError": "تعذّر استخراج البيانات من الملف.",
+    "tpFetch": "جلب",
+    "tpPlatform": "المنصة",
+    "tpDate": "التاريخ",
+    "tpContent": "نص المنشور",
+    "tpContentPlaceholder": "الصق نص المنشور هنا…",
+    "tpPostUrl": "رابط المنشور (اختياري)",
+    "tpPostUrlPlaceholder": "https://...",
+    "tpStats": "إحصائيات التفاعل",
+    "tpSavePost": "حفظ المنشور",
+    "tpEmbedDone": "تم تضمين {count} منشور في RAG ✓",
+    "tpContentRequired": "النص أو الرابط مطلوب.",
+    "statLikes": "الإعجابات",
+    "statComments": "التعليقات",
+    "statShares": "المشاركات",
+    "statReach": "الوصول",
+    "statSaves": "الحفظ",
+    "statEngagement": "نسبة التفاعل",
+    "avgEngagement": "متوسط التفاعل",
+    "totalPosts": "إجمالي المنشورات",
+    "embedding": "جارٍ التضمين…",
+    "uploadingPdf": "جاري رفع الـ PDF…",
+    "pdfUploaded": "تم رفع الـ PDF بنجاح ✓",
+    "pdfError": "فشل رفع الـ PDF",
+    "saveBrandFirst": "من فضلك احفظ الـ Brand أولاً"
   },
   "landing": {
     "cta": {
@@ -1065,6 +1113,78 @@
       "prev": "→ السابق",
       "next": "التالي ←",
       "pageOf": "صفحة {page} من {pages}"
+    }
+  },
+  "payment": {
+    "title": "الفواتير والخطط",
+    "subtitle": "إدارة اشتراكك وتفاصيل الدفع",
+    "currentPlan": "الخطة الحالية",
+    "renewsOn": "يتجدد في",
+    "cancelAtEnd": "ينتهي في نهاية الفترة",
+    "manageSubscription": "إدارة الاشتراك",
+    "currentPlanBtn": "خطتك الحالية",
+    "statusActive": "نشط",
+    "statusTrial": "تجريبي",
+    "statusPastDue": "متأخر الدفع",
+    "statusCanceled": "ملغى",
+    "statusFree": "مجاني",
+    "successTitle": "تم الاشتراك بنجاح! 🎉",
+    "successMsg": "اشتراكك أصبح نشطاً الآن. أهلاً بك!",
+    "cancelTitle": "تم إلغاء الدفع",
+    "cancelMsg": "لا مشكلة — خطتك الحالية لم تتغير. يمكنك الترقية في أي وقت.",
+    "tryAgain": "عرض الخطط",
+    "goToDashboard": "الذهاب للوحة التحكم",
+    "errorGeneric": "حدث خطأ ما. حاول مرة أخرى.",
+    "noCharge": "لم يتم خصم أي مبلغ",
+    "dataSecure": "بياناتك بأمان",
+    "tryAgainAnytime": "يمكنك المحاولة دائماً",
+    "needHelp": "تواجه مشكلة؟",
+    "contactSupport": "تواصل مع الدعم"
+  },
+  "contact": {
+    "badge": "تواصل معنا",
+    "title": "يسعدنا",
+    "titleAccent": "سماع رأيك",
+    "subtitle": "سواء كان لديك سؤال عن الأسعار أو طلب عرض توضيحي أو مجرد تحية — نحن هنا.",
+    "responseTitle": "رد سريع مضمون",
+    "responseDesc": "نرد عادةً خلال 24 ساعة في أيام العمل.",
+    "successTitle": "تم إرسال رسالتك!",
+    "successDesc": "سنعود إليك خلال 24 ساعة.",
+    "sendAnother": "أرسل رسالة أخرى",
+    "info": {
+      "emailTitle": "راسلنا",
+      "emailDesc": "hello@contentforge.io — للاستفسارات العامة والدعم.",
+      "chatTitle": "الدردشة المباشرة",
+      "chatDesc": "متاحة داخل التطبيق من الاثنين إلى الجمعة، من 9 صباحاً إلى 6 مساءً بتوقيت الخليج.",
+      "regionsTitle": "نخدم منطقة الشرق الأوسط",
+      "regionsDesc": "مصر، المملكة العربية السعودية، الإمارات، الكويت، الأردن، لبنان ودول الخليج."
+    },
+    "subject": {
+      "demo": "طلب عرض توضيحي",
+      "pricing": "سؤال عن الأسعار",
+      "technical": "دعم تقني",
+      "partnership": "استفسار شراكة",
+      "other": "أخرى"
+    },
+    "form": {
+      "name": "الاسم الكامل",
+      "namePlaceholder": "اسمك",
+      "nameError": "يرجى إدخال اسمك",
+      "email": "البريد الإلكتروني",
+      "emailPlaceholder": "you{'@'}brand.com",
+      "emailError": "يرجى إدخال بريد إلكتروني صحيح",
+      "company": "الشركة (اختياري)",
+      "companyPlaceholder": "علامتك التجارية أو شركتك",
+      "subject": "الموضوع",
+      "subjectPlaceholder": "ما الذي يتعلق به استفسارك؟",
+      "subjectError": "يرجى اختيار موضوع",
+      "message": "الرسالة",
+      "messagePlaceholder": "أخبرنا كيف يمكننا مساعدتك...",
+      "messageError": "يجب أن تكون الرسالة 10 أحرف على الأقل",
+      "submit": "إرسال الرسالة",
+      "sending": "جارٍ الإرسال...",
+      "submitError": "حدث خطأ ما. يرجى المحاولة مرة أخرى.",
+      "privacy": "نحترم خصوصيتك. لن تتم مشاركة معلوماتك أبداً."
     }
   }
 }

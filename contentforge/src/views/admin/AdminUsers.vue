@@ -1,4 +1,3 @@
-<!-- AdminUsers.vue -->
 <template>
   <div class="admin-users">
 
@@ -6,17 +5,17 @@
     <div class="toolbar">
       <div class="search-wrap">
         <svg class="search-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-        <input v-model="search" type="text" :placeholder="t('admin.users.searchPlaceholder')" class="search-input" @input="onSearch"/>
+        <input v-model="search" type="text" placeholder="Search by name or email…" class="search-input" @input="onSearch"/>
       </div>
       <div class="filters">
         <select v-model="planFilter" @change="fetchUsers(1)" class="filter-select">
-          <option value="">{{ t('admin.users.allPlans') }}</option>
-          <option value="free">{{ t('admin.plan.free') }}</option>
-          <option value="pro">{{ t('admin.plan.pro') }}</option>
-          <option value="enterprise">{{ t('admin.plan.enterprise') }}</option>
+          <option value="">All plans</option>
+          <option value="free">Free</option>
+          <option value="pro">Pro</option>
+          <option value="enterprise">Enterprise</option>
         </select>
       </div>
-      <div class="total-badge">{{ t('admin.users.totalCount', { n: total }) }}</div>
+      <div class="total-badge">{{ total }} users</div>
     </div>
 
     <!-- Table -->
@@ -25,25 +24,28 @@
         <table class="admin-table">
           <thead>
             <tr>
-              <th>{{ t('admin.table.user') }}</th>
-              <th>{{ t('admin.table.phone') }}</th>
-              <th>{{ t('admin.table.plan') }}</th>
-              <th>{{ t('admin.table.trialEnds') }}</th>
-              <th>{{ t('admin.table.verified') }}</th>
-              <th>{{ t('admin.table.joined') }}</th>
-              <th>{{ t('admin.table.actions') }}</th>
+              <th>User</th>
+              <th>Phone</th>
+              <th>Plan</th>
+              <th>Trial Ends</th>
+              <th>Verified</th>
+              <th>Joined</th>
+              <th>Actions</th>
             </tr>
           </thead>
           <tbody>
-            <tr v-if="loading"><td colspan="7" class="empty-row">{{ t('admin.loading') }}</td></tr>
-            <tr v-else-if="!users.length"><td colspan="7" class="empty-row">{{ t('admin.users.noUsers') }}</td></tr>
-            <tr v-else v-for="u in users" :key="u._id" :class="{ blocked: u.isBlocked }">
-              <td>
+            <tr v-if="loading"><td colspan="7" class="empty-row">Loading users…</td></tr>
+            <tr v-else-if="!users.length"><td colspan="7" class="empty-row">No users found</td></tr>
+              <tr v-else v-for="u in users" :key="u._id" :class="{ blocked: u.isBlocked, deleting: u._approving }">              <td>
                 <div class="user-cell">
                   <div class="user-avatar" :class="{ blocked: u.isBlocked }">{{ u.name?.[0]?.toUpperCase() }}</div>
                   <div>
-                    <p class="user-name">{{ u.name }} <span v-if="u.isAdmin" class="admin-tag">{{ t('admin.role') }}</span></p>
+                    <p class="user-name">{{ u.name }} <span v-if="u.isAdmin" class="admin-tag">Admin</span></p>
                     <p class="user-email">{{ u.email }}</p>
+                    <span v-if="u.isAskToDelete" 
+                      style="background:#FCEBEB; color:#E24B4A; font-size:10px; padding:2px 8px; border-radius:20px; display:inline-block; margin-top:4px;">
+                      Deletion Requested
+                    </span>
                   </div>
                 </div>
               </td>
@@ -56,14 +58,27 @@
                 </span>
               </td>
               <td class="muted">{{ formatDate(u.createdAt) }}</td>
-              <td>
-                <div class="action-row">
-                  <button class="act-btn block-btn" @click="toggleBlock(u)" :disabled="u.isAdmin">
-                    {{ u.isBlocked ? t('admin.action.unblock') : t('admin.action.block') }}
-                  </button>
-                  <button class="act-btn edit-btn" @click="openEdit(u)">{{ t('admin.action.edit') }}</button>
-                  <button class="act-btn delete-btn" @click="confirmDelete(u)" :disabled="u.isAdmin">✕</button>
-                </div>
+              <td >
+                 <div class="action-row">
+  <button 
+    class="act-btn" 
+    :class="u.blockStatus === 'warning' ? 'warning-btn' : u.isBlocked ? 'unblock-btn' : 'block-btn'"
+    @click="handleBlockAction(u)"
+    :disabled="u.isAdmin"
+  >
+    {{ u.blockStatus === 'warning' ? 'Cancel Warning' : u.isBlocked ? 'Unblock' : 'Block' }}
+  </button>
+  <button class="act-btn edit-btn" @click="openEdit(u)">Edit</button>
+  <button class="act-btn delete-btn" @click="confirmDelete(u)" :disabled="u.isAdmin">✕</button>
+  <button v-if="u.isAskToDelete" class="act-btn approve-btn" @click="approveDeletion(u)">
+    Approve Deletion
+  </button>
+</div>
+<br />
+<p v-if="u.blockStatus === 'warning' && u.gracePeriodExpiresAt" class="timer-sub">
+  Ends in: {{ getRemainingTime(u.gracePeriodExpiresAt) }}
+</p>
+               
               </td>
             </tr>
           </tbody>
@@ -72,9 +87,9 @@
 
       <!-- Pagination -->
       <div class="pagination" v-if="pages > 1">
-        <button class="page-btn" :disabled="page === 1"       @click="fetchUsers(page - 1)">{{ t('admin.pagination.prev') }}</button>
-        <span class="page-info">{{ t('admin.pagination.pageOf', { page, pages }) }}</span>
-        <button class="page-btn" :disabled="page === pages"   @click="fetchUsers(page + 1)">{{ t('admin.pagination.next') }}</button>
+        <button class="page-btn" :disabled="page === 1"       @click="fetchUsers(page - 1)">← Prev</button>
+        <span class="page-info">Page {{ page }} of {{ pages }}</span>
+        <button class="page-btn" :disabled="page === pages"   @click="fetchUsers(page + 1)">Next →</button>
       </div>
     </div>
 
@@ -82,32 +97,32 @@
     <div v-if="editUser" class="modal-overlay" @click.self="editUser = null">
       <div class="modal">
         <div class="modal-header">
-          <h3>{{ t('admin.users.editTitle', { name: editUser.name }) }}</h3>
+          <h3>Edit User — {{ editUser.name }}</h3>
           <button class="modal-close" @click="editUser = null">✕</button>
         </div>
         <div class="modal-body">
-          <label class="field-label">{{ t('admin.table.plan') }}</label>
+          <label class="field-label">Plan</label>
           <select v-model="editForm.plan" class="filter-select full">
-            <option value="free">{{ t('admin.plan.free') }}</option>
-<option value="pro">{{ t('admin.plan.pro') }}</option>
-<option value="enterprise">{{ t('admin.plan.enterprise') }}</option>
+            <option value="free">Free</option>
+            <option value="pro">Pro</option>
+            <option value="enterprise">Enterprise</option>
           </select>
 
-          <label class="field-label">{{ t('admin.users.trialActive') }}</label>
+          <label class="field-label">Trial Active</label>
           <div class="toggle-row">
             <input type="checkbox" v-model="editForm.isTrial" id="isTrial"/>
-            <label for="isTrial" class="toggle-label">{{ editForm.isTrial ? t('common.yes') : t('common.no') }}</label>
+            <label for="isTrial" class="toggle-label">{{ editForm.isTrial ? 'Yes' : 'No' }}</label>
           </div>
 
           <div v-if="editForm.isTrial">
-            <label class="field-label">{{ t('admin.users.trialEndsAt') }}</label>
+            <label class="field-label">Trial Ends At</label>
             <input type="date" v-model="editForm.trialEndsAt" class="filter-select full"/>
           </div>
 
-          <label class="field-label">{{ t('admin.users.emailVerified') }}</label>
+          <label class="field-label">Email Verified</label>
           <div class="toggle-row">
             <input type="checkbox" v-model="editForm.isVerified" id="isVerified"/>
-            <label for="isVerified" class="toggle-label">{{ editForm.isVerified ? t('admin.users.verified') : t('admin.users.notVerified') }}</label>
+            <label for="isVerified" class="toggle-label">{{ editForm.isVerified ? 'Verified' : 'Not verified' }}</label>
           </div>
           <!-- Is Admin -->
           <div class="form-group flex items-center gap-2" style="margin-bottom: 1.5rem; display: flex; align-items: center; gap: 0.5rem; color: #fff;">
@@ -117,14 +132,14 @@
             v-model="editForm.isAdmin" 
             class="custom-checkbox"
           />
-          <label for="is-admin" class="checkbox-label">{{ t('admin.users.isAdmin') }}</label>
+          <label for="is-admin" class="checkbox-label">Is Admin</label>
         </div>
         </div>
         <div class="modal-footer">
           <button class="act-btn edit-btn" @click="saveEdit" :disabled="saving">
-            {{ saving ? t('admin.users.saving') : t('admin.users.saveChanges') }}
+            {{ saving ? 'Saving…' : 'Save changes' }}
           </button>
-          <button class="act-btn cancel" @click="editUser = null">{{ t('common.cancel') }}</button>
+          <button class="act-btn cancel" @click="editUser = null">Cancel</button>
         </div>
       </div>
     </div>
@@ -133,32 +148,50 @@
     <div v-if="deleteTarget" class="modal-overlay" @click.self="deleteTarget = null">
       <div class="modal modal-sm">
         <div class="modal-header">
-          <h3>{{ t('admin.users.deleteTitle') }}</h3>
+          <h3>Delete User</h3>
           <button class="modal-close" @click="deleteTarget = null">✕</button>
         </div>
         <div class="modal-body">
           <p style="color:var(--sub,#6b7280); font-size:14px;">
-            {{ t('admin.users.deleteConfirm', { name: deleteTarget.name }) }}
+            Are you sure you want to permanently delete <strong style="color:var(--text,#f0f2f5)">{{ deleteTarget.name }}</strong>? This cannot be undone.
           </p>
         </div>
         <div class="modal-footer">
           <button class="act-btn delete-btn" @click="doDelete" :disabled="saving">
-            {{ saving ? t('admin.users.deleting') : t('admin.users.confirmDelete') }}
+            {{ saving ? 'Deleting…' : 'Yes, delete' }}
           </button>
-          <button class="act-btn" @click="deleteTarget = null">{{ t('common.cancel') }}</button>
+          <button class="act-btn" @click="deleteTarget = null">Cancel</button>
         </div>
       </div>
     </div>
-
+<!-- //////////////////////////////////////////// Block Warning Modal -->
+ 
+    <div v-if="showReasonModal" class="modal-overlay" @click.self="closeModal">
+  <div class="modal-content">
+    <h3>Issue Policy Violation Warning</h3>
+    <p>Please provide a reason. The user will receive an email and a 24-hour grace period before final block.</p>
+    
+    <textarea 
+      v-model="blockReason" 
+      placeholder="e.g., Using abusive language in content generation..."
+      rows="3"
+    ></textarea>
+    
+    <div class="modal-actions">
+      <button class="cancel-modal-btn" @click="closeModal">Cancel</button>
+      <button class="confirm-modal-btn" :disabled="!blockReason.trim()" @click="submitBlockWarning">
+        Confirm & Send Alert
+      </button>
+    </div>
   </div>
+</div>
+  </div>
+  
 </template>
 
 <script setup>
 import { ref, onMounted } from 'vue'
 import adminApi from '../../api/adminApi'
-import { useI18n } from 'vue-i18n'
-
-const { t } = useI18n()
 
 const users        = ref([])
 const loading      = ref(true)
@@ -174,6 +207,10 @@ const saving       = ref(false)
 // const Admin       = ref(false)
 let searchTimer
 
+const showReasonModal = ref(false)
+const blockReason = ref('')
+const selectedUser = ref(null)
+
 function onSearch() {
   clearTimeout(searchTimer)
   searchTimer = setTimeout(() => fetchUsers(1), 400)
@@ -183,8 +220,20 @@ async function fetchUsers(p = 1) {
   loading.value = true
   page.value    = p
   try {
-    const res     = await adminApi.getUsers({ page: p, limit: 20, search: search.value, plan: planFilter.value })
-    users.value   = res.users  || []
+    const res = await adminApi.getUsers({ page: p, limit: 20, search: search.value, plan: planFilter.value })
+    
+    // 🌟 التعديل السحري للـ Refresh:
+    const fetchedUsers = res.users || []
+    users.value = fetchedUsers.map(u => {
+      const savedStatus = localStorage.getItem(`user_status_${u._id}`)
+      if (savedStatus) {
+        const parsed = JSON.parse(savedStatus)
+        u.blockStatus = parsed.blockStatus
+        u.gracePeriodExpiresAt = parsed.gracePeriodExpiresAt
+      }
+      return u
+    })
+
     total.value   = res.total  || 0
     pages.value   = res.pages  || 1
   } finally {
@@ -192,9 +241,87 @@ async function fetchUsers(p = 1) {
   }
 }
 
-async function toggleBlock(u) {
-  const res   = await adminApi.blockUser(u._id)
-  u.isBlocked = res.isBlocked
+// async function toggleBlock(u) {
+//   const res   = await adminApi.blockUser(u._id)
+//   u.isBlocked = res.isBlocked
+// }
+
+
+// 2. عند الضغط على Confirm داخل الـ Modal (حفظ التحذير وإرساله للـ DB)
+async function submitBlockWarning() {
+  if (!blockReason.value.trim() || !selectedUser.value) return
+
+  const userToUpdate = selectedUser.value
+  
+  try {
+    // 🌟 بننادي السيرفر عشان يِقفل الحساب في الـ DB حقيقي وتِسمع في قاعدة البيانات
+    const res = await adminApi.blockUser(userToUpdate._id, blockReason.value.trim())
+    
+    // بنحدث البيانات في الفرونت إند عشان تاخد شكل التحذير الأصفر والعداد
+    userToUpdate.isBlocked = res.isBlocked // هتبقى true في الـ DB وهتسمع فوراً
+    userToUpdate.blockStatus = 'warning'
+    userToUpdate.gracePeriodExpiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString()
+    
+    // 💾 بنحفظ حالة الـ warning في المتصفح عشان لما تعملي Refresh تفتكر إن الـ true دي عبارة عن warning
+    localStorage.setItem(`user_status_${userToUpdate._id}`, JSON.stringify({
+      blockStatus: 'warning',
+      gracePeriodExpiresAt: userToUpdate.gracePeriodExpiresAt
+    }))
+
+    closeModal()
+    alert("Warning issued and saved to DB successfully!")
+  } catch (error) {
+    console.error("Error saving warning to DB:", error)
+    alert("Failed to sync with database.")
+  }
+}
+
+async function executeToggleBlock(u) {
+  try {
+    // 🌟 لو عليه warning أو متبلك وعايزين نلغيه، بنفهم الفرونت إند يصفر الحالة فوراً
+    const res = await adminApi.blockUser(u._id)
+    
+    if (u.blockStatus === 'warning') {
+      // لو كان تحذير وألغيناه، المتسخدم يرجع نشط تماماً والـ isBlocked تفضل false
+      u.isBlocked = false
+      u.blockStatus = null
+    } else {
+      // لو كان بلوك حقيقي وفكناه أو العكس
+      u.isBlocked = res.isBlocked
+      u.blockStatus = null
+    }
+    
+    // بنشيلها من ذاكرة المتصفح عشان تثبت بعد الريفريش
+    localStorage.removeItem(`user_status_${u._id}`)
+  } catch (error) {
+    console.error("Error toggling block:", error)
+  }
+}
+
+// 4. دالة إغلاق المودال
+function closeModal() {
+  showReasonModal.value = false
+  selectedUser.value = null
+  blockReason.value = ''
+}
+function handleBlockAction(u) {
+  selectedUser.value = u
+  if (u.isBlocked || u.blockStatus === 'warning') {
+    executeToggleBlock(u)
+  } else {
+    blockReason.value = ''
+    showReasonModal.value = true
+  }
+}
+
+// دالة حساب الوقت المتبقي عشان العداد ميطلعش خطأ
+function getRemainingTime(expiry) {
+  if (!expiry) return '24h'
+  const diff = new Date(expiry) - Date.now()
+  if (diff <= 0) return 'Expired'
+  const hours = Math.floor(diff / 3600000)
+  const mins = Math.floor((diff % 3600000) / 60000)
+  return `${hours}h ${mins}m`
 }
 
 function openEdit(u) {
@@ -244,13 +371,10 @@ async function doDelete() {
 function planLabel(u) {
   if (u.isTrial) {
     const days = Math.ceil((new Date(u.trialEndsAt) - Date.now()) / 86400000)
-    return days > 0
-      ? t('admin.plan.trialDays', { days })
-      : t('admin.plan.trialExpired')
+    return days > 0 ? `Trial (${days}d)` : 'Trial expired'
   }
-  return u.plan || t('admin.plan.free')
+  return u.plan || 'free'
 }
-
 function planClass(u) {
   if (u.isTrial) return new Date(u.trialEndsAt) > Date.now() ? 'trial' : 'expired'
   if (u.plan === 'pro') return 'pro'
@@ -260,41 +384,22 @@ function planClass(u) {
 function formatDate(d) {
   return d ? new Date(d).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: '2-digit' }) : '—'
 }
-
+async function approveDeletion(u) {
+  // ✅ عشان Vue يشوف التغيير
+  const idx = users.value.findIndex(x => x._id === u._id)
+  users.value[idx] = { ...users.value[idx], _approving: true }
+  
+  await adminApi.approveDeletion(u._id)
+  
+  setTimeout(() => {
+    users.value = users.value.filter(x => x._id !== u._id)
+    total.value--
+  }, 1500)
+}
 onMounted(() => fetchUsers())
 </script>
 
 <style scoped>
-[dir="rtl"] .admin-table th,
-[dir="rtl"] .admin-table td {
-  text-align: right;
-}
-
-[dir="rtl"] .user-cell {
-  flex-direction: row;
-}
-
-[dir="rtl"] .toolbar {
-  flex-direction: row-reverse;
-}
-
-[dir="rtl"] .search-icon {
-  left: auto;
-  right: 12px;
-}
-
-[dir="rtl"] .search-input {
-  padding: 9px 36px 9px 12px;
-}
-
-[dir="rtl"] .action-row {
-  justify-content: flex-end;
-}
-
-[dir="rtl"] .pagination {
-  flex-direction: row-reverse;
-}
-
 .admin-users { display: flex; flex-direction: column; gap: 1.25rem; }
 
 .toolbar { display: flex; align-items: center; gap: 1rem; flex-wrap: wrap; }
@@ -372,20 +477,142 @@ onMounted(() => fetchUsers())
 .page-info  { font-size: 13px; color: var(--sub, #6b7280); }
 
 /* Modal */
-.modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.7); display: flex; align-items: center; justify-content: center; z-index: 100; }
-.modal {
-  background: var(--surface, #13151c); border: 1px solid var(--border, rgba(255,255,255,0.1));
-  border-radius: 16px; width: 420px; max-width: 90vw;
+/* خلفية الشاشة المعتمة التي تغطي الصفحة بالكامل */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(0, 0, 0, 0.75); /* درجة عتمة ممتازة لتركيز الانتباه */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999; /* رقم عالي جداً ليظهر فوق كل عناصر الجدول والـ Sidebar */
+  backdrop-filter: blur(4px); /* تأثير ضبابي خفيف للخلفية ليعطي مظهر مودرن */
 }
-.modal-sm { width: 360px; }
-.modal-header { display: flex; align-items: center; justify-content: space-between; padding: 1.25rem 1.5rem; border-bottom: 1px solid var(--border, rgba(255,255,255,0.06)); }
-.modal-header h3 { font-size: 15px; font-weight: 600; color: var(--text, #f0f2f5); margin: 0; }
-.modal-close { background: none; border: none; cursor: pointer; color: var(--sub, #6b7280); font-size: 16px; }
-.modal-body { padding: 1.5rem; }
-.modal-footer { display: flex; gap: 0.75rem; padding: 1.25rem 1.5rem; border-top: 1px solid var(--border, rgba(255,255,255,0.06)); justify-content: flex-end; }
-.field-label { display: block; font-size: 12px; color: var(--sub, #6b7280); margin-bottom: 6px; font-weight: 500; }
-.toggle-row { display: flex; align-items: center; gap: 8px; margin-bottom: 1rem; }
-.toggle-label { font-size: 13px; color: var(--text, #f0f2f5); cursor: pointer; }
-.cancel { background: rgba(255,255,255,0.1); border-color: rgba(255,255,255,0.1); color: var(--text, #f0f2f5); }
-.cancel:hover { background: rgba(255,255,255,0.15); }
+
+/* صندوق الرسالة الأبيض/المظلم في المنتصف */
+.modal-content {
+  background: #13151c; /* نفس لون الـ surface الداكن في لوحة التحكم */
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  padding: 1.75rem;
+  border-radius: 14px;
+  width: 440px;
+  max-width: 90%;
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.5), 0 10px 10px -5px rgba(0, 0, 0, 0.4);
+}
+
+/* العنوان الرئيسي داخل الرسالة */
+.modal-content h3 {
+  font-size: 16px;
+  font-weight: 600;
+  color: #f0f2f5;
+  margin-top: 0;
+  margin-bottom: 8px;
+}
+
+/* النص الوصفي */
+.modal-content p {
+  font-size: 13px;
+  color: #6b7280; /* لون رمادي خفيف للمساعدة */
+  line-height: 1.5;
+  margin-bottom: 1rem;
+}
+
+/* صندوق الكتابة (السبب) */
+.modal-content textarea {
+  width: 100%;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  color: #f0f2f5;
+  padding: 12px;
+  border-radius: 8px;
+  margin: 12px 0;
+  resize: none; /* لمنع المستخدم من تخريب أبعاد الصندوق */
+  font-size: 13px;
+  font-family: inherit;
+  outline: none;
+}
+
+.modal-content textarea:focus {
+  border-color: #3b82f6; /* يتحول للأزرق عند الكتابة */
+}
+
+/* الحاوية السفلية للأزرار */
+.modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 1rem;
+}
+
+/* التصميم الأساسي لأزرار المودال */
+.cancel-modal-btn, .confirm-modal-btn {
+  padding: 6px 14px;
+  border-radius: 6px;
+  font-size: 12px;
+  cursor: pointer;
+  border: none;
+  font-weight: 500;
+  transition: background 0.2s ease;
+}
+
+/* زر الإلغاء */
+.cancel-modal-btn {
+  background: rgba(255, 255, 255, 0.06);
+  color: #cbd5e1;
+}
+
+.cancel-modal-btn:hover {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+/* زر التأكيد وإرسال التنبيه */
+.confirm-modal-btn {
+  background: #3b82f6;
+  color: #ffffff;
+}
+
+.confirm-modal-btn:hover:not(:disabled) {
+  background: #2563eb;
+}
+
+/* حالة زر التأكيد عندما يكون معطلاً (حتى يكتب المستخدم السبب) */
+.confirm-modal-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+.action-row { display: flex; align-items: center; gap: 6px; }
+.act-btn    { font-size: 11px; padding: 4px 10px; border-radius: 6px; cursor: pointer; border: 1px solid; font-weight: 500; transition: all 0.15s; background: transparent; }
+.act-btn:disabled { opacity: 0.3; cursor: not-allowed; }
+
+/* لون زر الـ Block العادي (أحمر خفيف) */
+.block-btn  { border-color: rgba(239,68,68,0.2); color: #f87171; }
+.block-btn:hover:not(:disabled) { background: rgba(239,68,68,0.1); }
+
+/* لون زر إلغاء التحذير (أصفر) */
+.warning-btn { border-color: rgba(245,158,11,0.3); color: #fbbf24; }
+.warning-btn:hover:not(:disabled) { background: rgba(245,158,11,0.1); }
+
+/* لون زر فك الحظر (أخضر) */
+.unblock-btn { border-color: rgba(16,185,129,0.3); color: #34d399; }
+.unblock-btn:hover:not(:disabled) { background: rgba(16,185,129,0.1); }
+
+/* زر التعديل (أزرق) */
+.edit-btn   { border-color: rgba(59,130,246,0.2); color: #60a5fa; }
+.edit-btn:hover { background: rgba(59,130,246,0.1); }
+
+/* زر الحذف (أحمر) */
+.delete-btn { border-color: rgba(239,68,68,0.2); color: #f87171; }
+.delete-btn:hover:not(:disabled) { background: rgba(239,68,68,0.15); }
+
+.timer-sub { font-size: 10px; color: #fbbf24; margin: 4px 0 0 2px; }
+.approve-btn { background: rgba(239,68,68,0.1); border-color: rgba(239,68,68,0.2); color: #f87171; }
+.deleting {
+  opacity: 0.4;
+  filter: blur(2px);
+  transition: all 1.5s ease;
+  pointer-events: none;
+}
 </style>

@@ -1,4 +1,3 @@
-<!-- AdminSettings.vue -->
 <template>
   <div class="admin-settings">
 
@@ -9,23 +8,23 @@
         <div class="panel-header">
           <h2 class="panel-title">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12,6 12,12 16,14"/></svg>
-            {{ t('admin.settings.trialTitle') }}
+            Trial Settings
           </h2>
         </div>
         <div class="setting-row">
           <div class="setting-info">
-            <p class="setting-name">{{ t('admin.settings.trialDuration') }}</p>
-            <p class="setting-desc">{{ t('admin.settings.trialDurationDesc') }}</p>
+            <p class="setting-name">Trial Duration</p>
+            <p class="setting-desc">Days a new user gets on the free trial</p>
           </div>
           <div class="setting-control">
             <input v-model.number="settings.trialDays" type="number" min="1" max="90" class="num-input"/>
-            <span class="setting-unit">{{ t('admin.settings.unitDays') }}</span>
+            <span class="setting-unit">days</span>
           </div>
         </div>
         <div class="setting-row">
           <div class="setting-info">
-            <p class="setting-name">{{ t('admin.settings.blockByPhone') }}</p>
-            <p class="setting-desc">{{ t('admin.settings.blockByPhoneDesc') }}</p>
+            <p class="setting-name">Block multi-account by phone</p>
+            <p class="setting-desc">Prevent same phone from creating multiple trial accounts</p>
           </div>
           <label class="toggle-switch">
             <input type="checkbox" v-model="settings.blockByPhone"/>
@@ -34,8 +33,8 @@
         </div>
         <div class="setting-row">
           <div class="setting-info">
-            <p class="setting-name">{{ t('admin.settings.demoEnabled') }}</p>
-            <p class="setting-desc">{{ t('admin.settings.demoEnabledDesc') }}</p>
+            <p class="setting-name">Demo account enabled</p>
+            <p class="setting-desc">Allow users to try the app with the demo account</p>
           </div>
           <label class="toggle-switch">
             <input type="checkbox" v-model="settings.demoEnabled"/>
@@ -49,23 +48,24 @@
         <div class="panel-header">
           <h2 class="panel-title">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
-            {{ t('admin.settings.emailTitle') }}
+            Email & OTP
           </h2>
         </div>
         <div class="setting-row">
           <div class="setting-info">
-            <p class="setting-name">{{ t('admin.settings.otpExpiry') }}</p>
-            <p class="setting-desc">{{ t('admin.settings.otpExpiryDesc') }}</p>
+            <p class="setting-name">OTP Expiry</p>
+            <p class="setting-desc">Minutes before verification code expires</p>
           </div>
           <div class="setting-control">
             <input v-model.number="settings.otpExpiryMinutes" type="number" min="1" max="60" class="num-input"/>
-            <span class="setting-unit">{{ t('admin.settings.unitMinutes') }}</span>
+            <span class="setting-unit">min</span>
           </div>
+          
         </div>
         <div class="setting-row">
           <div class="setting-info">
-            <p class="setting-name">{{ t('admin.settings.sendWarning') }}</p>
-            <p class="setting-desc">{{ t('admin.settings.sendWarningDesc') }}</p>
+            <p class="setting-name">Send expiry warning email</p>
+            <p class="setting-desc">Email users 3 days before their trial ends</p>
           </div>
           <label class="toggle-switch">
             <input type="checkbox" v-model="settings.sendExpiryWarning"/>
@@ -74,68 +74,93 @@
         </div>
       </div>
 
-      <!-- Platform Info -->
+      <!-- Platform Info
       <div class="panel info-panel">
         <div class="panel-header">
           <h2 class="panel-title">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
-            {{ t('admin.settings.infoTitle') }}
+            Platform Info
           </h2>
         </div>
         <div class="info-rows">
           <div class="info-row">
-            <span class="info-key">{{ t('admin.settings.version') }}</span>
+            <span class="info-key">Version</span>
             <span class="info-val">ContentForge v1.0.0</span>
           </div>
           <div class="info-row">
-            <span class="info-key">{{ t('admin.settings.environment') }}</span>
-            <span class="info-val env-badge">{{ isDev ? t('admin.settings.envDev') : t('admin.settings.envProd') }}</span>
+            <span class="info-key">Environment</span>
+            <span class="info-val env-badge">{{ isDev ? 'Development' : 'Production' }}</span>
           </div>
           <div class="info-row">
-            <span class="info-key">{{ t('admin.settings.backend') }}</span>
+            <span class="info-key">Backend</span>
             <span class="info-val">Express + MongoDB Atlas</span>
           </div>
           <div class="info-row">
-            <span class="info-key">{{ t('admin.settings.jwtExpiry') }}</span>
-            <span class="info-val">{{ t('admin.settings.jwtExpiryVal') }}</span>
+            <span class="info-key">JWT Expiry</span>
+            <span class="info-val">7 days</span>
           </div>
         </div>
-      </div>
+      </div> -->
 
     </div>
 
     <!-- Save -->
-    <div class="save-row">
-      <p class="save-note">{{ t('admin.settings.saveNote') }}</p>
+    <!-- <div class="save-row">
+      <p class="save-note"></p>
       <button class="save-btn" @click="save" :disabled="saved">
-        {{ saved ? t('admin.settings.saved') : t('admin.settings.saveBtn') }}
+        {{ saved ? '✓ Saved' : 'Save settings' }}
       </button>
-    </div>
+    </div> -->
 
+    <div class="save-row">
+  <p class="save-note">{{ saveMsg }}</p>
+  <button class="save-btn" @click="save" :disabled="saving || saved">
+    {{ saving ? 'Saving...' : saved ? '✓ Saved' : 'Save settings' }}
+  </button>
+</div>
   </div>
 </template>
 
 <script setup>
-import { ref } from 'vue'
-import { useI18n } from 'vue-i18n'
+import { ref, onMounted } from 'vue'
+import adminApi from '../../api/adminApi'
 
-const { t } = useI18n()
-
-const isDev = import.meta.env.DEV
-const saved = ref(false)
+const isDev   = import.meta.env.DEV
+const saved   = ref(false)
+const saving  = ref(false)
+const saveMsg = ref('')
 
 const settings = ref({
-  trialDays:          14,
-  blockByPhone:       true,
-  demoEnabled:        true,
-  otpExpiryMinutes:   10,
-  sendExpiryWarning:  false,
+  trialDays:         14,
+  blockByPhone:      true,
+  demoEnabled:       true,
+  otpExpiryMinutes:  10,
+  sendExpiryWarning: false,
 })
 
-function save() {
-  localStorage.setItem('cf_admin_settings', JSON.stringify(settings.value))
-  saved.value = true
-  setTimeout(() => { saved.value = false }, 2500)
+// جيب الـ settings الحالية من DB عند فتح الصفحة
+onMounted(async () => {
+  try {
+    const data = await adminApi.getSettings()
+    settings.value = data.settings
+  } catch (err) {
+    console.error('Failed to load settings:', err)
+  }
+})
+
+async function save() {
+  saving.value  = true
+  saveMsg.value = ''
+  try {
+    const res = await adminApi.saveSettings(settings.value)
+    saveMsg.value = `✓ Saved — ${res.updatedUsers} trial users updated`
+    saved.value   = true
+    setTimeout(() => { saved.value = false; saveMsg.value = '' }, 3000)
+  } catch (err) {
+    saveMsg.value = err.message || 'Something went wrong'
+  } finally {
+    saving.value = false
+  }
 }
 </script>
 

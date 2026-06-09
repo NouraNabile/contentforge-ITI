@@ -81,31 +81,6 @@ const postsApi = {
   async generateImage(postId) {
     return await api.post(`/posts/${postId}/generate-image`);
   },
-
-  // ── Publish to Facebook ───────────────────────────────────────────────────
-  // POST /api/posts/:id/publish/facebook
-  async publishToFacebook(postId) {
-    return await api.post(`/posts/${postId}/publish/facebook`);
-  },
-
-  // ── Publish to Instagram ───────────────────────────────────────────────────
-  // POST /api/posts/:id/publish/instagram
-  // Body: { imageUrl } (optional if post already has imageUrl)
-  async publishToInstagram(postId, imageUrl) {
-    return await api.post(`/posts/${postId}/publish/instagram`, { imageUrl });
-  },
-
-  // ── Get live Facebook stats ───────────────────────────────────────────────
-  // GET /api/posts/stats/facebook
-  async getFacebookStats() {
-    return await api.get("/posts/stats/facebook");
-  },
-
-  // ── Get live Instagram stats ───────────────────────────────────────────────
-  // GET /api/posts/stats/instagram
-  async getInstagramStats() {
-    return await api.get("/posts/stats/instagram");
-  },
 };
 
 export default postsApi;

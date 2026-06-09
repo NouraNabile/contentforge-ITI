@@ -29,8 +29,14 @@
         <div v-for="col in footerLinks" :key="col.title">
           <h5 class="font-display font-600 text-white text-sm mb-4">{{ t(col.titleKey) }}</h5>
           <ul class="space-y-2.5">
-            <li v-for="link in col.links" :key="link">
-              <a href="#" class="text-slate-500 hover:text-slate-300 text-sm transition-colors">{{ t(link.key) }}</a>
+            <li v-for="link in col.links" :key="link.key">
+              <RouterLink v-if="link.to" :to="link.to"
+                class="text-slate-500 hover:text-slate-300 text-sm transition-colors">
+                {{ t(link.key) }}
+              </RouterLink>
+              <a v-else href="#" class="text-slate-500 hover:text-slate-300 text-sm transition-colors">
+                {{ t(link.key) }}
+              </a>
             </li>
           </ul>
         </div>
@@ -51,10 +57,11 @@
 </template>
 
 <script setup>
+import { RouterLink } from 'vue-router'
 import { useI18n } from 'vue-i18n'
- 
+
 const { t } = useI18n()
- 
+
 const footerLinks = [
   {
     titleKey: 'footer.product.title',
@@ -82,7 +89,7 @@ const footerLinks = [
       { key: 'footer.company.about' },
       { key: 'footer.company.blog' },
       { key: 'footer.company.careers' },
-      { key: 'footer.company.contact' },
+      { key: 'footer.company.contact', to: '/contact' },
       { key: 'footer.company.privacyPolicy' },
     ],
   },

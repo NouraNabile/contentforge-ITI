@@ -35,7 +35,7 @@
     "welcomeBack": "Welcome back",
     "subtitle": "Sign in to your ContentForge account",
     "email": "Email address",
-    "emailPlaceholder": "example@example.com",
+    "emailPlaceholder": "example{'@'}example.com",
     "password": "Password",
     "passwordPlaceholder": "At least 6 characters",
     "forgotPassword": "Forgot password?",
@@ -299,7 +299,7 @@
       "username": "Username",
       "usernamePlaceholder": "@yourhandle",
       "email": "Email",
-      "emailPlaceholder": "you@email.com",
+      "emailPlaceholder": "you{'@'}email.com",
       "channelName": "Channel Name",
       "channelNamePlaceholder": "Your Channel"
     }
@@ -1096,5 +1096,51 @@
     "tryAgain": "View Plans",
     "goToDashboard": "Go to Dashboard",
     "errorGeneric": "Something went wrong. Please try again."
+  },
+  "contact": {
+    "badge": "Get in touch",
+    "title": "We'd love to",
+    "titleAccent": "hear from you",
+    "subtitle": "Whether you have a question about pricing, a demo request, or just want to say hello — we're here.",
+    "responseTitle": "Quick response guaranteed",
+    "responseDesc": "We typically respond within 24 hours on business days.",
+    "successTitle": "Message sent!",
+    "successDesc": "We'll get back to you within 24 hours.",
+    "sendAnother": "Send another message",
+    "info": {
+      "emailTitle": "Email us",
+      "emailDesc": "hello@contentforge.io — for general inquiries and support.",
+      "chatTitle": "Live chat",
+      "chatDesc": "Available inside the app Monday–Friday, 9am–6pm GST.",
+      "regionsTitle": "We serve MENA",
+      "regionsDesc": "Egypt, Saudi Arabia, UAE, Kuwait, Jordan, Lebanon and the wider GCC."
+    },
+    "subject": {
+      "demo": "Request a demo",
+      "pricing": "Pricing question",
+      "technical": "Technical support",
+      "partnership": "Partnership inquiry",
+      "other": "Other"
+    },
+    "form": {
+      "name": "Full name",
+      "namePlaceholder": "Your name",
+      "nameError": "Please enter your name",
+      "email": "Email address",
+      "emailPlaceholder": "you{'@'}brand.com",
+      "emailError": "Please enter a valid email",
+      "company": "Company (optional)",
+      "companyPlaceholder": "Your brand or company",
+      "subject": "Subject",
+      "subjectPlaceholder": "What is this about?",
+      "subjectError": "Please select a subject",
+      "message": "Message",
+      "messagePlaceholder": "Tell us how we can help...",
+      "messageError": "Message must be at least 10 characters",
+      "submit": "Send message",
+      "sending": "Sending...",
+      "submitError": "Something went wrong. Please try again.",
+      "privacy": "We respect your privacy. Your information will never be shared."
+    }
   }
 }

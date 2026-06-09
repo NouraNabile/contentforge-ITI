@@ -35,7 +35,7 @@
     "welcomeBack": "مرحباً بعودتك",
     "subtitle": "سجّل دخولك إلى حساب ContentForge",
     "email": "البريد الإلكتروني",
-    "emailPlaceholder": "example@example.com",
+    "emailPlaceholder": "example{'@'}example.com",
     "password": "كلمة المرور",
     "passwordPlaceholder": "6 أحرف على الأقل",
     "forgotPassword": "نسيت كلمة المرور؟",
@@ -281,7 +281,7 @@
       "username": "اسم المستخدم",
       "usernamePlaceholder": "@yourhandle",
       "email": "البريد الإلكتروني",
-      "emailPlaceholder": "you@email.com",
+      "emailPlaceholder": "you{'@'}email.com",
       "channelName": "اسم القناة",
       "channelNamePlaceholder": "اسم قناتك"
     }
@@ -1096,5 +1096,51 @@
     "tryAgain": "عرض الخطط",
     "goToDashboard": "الذهاب للوحة التحكم",
     "errorGeneric": "حدث خطأ ما. حاول مرة أخرى."
+  },
+  "contact": {
+    "badge": "تواصل معنا",
+    "title": "يسعدنا",
+    "titleAccent": "سماع رأيك",
+    "subtitle": "سواء كان لديك سؤال عن الأسعار أو طلب عرض توضيحي أو مجرد تحية — نحن هنا.",
+    "responseTitle": "رد سريع مضمون",
+    "responseDesc": "نرد عادةً خلال 24 ساعة في أيام العمل.",
+    "successTitle": "تم إرسال رسالتك!",
+    "successDesc": "سنعود إليك خلال 24 ساعة.",
+    "sendAnother": "أرسل رسالة أخرى",
+    "info": {
+      "emailTitle": "راسلنا",
+      "emailDesc": "hello@contentforge.io — للاستفسارات العامة والدعم.",
+      "chatTitle": "الدردشة المباشرة",
+      "chatDesc": "متاحة داخل التطبيق من الاثنين إلى الجمعة، من 9 صباحاً إلى 6 مساءً بتوقيت الخليج.",
+      "regionsTitle": "نخدم منطقة الشرق الأوسط",
+      "regionsDesc": "مصر، المملكة العربية السعودية، الإمارات، الكويت، الأردن، لبنان ودول الخليج."
+    },
+    "subject": {
+      "demo": "طلب عرض توضيحي",
+      "pricing": "سؤال عن الأسعار",
+      "technical": "دعم تقني",
+      "partnership": "استفسار شراكة",
+      "other": "أخرى"
+    },
+    "form": {
+      "name": "الاسم الكامل",
+      "namePlaceholder": "اسمك",
+      "nameError": "يرجى إدخال اسمك",
+      "email": "البريد الإلكتروني",
+      "emailPlaceholder": "you{'@'}brand.com",
+      "emailError": "يرجى إدخال بريد إلكتروني صحيح",
+      "company": "الشركة (اختياري)",
+      "companyPlaceholder": "علامتك التجارية أو شركتك",
+      "subject": "الموضوع",
+      "subjectPlaceholder": "ما الذي يتعلق به استفسارك؟",
+      "subjectError": "يرجى اختيار موضوع",
+      "message": "الرسالة",
+      "messagePlaceholder": "أخبرنا كيف يمكننا مساعدتك...",
+      "messageError": "يجب أن تكون الرسالة 10 أحرف على الأقل",
+      "submit": "إرسال الرسالة",
+      "sending": "جارٍ الإرسال...",
+      "submitError": "حدث خطأ ما. يرجى المحاولة مرة أخرى.",
+      "privacy": "نحترم خصوصيتك. لن تتم مشاركة معلوماتك أبداً."
+    }
   }
 }

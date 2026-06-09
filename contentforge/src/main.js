@@ -5,24 +5,25 @@ import App from './App.vue'
 import i18n from './locales/i18n.js'
 import './style.css'
 
-import LandingPage      from './views/LandingPage.vue'
+import LandingPage from './views/LandingPage.vue'
 import DashboardPreview from './views/DashboardPreview.vue'
-import PostsManagerPage  from './views/PostsManagerPage.vue'
-import BrandingPage     from './views/BrandingPage.vue'
-import ChatPage         from './views/ChatPage.vue'
-import ConnectionsPage  from './views/ConnectionsPage.vue'
-import LoginPage        from './views/LoginPage.vue'
+import PostsManagerPage from './views/PostsManagerPage.vue'
+import BrandingPage from './views/BrandingPage.vue'
+import ChatPage from './views/ChatPage.vue'
+import ConnectionsPage from './views/ConnectionsPage.vue'
+import LoginPage from './views/LoginPage.vue'
 import TrialExpiredPage from './views/TrialExpiredPage.vue'
 import PaymentPage from "./views/PaymentPage.vue";
 import PaymentSuccessPage from "./views/PaymentSuccessPage.vue";
 import PaymentCancelPage from "./views/PaymentCancelPage.vue";
+import ContactPage from './views/ContactPage.vue'
 
-import AdminLayout    from './views/admin/AdminLayout.vue'
+import AdminLayout from './views/admin/AdminLayout.vue'
 import AdminDashboard from './views/admin/AdminDashboard.vue'
-import AdminUsers     from './views/admin/AdminUsers.vue'
-import AdminTrends    from './views/admin/AdminTrends.vue'
-import AdminPlans     from './views/admin/AdminPlans.vue'
-import AdminSettings  from './views/admin/AdminSettings.vue'
+import AdminUsers from './views/admin/AdminUsers.vue'
+import AdminTrends from './views/admin/AdminTrends.vue'
+import AdminPlans from './views/admin/AdminPlans.vue'
+import AdminSettings from './views/admin/AdminSettings.vue'
 
 // ── Router ────────────────────────────────────────────────────────────────────
 const router = createRouter({
@@ -71,6 +72,7 @@ const router = createRouter({
         { path: "settings", component: AdminSettings },
       ],
     },
+    { path: '/contact', component: ContactPage },
   ],
   scrollBehavior(to) {
     if (to.hash) return { el: to.hash, behavior: "smooth" };

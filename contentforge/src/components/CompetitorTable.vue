@@ -14,52 +14,63 @@
         <p class="text-slate-400 max-w-xl mx-auto">{{ t('competitors.subheading') }}</p>
       </div>
 
-      <!-- Comparison table card -->
-      <div class="rounded-2xl border-subtle bg-forge-900 overflow-hidden card-glow">
+      <!-- Scroll hint — mobile only -->
+      <p class="text-[11px] text-slate-600 text-center mb-3 md:hidden flex items-center justify-center gap-1">
+        <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+        </svg>
+        {{ t('competitors.scrollHint') }}
+      </p>
 
-        <!-- Table header -->
-        <div class="grid grid-cols-5 border-b border-white/5">
-          <div class="p-5 col-span-1">
-            <p class="text-xs text-slate-500 font-medium uppercase tracking-wider">
-              {{ t('competitors.featureCol') }}
-            </p>
-          </div>
-          <div v-for="tool in tools" :key="tool.nameKey"
-            class="p-5 text-center border-l border-white/5"
-            :class="tool.highlight ? 'bg-blue-600/8' : ''">
-            <div class="flex flex-col items-center gap-1">
-              <span v-if="tool.highlight"
-                class="text-[10px] px-2 py-0.5 rounded-full bg-blue-600/25 text-blue-400 font-medium mb-1">
-                {{ t('competitors.yourChoice') }}
-              </span>
-              <p class="font-display font-600 text-sm" :class="tool.highlight ? 'text-white' : 'text-slate-400'">
-                {{ t(tool.nameKey) }}
+      <!-- Scrollable wrapper on mobile -->
+      <div class="overflow-x-auto -mx-6 px-6 md:mx-0 md:px-0">
+        <div class="min-w-[640px] md:min-w-0 rounded-2xl border-subtle bg-forge-900 overflow-hidden card-glow">
+
+          <!-- Table header -->
+          <div class="grid grid-cols-5 border-b border-white/5">
+            <div class="p-4 md:p-5 col-span-1">
+              <p class="text-xs text-slate-500 font-medium uppercase tracking-wider">
+                {{ t('competitors.featureCol') }}
               </p>
-              <p class="text-[10px] text-slate-600">{{ t(tool.typeKey) }}</p>
+            </div>
+            <div v-for="tool in tools" :key="tool.nameKey"
+              class="p-4 md:p-5 text-center border-l border-white/5"
+              :class="tool.highlight ? 'bg-blue-600/8' : ''">
+              <div class="flex flex-col items-center gap-1">
+                <span v-if="tool.highlight"
+                  class="text-[10px] px-2 py-0.5 rounded-full bg-blue-600/25 text-blue-400 font-medium mb-1">
+                  {{ t('competitors.yourChoice') }}
+                </span>
+                <p class="font-display font-600 text-xs md:text-sm" :class="tool.highlight ? 'text-white' : 'text-slate-400'">
+                  {{ t(tool.nameKey) }}
+                </p>
+                <p class="text-[10px] text-slate-600">{{ t(tool.typeKey) }}</p>
+              </div>
             </div>
           </div>
-        </div>
 
-        <!-- Table rows -->
-        <div v-for="(row, i) in tableRows" :key="row.featureKey"
-          class="grid grid-cols-5 border-b border-white/5 last:border-0"
-          :class="i % 2 === 0 ? 'bg-forge-950/30' : ''">
-          <div class="p-4 flex items-center">
-            <p class="text-sm text-slate-300">{{ t(row.featureKey) }}</p>
+          <!-- Table rows -->
+          <div v-for="(row, i) in tableRows" :key="row.featureKey"
+            class="grid grid-cols-5 border-b border-white/5 last:border-0"
+            :class="i % 2 === 0 ? 'bg-forge-950/30' : ''">
+            <div class="p-3 md:p-4 flex items-center">
+              <p class="text-xs md:text-sm text-slate-300 leading-snug">{{ t(row.featureKey) }}</p>
+            </div>
+            <div v-for="(cell, ci) in row.cells" :key="ci"
+              class="p-3 md:p-4 flex items-center justify-center border-l border-white/5"
+              :class="ci === 0 ? 'bg-blue-600/5' : ''">
+              <span v-if="cell === true"           class="text-teal-400 text-base">✓</span>
+              <span v-else-if="cell === false"     class="text-slate-700 text-base">✗</span>
+              <span v-else-if="cell === 'partial'" class="text-amber-500 text-base">◑</span>
+              <span v-else class="text-[11px] md:text-xs text-slate-400 text-center leading-tight">{{ t(cell) }}</span>
+            </div>
           </div>
-          <div v-for="(cell, ci) in row.cells" :key="ci"
-            class="p-4 flex items-center justify-center border-l border-white/5"
-            :class="ci === 0 ? 'bg-blue-600/5' : ''">
-            <span v-if="cell === true"    class="text-teal-400 text-base">✓</span>
-            <span v-else-if="cell === false"   class="text-slate-700 text-base">✗</span>
-            <span v-else-if="cell === 'partial'" class="text-amber-500 text-base">◑</span>
-            <span v-else class="text-xs text-slate-400 text-center leading-tight">{{ t(cell) }}</span>
-          </div>
+
         </div>
       </div>
 
       <!-- Key differentiators -->
-      <div class="grid md:grid-cols-3 gap-4 mt-8">
+      <div class="grid sm:grid-cols-2 md:grid-cols-3 gap-4 mt-8">
         <div v-for="diff in differentiators" :key="diff.titleKey"
           class="p-5 rounded-xl border-subtle bg-forge-900 flex gap-4">
           <div class="text-2xl shrink-0">{{ diff.emoji }}</div>
@@ -69,6 +80,7 @@
           </div>
         </div>
       </div>
+
     </div>
   </section>
 </template>

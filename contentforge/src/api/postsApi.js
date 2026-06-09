@@ -43,6 +43,12 @@ const postsApi = {
     return await api.patch(`/posts/${postId}/schedule`, { scheduledAt });
   },
 
+  // ── Get ALL posts for a brand (all statuses) ────────────────────────────────
+  // GET /api/posts/all/:brandId
+  async getAllPosts(brandId) {
+    return await api.get(`/posts/all/${brandId}`);
+  },
+  
   // ── Get all drafts for a brand ──────────────────────────────────────────────
   // GET /api/posts/drafts/:brandId
   async getDrafts(brandId) {
@@ -68,29 +74,12 @@ const postsApi = {
     return await api.patch(`/posts/${postId}/date`, { date });
   },
 
-  // ── Publish to Facebook ───────────────────────────────────────────────────
-  // POST /api/posts/:id/publish/facebook
-  async publishToFacebook(postId) {
-    return await api.post(`/posts/${postId}/publish/facebook`);
-  },
-
-  // ── Publish to Instagram ───────────────────────────────────────────────────
-  // POST /api/posts/:id/publish/instagram
-  // Body: { imageUrl } (optional if post already has imageUrl)
-  async publishToInstagram(postId, imageUrl) {
-    return await api.post(`/posts/${postId}/publish/instagram`, { imageUrl });
-  },
-
-  // ── Get live Facebook stats ───────────────────────────────────────────────
-  // GET /api/posts/stats/facebook
-  async getFacebookStats() {
-    return await api.get("/posts/stats/facebook");
-  },
-
-  // ── Get live Instagram stats ───────────────────────────────────────────────
-  // GET /api/posts/stats/instagram
-  async getInstagramStats() {
-    return await api.get("/posts/stats/instagram");
+  // ── Generate AI image for a post ───────────────────────────────────────────
+  // POST /api/posts/:id/generate-image
+  // Gemini builds a unique prompt → FLUX generates the image → saved in DB
+  // Returns: { imageUrl, imagePrompt }
+  async generateImage(postId) {
+    return await api.post(`/posts/${postId}/generate-image`);
   },
 };
 

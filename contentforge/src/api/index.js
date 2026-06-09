@@ -9,4 +9,4 @@ export { default as brandApi }    from './brandApi'
 export { default as calendarApi } from './calendarApi'
 export { default as postsApi }    from './postsApi'
 export { default as api }         from './client'
-
+export { default as posterApi }   from './posterApi'

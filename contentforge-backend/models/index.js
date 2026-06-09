@@ -8,8 +8,8 @@ const userSchema = new mongoose.Schema({
   email:      { type: String, required: true, unique: true, lowercase: true },
   password:   { type: String, required: true, minlength: 6 },
  // الخانات الجديدة لفترة التجربة
-  plan: { type: String, enum: ['free','starter','growth','agency'], default: 'free' },
-  isVerified: { type: Boolean, default: false },
+  plan: { type: String, enum: ['free','starter','growth','agency','enterprise'], default: 'free' },
+  isVerified: { type: Boolean, default: false },// الميل حقيقي
   verificationCode: String,
   verificationCodeExpires: Date,
 
@@ -37,8 +37,34 @@ const userSchema = new mongoose.Schema({
   },
   hasUsedTrial: {
     type: Boolean,
-    default: true // بيبقى true علطول لأنه بدأ الـ Trial بتاعته فعلياً بمجرد التسجيل
-  }
+    default: false
+  },
+  stripeCustomerId: { type: String },         // Stripe customer ID
+  isAdmin:   { type: Boolean, default: false },
+  isBlocked: { type: Boolean, default: false },
+  lastLoginAt: { type: Date },
+  // ==================== الحقول الجديدة لفترة السماح ====================
+  blockStatus: { 
+    type: String, 
+    enum: ['none', 'warning', 'blocked'], 
+    default: 'none' 
+  },
+  restrictionReason: { 
+    type: String, 
+    default: null 
+  }, // سبب التحذير عشان يتبعت في الميل ويظهر للأدمن
+  gracePeriodExpiresAt: { 
+    type: Date, 
+    default: null 
+  }, // ميعاد القفل النهائي (الوقت الحالي + 24 ساعة)
+  actionTriggeredBy: { 
+    type: mongoose.Schema.Types.ObjectId, 
+    ref: 'User', 
+    default: null 
+  },// الـ ID بتاع الآدمن اللي خاد الأكشن (عشان الـ Logs)
+  isAskToDelete:     { type: Boolean, default: false },
+  deletionReason:    { type: String,  default: null },
+  isDeleted:         { type: Boolean, default: false }
 }, { timestamps: true })
 
 userSchema.pre('save', async function(next) {
@@ -47,10 +73,21 @@ userSchema.pre('save', async function(next) {
   next()
 })
 userSchema.methods.matchPassword = async function(entered) {
+  
   return await bcrypt.compare(entered, this.password)
 }
 const User = mongoose.model('User', userSchema)
 
+// models/Settings.js─────────────────────────────────────────────────────────────────────
+const platformSettingsSchema = new mongoose.Schema({
+  trialDays:         { type: Number,   default: 14 },
+  blockByPhone:      { type: Boolean,  default: true },
+  demoEnabled:       { type: Boolean,  default: true },
+  otpExpiryMinutes:  { type: Number,   default: 10 },
+  sendExpiryWarning: { type: Boolean,  default: false },
+}, { timestamps: true })
+
+const PlatformSettings = mongoose.model('PlatformSettings', platformSettingsSchema)
 // ── Brand ─────────────────────────────────────────────────────────────────────
 const brandSchema = new mongoose.Schema({
   user:           { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
@@ -69,6 +106,8 @@ const brandSchema = new mongoose.Schema({
     content:   String,
     embedding: [Number],
     source:    { type: String, enum: ['guidelines','past_posts'] },
+    isAdmin:   { type: Boolean, default: false },
+    isBlocked: { type: Boolean, default: false },
   }],
 }, { timestamps: true })
 const Brand = mongoose.model('Brand', brandSchema)
@@ -150,4 +189,44 @@ const chatMessageSchema = new mongoose.Schema({
 
 const ChatMessage = mongoose.model('ChatMessage', chatMessageSchema)
 
-module.exports = { User, Brand, Post, Calendar, Trend, ChatMessage }
+// ── TopPost ───────────────────────────────────────────────────────────────────
+const TopPostSchema = new mongoose.Schema({
+  brand:    { type: mongoose.Schema.Types.ObjectId, ref: 'Brand', required: true },
+  platform: { type: String, enum: ['Instagram','Facebook','LinkedIn','Twitter/X','TikTok'] },
+  content:  { type: String },
+  imageUrl: { type: String },
+  postUrl:  { type: String },
+  date:     { type: String },
+  stats: {
+    likes:       { type: Number, default: 0 },
+    comments:    { type: Number, default: 0 },
+    shares:      { type: Number, default: 0 },
+    reach:       { type: Number, default: 0 },
+    saves:       { type: Number, default: 0 },
+    engagementRate: { type: Number, default: 0 },
+  },
+  source:   { type: String, enum: ['manual','link','doc'], default: 'manual' },
+  embedded: { type: Boolean, default: false },
+}, { timestamps: true })
+
+const TopPost = mongoose.model('TopPost', TopPostSchema)
+
+// // وأضيفيها في الـ exports
+// module.exports = { User, Brand, Post, Calendar, Trend, ChatMessage, OriginalCalendar}
+// ── Connection ────────────────────────────────────────────────────────────────
+const connectionSchema = new mongoose.Schema({
+  user:        { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
+  platform:    { type: String, required: true },
+  handle:      String,
+  pageId:      String,
+  igId:        String,
+  accessToken: String,
+  tokenType:   String,
+  connected:   { type: Boolean, default: false },
+  stats:       [{ label: String, value: String }],
+  rawData:     { type: Object },
+}, { timestamps: true })
+
+const Connection = mongoose.model('Connection', connectionSchema)
+
+module.exports = { User, Brand, Post, Calendar, Trend, ChatMessage, OriginalCalendar, TopPost ,PlatformSettings, Connection  }

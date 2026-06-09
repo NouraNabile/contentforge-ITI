@@ -2,7 +2,7 @@
 const express = require("express");
 const router = express.Router();
 const protect = require("../middleware/auth");
-const { Post } = require("../models");
+const { Post, Brand } = require("../models");
 const { generateVariantB } = require("../services/geminiService");
 
 const { Connection } = require("../models");
@@ -19,6 +19,66 @@ async function getConnection(userId, platform) {
     connected: true,
   });
 }
+router.get("/stats/facebook", protect, async (req, res) => {
+  try {
+    const conn = await getConnection(req.user._id, "Facebook");
+    if (!conn)
+      return res.status(400).json({ message: "Facebook not connected" });
+
+    const { data } = await axios.get(`${BASE_URL}/${conn.pageId}`, {
+      params: {
+        fields: "name,fan_count,feed.limit(1).summary(true)",
+        access_token: conn.accessToken,
+      },
+    });
+
+    console.log("[Facebook Stats] raw:", JSON.stringify(data));
+
+    res.json({
+      pageName: data.name,
+      followers: data.fan_count,
+      totalPosts: data.feed?.summary?.total_count ?? 0,
+    });
+  } catch (err) {
+    console.error("[Facebook Stats] error:", err.response?.data || err.message);
+    res.status(500).json({ message: "Failed to fetch Facebook stats" });
+  }
+});
+
+// GET /api/posts/stats/instagram — Get live Instagram stats
+router.get("/stats/instagram", protect, async (req, res) => {
+  try {
+    const conn = await getConnection(req.user._id, "Instagram");
+    if (!conn)
+      return res.status(400).json({ message: "Instagram not connected" });
+
+    const { data } = await axios.get(`${BASE_URL}/${conn.igId}`, {
+      params: {
+        fields:
+          "username,followers_count,follows_count,media_count,media.limit(5){caption,like_count,comments_count,timestamp}",
+        access_token: conn.accessToken,
+      },
+    });
+
+    res.json({
+      username: data.username,
+      followers: data.followers_count,
+      following: data.follows_count,
+      totalPosts: data.media_count,
+      recentPosts:
+        data.media?.data?.map((p) => ({
+          id: p.id,
+          caption: p.caption,
+          likes: p.like_count,
+          comments: p.comments_count,
+        })) || [],
+    });
+  } catch (err) {
+    res.status(500).json({ message: "Failed to fetch Instagram stats" });
+  }
+});
+const { generatePostImage } = require("../services/imageService");
+
 // PATCH /api/posts/:id/status
 router.patch("/:id/status", protect, async (req, res) => {
   const { status } = req.body;
@@ -80,7 +140,17 @@ router.post("/:id/variant-b", protect, async (req, res) => {
   const post = await Post.findById(req.params.id).populate("brand");
   if (!post) return res.status(404).json({ message: "Post not found" });
 
-  const variantB = await generateVariantB({ post, brand: post.brand });
+  // جلب top posts للـ brand لو موجودة (not required)
+  const { TopPost } = require("../models");
+  const topPosts = await TopPost.find({ brand: post.brand._id })
+    .sort("-stats.engagementRate")
+    .limit(3);
+
+  const variantB = await generateVariantB({
+    post,
+    brand: post.brand,
+    topPosts,
+  });
   post.variantB = variantB;
   await post.save();
   res.json(variantB);
@@ -144,6 +214,14 @@ router.patch("/:id/schedule", protect, async (req, res) => {
   }
 });
 
+// GET /api/posts/all/:brandId — all posts (all statuses) for Posts Manager page
+router.get("/all/:brandId", protect, async (req, res) => {
+  const posts = await Post.find({ brand: req.params.brandId }).sort(
+    "-createdAt",
+  );
+  res.json(posts);
+});
+
 // GET /api/posts/drafts/:brandId
 router.get("/drafts/:brandId", protect, async (req, res) => {
   const drafts = await Post.find({
@@ -173,8 +251,120 @@ router.patch("/:id/date", protect, async (req, res) => {
   res.json(post);
 });
 
-// ________________________Platform Connection___________________________
+// POST /api/posts/:id/generate-image ─────────────────────────────────────────
+// 1. Gemini يبني image prompt مخصص للبوست
+// 2. Hugging Face FLUX يولد الصورة
+// 3. بتتحفظ في MongoDB وبترجع للـ frontend
+router.post("/:id/generate-image", protect, async (req, res) => {
+  try {
+    const post = await Post.findById(req.params.id);
+    if (!post) return res.status(404).json({ message: "Post not found" });
 
+    const brand = await Brand.findById(post.brand);
+    if (!brand) return res.status(404).json({ message: "Brand not found" });
+
+    const isRegenerate = !!post.imageUrl; // لو عنده صورة قديمة = regenerate
+
+    console.log(
+      `[Posts] ${isRegenerate ? "Regenerating" : "Generating"} image for post ${post._id} (${post.platform})`,
+    );
+
+    // لو regenerate — امسح الـ prompt القديم عشان Gemini يعمل واحد جديد مختلف
+    if (isRegenerate) {
+      post.imagePrompt = null;
+    }
+
+    const { imagePrompt, imageUrl } = await generatePostImage({
+      post,
+      brand,
+      regenerate: isRegenerate, // بنبعته للـ service عشان يغير الـ seed
+    });
+
+    if (!imageUrl) {
+      return res.status(503).json({
+        message: "Image generation not available — set HF_API_TOKEN in .env",
+      });
+    }
+
+    post.imagePrompt = imagePrompt;
+    post.imageUrl = imageUrl;
+    await post.save();
+
+    res.json({
+      message: isRegenerate
+        ? "Image regenerated successfully"
+        : "Image generated successfully",
+      imageUrl,
+      imagePrompt,
+      regenerated: isRegenerate,
+    });
+  } catch (err) {
+    console.error("[Posts] Image generation error:", err.message);
+    res
+      .status(500)
+      .json({ message: "Image generation failed: " + err.message });
+  }
+});
+
+// ________________________Platform Connection___________________________
+// Instagram publish
+router.post("/:id/publish/instagram", protect, async (req, res) => {
+  try {
+    const post = await Post.findById(req.params.id);
+    if (!post) return res.status(404).json({ message: "Post not found" });
+
+    const conn = await getConnection(req.user._id, "Instagram");
+    if (!conn)
+      return res.status(400).json({ message: "Instagram not connected" });
+
+    if (!post.imageUrl) {
+      return res
+        .status(400)
+        .json({ message: "Instagram posts require an image" });
+    }
+
+    const caption =
+      (post.copyEN || post.copyAR || "") +
+      (post.hashtags?.length ? "\n\n" + post.hashtags.join(" ") : "");
+
+    // Step 1: Create container
+    const { data: container } = await axios.post(
+      `${BASE_URL}/${conn.igId}/media`,
+      null,
+      {
+        params: {
+          image_url: post.imageUrl,
+          caption,
+          access_token: conn.accessToken,
+        },
+      },
+    );
+
+    // Step 2: Publish
+    const { data: published } = await axios.post(
+      `${BASE_URL}/${conn.igId}/media_publish`,
+      null,
+      { params: { creation_id: container.id, access_token: conn.accessToken } },
+    );
+
+    post.status = "published";
+    post.publishedAt = new Date();
+    post.metaPostId = published.id;
+    await post.save();
+
+    res.json({ success: true, postId: published.id, platform: "Instagram" });
+  } catch (err) {
+    console.error(
+      "[Instagram Publish] Error:",
+      err.response?.data || err.message,
+    );
+    res.status(500).json({
+      message:
+        err.response?.data?.error?.message || "Failed to publish to Instagram",
+    });
+  }
+});
+// Facebook publish
 router.post("/:id/publish/facebook", protect, async (req, res) => {
   try {
     // 1. Get your internal post
@@ -220,76 +410,14 @@ router.post("/:id/publish/facebook", protect, async (req, res) => {
   }
 });
 // GET /api/posts/stats/facebook — Get live Facebook stats
-router.get("/stats/facebook", protect, async (req, res) => {
-  try {
-    const conn = await getConnection(req.user._id, "Facebook");
-    if (!conn)
-      return res.status(400).json({ message: "Facebook not connected" });
-
-    const { data } = await axios.get(`${BASE_URL}/${conn.pageId}`, {
-      params: {
-        fields:
-          "name,fan_count,posts.limit(5){message,created_time,likes.summary(true),comments.summary(true)}",
-        access_token: conn.accessToken,
-      },
-    });
-
-    res.json({
-      pageName: data.name,
-      followers: data.fan_count,
-      recentPosts:
-        data.posts?.data?.map((p) => ({
-          id: p.id,
-          message: p.message,
-          likes: p.likes?.summary?.total_count || 0,
-          comments: p.comments?.summary?.total_count || 0,
-        })) || [],
-    });
-  } catch (err) {
-    res.status(500).json({ message: "Failed to fetch Facebook stats" });
-  }
-});
-
-// GET /api/posts/stats/instagram — Get live Instagram stats
-router.get("/stats/instagram", protect, async (req, res) => {
-  try {
-    const conn = await getConnection(req.user._id, "Instagram");
-    if (!conn)
-      return res.status(400).json({ message: "Instagram not connected" });
-
-    const { data } = await axios.get(`${BASE_URL}/${conn.igId}`, {
-      params: {
-        fields:
-          "username,followers_count,follows_count,media_count,media.limit(5){caption,like_count,comments_count,timestamp}",
-        access_token: conn.accessToken,
-      },
-    });
-
-    res.json({
-      username: data.username,
-      followers: data.followers_count,
-      following: data.follows_count,
-      totalPosts: data.media_count,
-      recentPosts:
-        data.media?.data?.map((p) => ({
-          id: p.id,
-          caption: p.caption,
-          likes: p.like_count,
-          comments: p.comments_count,
-        })) || [],
-    });
-  } catch (err) {
-    res.status(500).json({ message: "Failed to fetch Instagram stats" });
-  }
-});
 
 // DEBUG — print all routes
-console.log('=== POSTS ROUTES ===')
+console.log("=== POSTS ROUTES ===");
 router.stack.forEach((layer) => {
   if (layer.route) {
-    const methods = Object.keys(layer.route.methods).join(',').toUpperCase()
-    console.log(`  ${methods} ${layer.route.path}`)
+    const methods = Object.keys(layer.route.methods).join(",").toUpperCase();
+    console.log(`  ${methods} ${layer.route.path}`);
   }
-})
+});
 
 module.exports = router;

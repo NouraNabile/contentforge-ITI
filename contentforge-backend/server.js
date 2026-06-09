@@ -5,12 +5,44 @@ require("express-async-errors");
 const express = require("express");
 const mongoose = require("mongoose");
 const cors = require("cors");
+const path = require("path"); 
 const connectDB = require("./config/db");
 const { startTrendScheduler } = require("./services/trendService");
 const chatRoutes = require("./routes/chat");
+// يحسب 24h 
+const cron = require('node-cron');
+const { User,PlatformSettings } = require('./models');const posterRoutes = require("./routes/posterRouter");
 
-const app = express();
+const app = express()
+const { sendTrialExpiryWarningEmail } = require('./services/emailService')
 
+// بيشتغل كل يوم الساعة 9 الصبح
+cron.schedule('0 9 * * *', async () => {
+  try {
+    const settings = await PlatformSettings.findOne()
+    if (!settings?.sendExpiryWarning) return  // لو الـ feature متوقف
+
+    const threeDaysFromNow = new Date()
+    threeDaysFromNow.setDate(threeDaysFromNow.getDate() + 3)
+    const startOfDay = new Date(threeDaysFromNow.setHours(0, 0, 0, 0))
+    const endOfDay   = new Date(threeDaysFromNow.setHours(23, 59, 59, 999))
+
+    // جيب الـ users اللي trial بتاعهم هينتهي بعد 3 أيام بالظبط
+    const users = await User.find({
+      isTrial: true,
+      trialEndsAt: { $gte: startOfDay, $lte: endOfDay }
+    })
+
+    users.forEach(user => {
+      sendTrialExpiryWarningEmail(user.email, user.name, user.trialEndsAt)
+        .catch(err => console.error(`Expiry email error for ${user.email}:`, err.message))
+    })
+
+    console.log(`[Cron] Sent expiry warning to ${users.length} users`)
+  } catch (err) {
+    console.error('[Cron] Error:', err.message)
+  }
+})
 // ── Connect to MongoDB Atlas ──────────────────────────────────────────────────
 mongoose
   .connect(process.env.MONGODB_URI)
@@ -31,6 +63,10 @@ app.use(
     credentials: true,
   }),
 );
+
+// ── Stripe webhook needs raw body — MUST be before express.json ──────────────
+app.use('/api/payment/webhook', express.raw({ type: 'application/json' }))
+
 app.use(express.json({ limit: "20mb" }));
 app.use(express.urlencoded({ extended: true }));
 
@@ -42,11 +78,15 @@ app.use("/api/auth", require("./routes/auth"));
 app.use("/api/brand", require("./routes/brand"));
 app.use("/api/calendar", require("./routes/calendar"));
 app.use("/api/posts", require("./routes/posts"));
-console.log('Posts router mounted at /api/posts')
 app.use("/api/trends", require("./routes/trends"));
 app.use("/api/chat", chatRoutes);
+app.use("/api/admin", require("./routes/admin"));
 app.use("/api/stats", require("./routes/stats"));
 app.use("/api/connections", require("./routes/connections"));
+// Mount poster routes at /api/posters
+app.use("/api/posters", posterRoutes);
+// Serve generated images statically
+app.use("/uploads/generated", express.static(path.join(__dirname, "uploads", "generated")));
 
 // ── Health check — frontend pings this to check if server is up ───────────────
 app.get("/api/health", (req, res) => {
@@ -55,7 +95,8 @@ app.get("/api/health", (req, res) => {
     service: "ContentForge API",
     timestamp: new Date().toISOString(),
     mongo: "connected",
-  });
+  });// Serve generated images statically
+  
 });
 
 // ── 404 handler ───────────────────────────────────────────────────────────────
@@ -76,5 +117,42 @@ const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
   console.log(`\n🚀 ContentForge API running on http://localhost:${PORT}`);
   console.log(`📋 Health check: http://localhost:${PORT}/api/health\n`);
+  // ==================== الـ Cron Job الخاص بالحظر التلقائي ====================
+  // '*/5 * * * *' تعني أن الكود سيشتغل تلقائياً كل 5 دقائق ليفحص الداتا بيز
+  cron.schedule('*/5 * * * *', async () => {
+    try {
+      console.log('=== [Cron Job] جاري فحص الحسابات المستحقة للحظر التلقائي... ===');
+      const now = new Date();
+
+      // 1. بندور على المستخدمين اللي حالتهم warning وفترة السماح بتاعتهم خلصت
+      const usersToBlock = await User.find({
+        blockStatus: 'warning',
+        gracePeriodExpiresAt: { $lte: now } // $lte تعني أصغر من أو يساوي الوقت الحالي
+        // الداتا بيز بترجع لنا "قائمة" (Array) فيها كل المستخدمين اللي انطبقت عليهم الشروط دي
+      });
+
+      if (usersToBlock.length > 0) {
+        const userIds = usersToBlock.map(user => user._id);
+        
+        // 2. بنحولهم كلهم لـ blocked وبنخلي الـ isBlocked بـ true في خطوة واحدة
+        await User.updateMany(
+          { _id: { $in: userIds } },
+          {
+            $set: {
+              blockStatus: 'blocked',
+              isBlocked: true,
+              gracePeriodExpiresAt: null // بنصفر الوقت لأنه خلاص اتقفل
+            }
+          }
+        );
+
+        console.log(`[Cron Job] تم حظر ${usersToBlock.length} مستخدمين تلقائياً.`);
+      }
+    } catch (error) {
+      console.error('خطأ في الـ Cron Job:', error.message);
+    }
+  });
+  // ============================================================================
 });
+
 

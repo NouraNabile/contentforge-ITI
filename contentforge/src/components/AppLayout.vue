@@ -1,19 +1,20 @@
 <template>
   <div class="min-h-screen theme-bg flex flex-col">
+
     <!-- TOP NAVBAR -->
-    <header class="theme-glass border-b sticky top-0 z-50 px-4 py-3 flex items-center justify-between"
+    <header class="theme-glass border-b sticky top-0 z-50 px-3 sm:px-4 py-3 flex items-center justify-between"
       style="border-color: var(--border)">
 
-      <div class="flex items-center gap-3">
+      <div class="flex items-center gap-2 sm:gap-3 min-w-0">
         <!-- Hamburger — mobile only -->
         <button @click="sidebarOpen = !sidebarOpen"
-          class="md:hidden w-8 h-8 rounded-lg theme-card theme-border flex items-center justify-center theme-sub hover:theme-text transition-colors">
+          class="md:hidden w-8 h-8 rounded-lg theme-card theme-border flex items-center justify-center theme-sub hover:theme-text transition-colors shrink-0">
           <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
           </svg>
         </button>
 
-        <RouterLink to="/" class="flex items-center gap-2">
+        <RouterLink to="/" class="flex items-center gap-2 shrink-0">
           <div class="w-7 h-7 rounded-lg bg-gradient-to-br from-blue-500 to-teal-400 flex items-center justify-center shrink-0">
             <svg width="13" height="13" viewBox="0 0 16 16" fill="none">
               <path d="M3 8L7 12L13 4" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
@@ -21,15 +22,15 @@
           </div>
           <span class="font-display font-700 text-base theme-text">ContentForge</span>
         </RouterLink>
-        <span style="color: var(--border)" class="hidden md:block">|</span>
-        <span class="hidden md:block text-sm theme-sub">{{ pageTitle }}</span>
+        <span style="color: var(--border)" class="hidden md:block shrink-0">|</span>
+        <span class="hidden md:block text-sm theme-sub truncate">{{ pageTitle }}</span>
       </div>
 
-      <div class="flex items-center gap-2">
+      <div class="flex items-center gap-1.5 sm:gap-2 shrink-0">
         <!-- Language switcher -->
         <button @click="switchLang"
-          class="text-xs theme-sub px-3 py-1.5 rounded-lg theme-card theme-border hover:theme-text transition-colors flex items-center gap-1.5">
-          <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          class="text-xs theme-sub px-2 sm:px-3 py-1.5 rounded-lg theme-card theme-border hover:theme-text transition-colors flex items-center gap-1 sm:gap-1.5">
+          <svg class="w-3.5 h-3.5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
               d="M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18zm0 0c-4.97 0-9-4.03-9-9m9 9c4.97 0 9-4.03 9-9M3 12h18M12 3c-2.5 2.5-4 5.5-4 9s1.5 6.5 4 9M12 3c2.5 2.5 4 5.5 4 9s-1.5 6.5-4 9" />
           </svg>
@@ -39,7 +40,7 @@
 
         <!-- Light/Dark toggle -->
         <button @click="toggleTheme"
-          class="w-8 h-8 rounded-xl theme-card theme-border flex items-center justify-center theme-sub hover:theme-text transition-colors"
+          class="w-8 h-8 rounded-xl theme-card theme-border flex items-center justify-center theme-sub hover:theme-text transition-colors shrink-0"
           :title="isDark ? t('layout.switchLight') : t('layout.switchDark')">
           <svg v-if="isDark" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -54,7 +55,7 @@
         <!-- Notifications bell -->
         <div class="relative">
           <button @click="showNotifs = !showNotifs"
-            class="w-8 h-8 rounded-xl theme-card theme-border flex items-center justify-center theme-sub hover:theme-text transition-colors relative">
+            class="w-8 h-8 rounded-xl theme-card theme-border flex items-center justify-center theme-sub hover:theme-text transition-colors relative shrink-0">
             <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                 d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
@@ -121,7 +122,7 @@
       <!-- SIDEBAR -->
       <Transition name="slide-sidebar">
         <aside
-          class="fixed md:sticky top-0 z-40 md:z-auto w-56 border-r flex flex-col py-5 px-3 shrink-0 theme-sidebar overflow-y-auto scrollbar-thin"
+          class="fixed top-[57px] z-40 md:z-auto w-56 border-r flex flex-col py-5 px-3 shrink-0 theme-sidebar overflow-y-auto scrollbar-thin"
           :class="[
             sidebarOpen ? 'translate-x-0' : locale === 'ar' ? 'translate-x-full md:translate-x-0' : '-translate-x-full md:translate-x-0',
             'md:flex'
@@ -190,7 +191,7 @@
             </div>
           </div>
 
-          <!-- Logout — lives inside sidebar -->
+          <!-- Logout -->
           <button @click="authStore.logout()"
             class="flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-xs theme-sub hover:text-rose-400 transition-colors w-full mt-3"
             :class="locale === 'ar' ? 'flex-row-reverse' : ''">
@@ -205,7 +206,7 @@
       </Transition>
 
       <!-- PAGE CONTENT -->
-      <main class="flex-1 overflow-y-auto scrollbar-thin min-w-0">
+      <main class="flex-1 overflow-y-auto scrollbar-thin min-w-0 md:ms-56">
         <slot />
       </main>
     </div>

@@ -211,7 +211,78 @@
       </main>
     </div>
 
-    <!-- Notification backdrop -->
+       <!-- Delete Account + Logout -->
+<div class="flex flex-col gap-1 px-1 pb-2">
+  <button @click="showDeleteModal = true"
+    class="flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-xs theme-sub hover:text-rose-400 transition-colors w-full">
+    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+        d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+    </svg>
+    Delete Account
+  </button>
+
+  <button @click="authStore.logout()"
+    class="flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-xs theme-sub hover:text-rose-400 transition-colors w-full">
+    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+        d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/>
+    </svg>
+    {{ t('layout.logout') }}
+  </button>
+</div>
+
+<!-- Delete Account Modal -->
+<Teleport to="body">
+  <div v-if="showDeleteModal" class="fixed inset-0 z-50 flex items-center justify-center p-4"
+    style="background: rgba(0,0,0,0.6); backdrop-filter: blur(4px)">
+    <div class="rounded-2xl p-6 w-full max-w-sm" style="background: var(--surface); border: 1px solid var(--border)">
+      
+      <!-- Icon -->
+      <div class="w-12 h-12 rounded-2xl bg-rose-500/10 flex items-center justify-center mx-auto mb-4">
+        <svg class="w-6 h-6 text-rose-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+            d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+        </svg>
+      </div>
+
+      <h3 class="text-sm font-semibold theme-text text-center mb-1">Request Account Deletion</h3>
+      <p class="text-xs theme-sub text-center mb-4 leading-relaxed">
+        Your data will be permanently deleted within 48 hours. This action cannot be undone.
+      </p>
+
+      <!-- Reason -->
+      <textarea v-model="deleteReason" rows="3" placeholder="Tell us why (optional)..."
+        class="w-full text-xs rounded-xl px-3 py-2.5 mb-4 resize-none"
+        style="background: rgba(255,255,255,0.04); border: 1px solid var(--border); color: var(--text)"/>
+
+      <!-- Error -->
+      <p v-if="deleteError" class="text-[11px] text-rose-400 text-center mb-3">{{ deleteError }}</p>
+
+      <!-- Success -->
+      <div v-if="deleteSuccess" class="text-[11px] text-emerald-400 text-center mb-3">
+        ✅ Request sent. We'll contact you within 48 hours.
+      </div>
+
+      <!-- Actions -->
+      <div class="flex gap-2">
+        <button @click="showDeleteModal = false; deleteReason = ''; deleteError = null; deleteSuccess = false"
+          class="flex-1 px-4 py-2.5 rounded-xl text-xs theme-sub transition-colors"
+          style="background: rgba(255,255,255,0.05); border: 1px solid var(--border)">
+          Cancel
+        </button>
+        <button @click="submitDeletion" :disabled="deleteLoading || deleteSuccess"
+          class="flex-1 px-4 py-2.5 rounded-xl text-xs font-medium text-white transition-colors"
+          :class="deleteLoading || deleteSuccess ? 'opacity-50 cursor-not-allowed' : 'hover:opacity-90'"
+          style="background: #ef4444">
+          {{ deleteLoading ? 'Sending...' : 'Confirm' }}
+        </button>
+      </div>
+    </div>
+  </div>
+</Teleport>
+
+
     <div v-if="showNotifs" class="fixed inset-0 z-40" @click="showNotifs = false"></div>
   </div>
 </template>
@@ -309,6 +380,30 @@ const navItems = computed(() => [
   { label: t('layout.nav.connections'), path: '/connections', badgeKey: null,        icon: 'M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1' },
   { label: t('layout.nav.payment'),     path: '/payment',     badgeKey: null,        icon: 'M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z' },
 ])
+
+// Delete Account
+const showDeleteModal = ref(false)
+const deleteReason    = ref('')
+const deleteLoading   = ref(false)
+const deleteError     = ref(null)
+const deleteSuccess   = ref(false)
+
+async function submitDeletion() {
+  deleteLoading.value = true
+  deleteError.value   = null
+  try {
+    await api.post('/auth/deletion-request', { reason: deleteReason.value })
+    deleteSuccess.value = true
+    setTimeout(() => { 
+      showDeleteModal.value = false
+      deleteReason.value = ''
+    }, 2000)
+  } catch (err) {
+    deleteError.value = err.message || 'Something went wrong, please try again.'
+  } finally {
+    deleteLoading.value = false
+  }
+}
 </script>
 
 <style scoped>
@@ -318,3 +413,28 @@ const navItems = computed(() => [
 .slide-sidebar-enter-active, .slide-sidebar-leave-active { transition: transform 0.25s ease; }
 .slide-sidebar-enter-from, .slide-sidebar-leave-to       { transform: translateX(-100%); }
 </style>
+
+// Delete Account
+const showDeleteModal = ref(false)
+const deleteReason    = ref('')
+const deleteLoading   = ref(false)
+const deleteError     = ref(null)
+const deleteSuccess   = ref(false)
+
+async function submitDeletion() {
+  deleteLoading.value = true
+  deleteError.value   = null
+  try {
+    await api.post('/auth/deletion-request', { reason: deleteReason.value })
+    deleteSuccess.value = true
+    setTimeout(() => { 
+      showDeleteModal.value = false
+      deleteReason.value = ''
+    }, 2000)
+  } catch (err) {
+    deleteError.value = err.message || 'Something went wrong, please try again.'
+  } finally {
+    deleteLoading.value = false
+  }
+}
+

@@ -174,15 +174,15 @@
               : (isRegister ? t('auth.createAccountBtn') : t('auth.signIn')) }}
           </button>
 
-          <div class="divider">
+          <!-- <div class="divider">
             <span></span>
             <p>{{ t('common.or') }}</p>
             <span></span>
-          </div>
-
+          </div> -->
+<!-- 
           <button @click="demoLogin" :disabled="loading" class="btn-secondary">
             🚀 {{ t('auth.tryDemo') }}
-          </button>
+          </button> -->
 
           <p class="switch-mode">
             {{ isRegister ? t('auth.alreadyHaveAccount') : t('auth.noAccount') }}
@@ -344,11 +344,12 @@ async function submit() {
       await nextTick()
 
       if (localStorage.getItem('cf_token')) {
-        // 3. طالما اتسيف، انقل برمش العين والقلب جامد ومحدش هيقدر يطردك!
-        router.push('/dashboard')
-      } else {
-        error.value = t('auth.errorTokenMissing')
-      }
+  const userRaw = localStorage.getItem('cf_user')
+  const user = userRaw ? JSON.parse(userRaw) : null
+  router.push(user?.isAdmin ? '/admin' : '/dashboard')
+} else {
+      error.value = 'تم تسجيل الدخول ولكن لم يتم حفظ التوكن، تأكدي من كود الـ Store'
+    }
     }
   } catch (err) {
     error.value = err.message || t('auth.errorGeneric')
@@ -367,10 +368,11 @@ async function verifyEmail() {
     })
     successKey.value = t('auth.verifiedSuccess')
     // 2. 🚀 السطر السحري: بنعمل تسجيل دخول أوتوماتيك فوراً عشان الـ Store يجيب التوكن ويسيفه
-    await authStore.login(form.value)
-
-    // 3. ننتقل للداش بورد والقلب جامد والتوكن متسيف
-    router.push('/dashboard')
+    // في verifyEmail() — بعد authStore.login
+await authStore.login(form.value)
+const userRaw = localStorage.getItem('cf_user')
+const user = userRaw ? JSON.parse(userRaw) : null
+router.push(user?.isAdmin ? '/admin' : '/dashboard')
   } catch (err) {
     error.value = err.response?.data?.message || t('auth.errorInvalidCode')
   } finally {

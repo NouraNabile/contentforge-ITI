@@ -3,10 +3,10 @@
   <div class="admin-trends">
     <div class="panel">
       <div class="panel-header">
-        <h2 class="panel-title">{{ t('admin.trends.title') }}</h2>
-        <span class="total-badge">{{ t('admin.trends.count', { n: trends.length }) }}</span>
+        <h2 class="panel-title">Top Arabic Trends</h2>
+        <span class="total-badge">{{ trends.length }} topics</span>
       </div>
-      <div v-if="loading" class="empty-row">{{ t('admin.loading') }}</div>
+      <div v-if="loading" class="empty-row">Loading trends…</div>
       <div v-else class="trends-list">
         <div v-for="(t, i) in trends" :key="t._id" class="trend-row">
           <span class="trend-rank">#{{ i + 1 }}</span>
@@ -22,7 +22,7 @@
             {{ t.change === 'up' ? '↑' : t.change === 'down' ? '↓' : '→' }}
           </span>
         </div>
-        <div v-if="!trends.length" class="empty-row">{{ t('admin.trends.empty') }}</div>
+        <div v-if="!trends.length" class="empty-row">No trends data yet</div>
       </div>
     </div>
   </div>
@@ -31,9 +31,6 @@
 <script setup>
 import { ref, onMounted } from 'vue'
 import adminApi from '../../api/adminApi'
-import { useI18n } from 'vue-i18n'
-
-const { t } = useI18n()
 const trends  = ref([])
 const loading = ref(true)
 onMounted(async () => {

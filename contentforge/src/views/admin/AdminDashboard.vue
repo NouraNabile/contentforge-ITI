@@ -1,20 +1,80 @@
-<!-- AdminDashboard.vue -->
 <template>
   <div class="admin-dashboard">
 
     <!-- Stats Grid -->
-    <div class="stats-grid">
-      <div class="stat-card" v-for="s in statCards" :key="s.label">
-        <div class="stat-icon" :style="{ background: s.iconBg }">
-          <span v-html="s.icon"></span>
-        </div>
-        <div class="stat-body">
-          <p class="stat-label">{{ s.label }}</p>
-          <p class="stat-value">{{ loading ? '—' : s.value }}</p>
-          <p v-if="s.sub" class="stat-sub" :class="s.subColor">{{ s.sub }}</p>
-        </div>
-      </div>
+ <div class="stats-grid">
+  <div class="stat-card relative group" v-for="s in statCards" :key="s.label">
+    <div class="stat-icon" :style="{ background: s.iconBg }">
+      <span v-html="s.icon"></span>
     </div>
+    <div class="stat-body">
+      <p class="stat-label">{{ s.label }}</p>
+      <p class="stat-value">{{ loading ? '—' : s.value }}</p>
+      <p v-if="s.sub" class="stat-sub" :class="s.subColor">{{ s.sub }}</p>
+    </div>
+
+    <div v-if="s.hasDetails && !loading && s.details" 
+         class="absolute z-50 top-full left-1/2 transform -translate-x-1/2 mt-2 w-48 p-3 
+                bg-slate-950 text-slate-200 text-xs rounded-lg shadow-xl border border-slate-800
+                invisible opacity-0 group-hover:visible group-hover:opacity-100 transition-all duration-200">
+      
+      <div class="flex flex-col gap-2 min-w-[170px]" style="font-family: inherit;">
+  
+  <div class="flex justify-between items-center border-b border-slate-800/60 pb-1.5 mb-0.5">
+    <span class="text-blue-400 font-medium flex items-center gap-1.5">
+      <span class="w-1.5 h-1.5 rounded-full bg-blue-500"></span>
+      Admins:
+    </span>
+    <span class="font-bold text-blue-300">{{ s.details.admin }}</span>
+  </div>
+
+  <div class="flex justify-between items-center">
+    <span class="text-green-400 font-medium flex items-center gap-1.5">
+      <span class="w-1.5 h-1.5 rounded-full bg-green-500"></span>
+      Active:
+    </span>
+    <span class="font-bold text-green-300">{{ s.details.active }}</span>
+  </div>
+
+  <div class="flex justify-between items-center">
+    <span class="text-amber-400 font-medium flex items-center gap-1.5">
+      <span class="w-1.5 h-1.5 rounded-full bg-amber-500"></span>
+      Warned:
+    </span>
+    <span class="font-bold text-amber-300">{{ s.details.warned }}</span>
+  </div>
+
+  <div class="flex justify-between items-center border-b border-slate-800/60 pb-1.5 my-0.5">
+    <span class="text-rose-400 font-medium flex items-center gap-1.5">
+      <span class="w-1.5 h-1.5 rounded-full bg-rose-500 animate-pulse"></span>
+      Pending Delete:
+    </span>
+    <span class="font-bold text-rose-300">{{ s.details.isAskToDelete }}</span>
+  </div>
+
+  <div class="flex justify-between items-center">
+    <span class="text-red-500 font-medium flex items-center gap-1.5">
+      <span class="w-1.5 h-1.5 rounded-full bg-red-600"></span>
+      Blocked:
+    </span>
+    <span class="font-bold text-red-400">{{ s.details.blocked }}</span>
+  </div>
+
+  <div class="flex justify-between items-center">
+    <span class="text-slate-400 font-medium flex items-center gap-1.5">
+      <span class="w-1.5 h-1.5 rounded-full bg-slate-500"></span>
+      Deleted (Soft):
+    </span>
+    <span class="font-bold text-slate-300">{{ s.details.deleted }}</span>
+  </div>
+
+</div>
+      
+      <div class="absolute bottom-full left-1/2 transform -translate-x-1/2 border-4 border-transparent border-b-slate-950"></div>
+    </div>
+
+  </div>
+</div>
 
     <!-- Middle Row -->
     <div class="mid-row">
@@ -22,23 +82,23 @@
       <!-- Recent Users -->
       <div class="panel users-panel">
         <div class="panel-header">
-          <h2 class="panel-title">{{ t('admin.dashboard.recentUsers') }}</h2>
-          <RouterLink to="/admin/users" class="panel-link">{{ t('admin.dashboard.viewAll') }}</RouterLink>
+          <h2 class="panel-title">Recent Users</h2>
+          <RouterLink to="/admin/users" class="panel-link">View all →</RouterLink>
         </div>
         <div class="table-wrap">
           <table class="admin-table">
             <thead>
               <tr>
-                <th>{{ t('admin.table.user') }}</th>
-                <th>{{ t('admin.table.plan') }}</th>
-                <th>{{ t('admin.table.verified') }}</th>
-                <th>{{ t('admin.table.joined') }}</th>
-                <th>{{ t('admin.table.action') }}</th>
+                <th>User</th>
+                <th>Plan</th>
+                <th>Verified</th>
+                <th>Joined</th>
+                <th>Action</th>
               </tr>
             </thead>
             <tbody>
-              <tr v-if="loading"><td colspan="5" class="empty-row">{{ t('admin.loading') }}</td></tr>
-              <tr v-else-if="!recentUsers.length"><td colspan="5" class="empty-row">{{ t('admin.dashboard.noUsers') }}</td></tr>
+              <tr v-if="loading"><td colspan="5" class="empty-row">Loading...</td></tr>
+              <tr v-else-if="!recentUsers.length"><td colspan="5" class="empty-row">No users yet</td></tr>
               <tr v-else v-for="u in recentUsers" :key="u._id">
                 <td>
                   <div class="user-cell">
@@ -57,10 +117,32 @@
                 </td>
                 <td class="muted-cell">{{ formatDate(u.createdAt) }}</td>
                 <td>
-                  <button class="action-btn block-btn" @click="blockUser(u)">
-                    {{ u.isBlocked ? t('admin.action.unblock') : t('admin.action.block') }}
-                  </button>
-                </td>
+                
+                <button 
+                  class="action-btn block-btn disabled-link"
+                > Block
+                </button>
+              </td>
+
+              <div v-if="showReasonModal" class="modal-overlay">
+                <div class="modal-content">
+                  <h3>Issue Policy Violation Warning</h3>
+                  <p>Please provide a reason. The user will receive an email and a 24-hour grace period before final block.</p>
+                  
+                  <textarea 
+                    v-model="blockReason" 
+                    placeholder="e.g., Using abusive language in content generation..."
+                    rows="3"
+                  ></textarea>
+                  
+                  <div class="modal-actions">
+                    <button class="cancel-modal-btn" @click="closeModal">Cancel</button>
+                    <button class="confirm-modal-btn" :disabled="!blockReason.trim()" @click="submitBlockWarning">
+                      Confirm & Send Alert
+                    </button>
+                  </div>
+                </div>
+              </div>
               </tr>
             </tbody>
           </table>
@@ -70,19 +152,19 @@
       <!-- Platform Health -->
       <div class="panel health-panel">
         <div class="panel-header">
-          <h2 class="panel-title">{{ t('admin.dashboard.platformHealth') }}</h2>
+          <h2 class="panel-title">Platform Health</h2>
         </div>
         <div class="health-items">
           <div class="health-item">
             <div class="health-label">
-              <span>{{ t('admin.health.uptime') }}</span>
+              <span>Server Uptime</span>
               <span class="health-val green">{{ uptimeStr }}</span>
             </div>
             <div class="health-bar"><div class="health-fill green-fill" style="width:99.8%"></div></div>
           </div>
           <div class="health-item">
               <div class="health-label">
-              <span>{{ t('admin.health.activeTrials') }}</span>
+              <span>Active Trials</span>
               <span class="health-val blue">{{ stats.activeTrialUsers ?? '—' }}</span>
             </div>
             <div class="health-bar">
@@ -93,7 +175,7 @@
           </div>
           <div class="health-item">
             <div class="health-label">
-              <span>{{ t('admin.health.pendingVerif') }}</span>
+              <span>Pending Verifications</span>
               <span class="health-val amber">{{ stats.pendingVerifications ?? '—' }}</span>
             </div>
             <div class="health-bar">
@@ -107,17 +189,17 @@
         <div class="quick-stats">
           <div class="qs-item">
             <p class="qs-val">{{ stats.newUsersThisWeek ?? '—' }}</p>
-            <p class="qs-label">{{ t('admin.health.newThisWeek') }}</p>
+            <p class="qs-label">New this week</p>
           </div>
           <div class="qs-item">
             <p class="qs-val" :class="stats.registrationGrowth >= 0 ? 'green' : 'red'">
               {{ stats.registrationGrowth >= 0 ? '+' : '' }}{{ stats.registrationGrowth ?? '—' }}%
             </p>
-            <p class="qs-label">{{ t('admin.health.vsLastWeek') }}</p>
+            <p class="qs-label">vs last week</p>
           </div>
           <div class="qs-item">
             <p class="qs-val">{{ stats.totalUsers ?? '—' }}</p>
-            <p class="qs-label">{{ t('admin.health.totalUsers') }}</p>
+            <p class="qs-label">Total users</p>
           </div>
         </div>
       </div>
@@ -126,11 +208,11 @@
     <!-- Trends Row -->
     <div class="panel trends-panel">
       <div class="panel-header">
-        <h2 class="panel-title">{{ t('admin.dashboard.topTrends') }}</h2>
-        <RouterLink to="/admin/trends" class="panel-link">{{ t('admin.dashboard.manage') }}</RouterLink>
+        <h2 class="panel-title">Top Arabic Trends</h2>
+        <RouterLink to="/admin/trends" class="panel-link">Manage →</RouterLink>
       </div>
       <div class="trends-list">
-        <div v-if="loadingTrends" class="empty-row">{{ t('admin.loading') }}</div>
+        <div v-if="loadingTrends" class="empty-row">Loading...</div>
         <div v-else v-for="(t, i) in trends" :key="t._id" class="trend-row">
           <span class="trend-rank">#{{ i + 1 }}</span>
           <span class="trend-topic">{{ t.tag }}</span>
@@ -147,21 +229,23 @@
     </div>
 
   </div>
+  
 </template>
 
 <script setup>
 import { ref, computed, onMounted } from 'vue'
 import { RouterLink } from 'vue-router'
 import adminApi from '../../api/adminApi'
-import { useI18n } from 'vue-i18n'
-
-const { t } = useI18n()
 
 const loading       = ref(true)
 const loadingTrends = ref(true)
 const stats         = ref({})
 const recentUsers   = ref([])
 const trends        = ref([])
+// 1. التعريفات الأساسية (الـ Reactive States)
+const showReasonModal = ref(false)
+const blockReason = ref('')
+const selectedUser = ref(null) // عشان نحفظ المستخدم اللي بنعدل عليه حالياً
 
 const uptimeStr = computed(() => {
   const s = stats.value.serverUptime || 0
@@ -170,38 +254,47 @@ const uptimeStr = computed(() => {
   return h > 0 ? `${h}h ${m}m` : `${m}m`
 })
 
-// statCards computed — replace all hardcoded strings:
 const statCards = computed(() => [
   {
-    label: t('admin.stats.totalUsers'),
+    label: 'Total Users',
     value: stats.value.totalUsers?.toLocaleString() ?? '—',
-    icon: `...`,
+    icon: `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75"/></svg>`,
     iconBg: 'rgba(59,130,246,0.12)',
-    sub: t('admin.stats.newThisWeek', { n: stats.value.newUsersThisWeek ?? 0 }),
+    sub: `+${stats.value.newUsersThisWeek ?? 0} this week`,
     subColor: 'green',
+    
+    hasDetails: true,
+   details: {
+      active: stats.value.activeCount ?? 0,
+      warned: stats.value.warnedCount ?? 0,   // 👈 حطينا الـ warned رقم 2 عشان يطابق الشاشة
+      isAskToDelete: stats.value.isAskToDeleteCount ?? 0, // 👈 حطينا الـ isAskToDelete رقم 2.5 عشان يطابق الشاشة
+      blocked: stats.value.blockedCount ?? 0, // 👈 حطينا الـ blocked رقم 3 عشان يطابق الشاشة
+      deleted: stats.value.deletedCount ?? 0, // 👈 حطينا الـ deleted رقم 4 عشان يطابق الشاشة
+      admin: stats.value.adminCount ?? 0      // 👈 الـ admin رقم 5
+    }
   },
-  {
-    label: t('admin.stats.newUsers24h'),
+    {
+    label: 'New Users (24h)',
     value: stats.value.newUsers24h ?? '—',
-    icon: `...`,
+    icon: `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><line x1="19" y1="8" x2="19" y2="14"/><line x1="22" y1="11" x2="16" y2="11"/></svg>`,
     iconBg: 'rgba(168,85,247,0.12)',
-    sub: t('admin.stats.registeredLast24h'),
+    sub: 'Registered in last 24h',
     subColor: 'muted',
   },
   {
-    label: t('admin.stats.pendingVerification'),
+    label: 'Pending Verification',
     value: stats.value.pendingVerifications ?? '—',
-    icon: `...`,
+    icon: `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07A19.5 19.5 0 013.07 9.8a19.79 19.79 0 01-3.07-8.68A2 2 0 012 0h3a2 2 0 012 1.72c.127.96.361 1.903.7 2.81a2 2 0 01-.45 2.11L6.91 7.91a16 16 0 006.08 6.08l1.27-1.27a2 2 0 012.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0122 16.92z"/></svg>`,
     iconBg: 'rgba(245,158,11,0.12)',
-    sub: t('admin.stats.awaitingOtp'),
+    sub: 'Awaiting OTP',
     subColor: 'amber',
   },
   {
-    label: t('admin.stats.newPosts24h'),
+    label: 'New Posts (24h)',
     value: stats.value.newPostsLast24h?.toLocaleString() ?? '—',
-    icon: `...`,
+    icon: `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14,2 14,8 20,8"/></svg>`,
     iconBg: 'rgba(139,92,246,0.12)',
-    sub: t('admin.stats.contentGenerated'),
+    sub: 'Content generated',
     subColor: 'muted',
   },
 ])
@@ -215,11 +308,9 @@ function obfuscate(email) {
 function planLabel(u) {
   if (u.isTrial) {
     const days = Math.ceil((new Date(u.trialEndsAt) - Date.now()) / 86400000)
-    return days > 0
-      ? t('admin.plan.trialDaysLeft', { days })
-      : t('admin.plan.trialExpired')
+    return days > 0 ? `Trial (${days}d left)` : 'Trial expired'
   }
-  return u.plan || t('admin.plan.free')
+  return u.plan || 'free'
 }
 
 function planClass(u) {
@@ -233,9 +324,93 @@ function formatDate(d) {
   return d ? new Date(d).toLocaleDateString('en-GB', { day: '2-digit', month: 'short' }) : '—'
 }
 
-async function blockUser(u) {
-  await adminApi.blockUser(u._id)
-  u.isBlocked = !u.isBlocked
+// async function blockUser(u) {
+//   await adminApi.blockUser(u._id)
+//   u.isBlocked = !u.isBlocked
+// }
+
+// الدالة دي المسؤولة عن ضغطة الزرار في الجدول
+async function handleBlockAction(u) {
+  selectedUser.value = u // بنخزن بيانات المستخدم اللي ضغطنا عليه
+
+  // 1. لو المستخدم مبلك تماماً.. فك البلوك عنه علطول
+  if (u.isBlocked === true) {
+    try {
+      // await adminApi.unblockUser(u._id)
+      u.isBlocked = false
+      u.blockStatus = null
+    } catch (e) { console.error(e) }
+  } 
+  
+  // 2. لو المستخدم واخد warning وعايزة تلغي الـ warning
+  else if (u.blockStatus === 'warning' && !showReasonModal.value) {
+    try {
+      // await adminApi.cancelWarning(u._id)
+      u.blockStatus = null
+    } catch (e) { console.error(e) }
+  } 
+  
+  // 3. في أي حالة تانية (مستخدم نشط وطبيعي).. افتح المودال فوراً!
+  else {
+    blockReason.value = '' // تصفير النص
+    showReasonModal.value = true // إظهار المودال (عافية)
+  }
+}
+
+// 3. عند الضغط على زر "Confirm & Send Alert" داخل الـ Modal
+async function submitBlockWarning() {
+  if (!blockReason.value.trim() || !selectedUser.value) return
+
+  try {
+    // إرسال الـ ID والـ Reason للباك إند
+    await adminApi.blockUser(selectedUser.value._id, blockReason.value.trim())
+    
+    // تحديث حالة المستخدم في الـ UI بناءً على نظام الـ Warning بتاعك
+    selectedUser.value.blockStatus = 'warning'
+    selectedUser.value.isBlocked = false // لسه متبلكش كلياً، هو في فترة الـ grace period
+    
+    // اختيارياً: لو الباك إند بيرجع الوقت الجديد للـ grace period سجليه هنا
+    // selectedUser.value.gracePeriodExpiresAt = response.data.gracePeriodExpiresAt
+    
+    // 4. نغلق المودال ونصفر الخانة
+    showReasonModal.value = false;
+    blockReason.value = '';
+
+    closeModal()
+    alert("Warning issued successfully, user has 24h grace period.")
+  } catch (error) {
+    alert(error.response?.data?.message || "Failed to issue warning")
+  }
+}
+
+// 4. دالة إغلاق المودال
+function closeModal() {
+  showReasonModal.value = false
+  selectedUser.value = null
+  blockReason.value = ''
+}
+
+// --- دالات مساعدة للـ Unblock والـ Cancel Warning (حسب الـ API بتاعك) ---
+async function unblockUserAction(u) {
+  try {
+    // لو الباك إند بيشيل البلوك بنفس الـ API أو API تاني (مثلاً unblockUser)
+    // await adminApi.unblockUser(u._id) 
+    u.isBlocked = false
+    u.blockStatus = null
+    alert("User unblocked successfully")
+  } catch (error) {
+    alert("Error unblocking user")
+  }
+}
+
+async function cancelWarningAction(u) {
+  try {
+    // كود إلغاء التحذير هنا للباك إند
+    u.blockStatus = null
+    alert("Warning canceled")
+  } catch (error) {
+    alert("Error canceling warning")
+  }
 }
 
 onMounted(async () => {
@@ -360,7 +535,10 @@ onMounted(async () => {
 .trend-change.up   { color: #34d399; }
 .trend-change.down { color: #f87171; }
 .trend-change.same { color: #6b7280; }
-
+.disabled-link {
+    cursor: not-allowed;
+    pointer-events: none; /* تمنع أي نقرة أو تفاعل عبر الماوس */
+}
 @media (max-width: 1100px) {
   .stats-grid { grid-template-columns: repeat(2, 1fr); }
   .mid-row    { grid-template-columns: 1fr; }

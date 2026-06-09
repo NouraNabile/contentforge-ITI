@@ -78,7 +78,8 @@
     "feature1": "AI generation in Egyptian, Gulf & Levantine Arabic",
     "feature2": "2-week calendar generated in under 30 seconds",
     "feature3": "Brand vault — your voice, always consistent",
-    "tryDemo": "Try demo account"
+    "tryDemo": "Try demo account",
+    "backHome": "Back"
   },
   "trial": {
     "badge": "Trial Expired",
@@ -476,7 +477,8 @@
         "title": "vs. PostFlex AI",
         "desc": "PostFlex AI has limited scheduling and fewer templates. ContentForge delivers a complete AI-generated 2-week strategy with live cultural trend awareness."
       }
-    }
+    },
+    "scrollHint": "Swipe to compare"
   },
   "branding": {
     "title": "Brand Vault",

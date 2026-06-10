@@ -330,10 +330,22 @@
       "insights": "Insights"
     },
     "fields": {
-      "profileUrl": { "label": "Profile URL", "placeholder": "https://linkedin.com/in/..." },
-      "email": { "label": "Email", "placeholder": "you@email.com" },
-      "username": { "label": "Username", "placeholder": "@yourhandle" },
-      "channelName": { "label": "Channel Name", "placeholder": "Your Channel" }
+      "profileUrl": {
+        "label": "Profile URL",
+        "placeholder": "https://linkedin.com/in/..."
+      },
+      "email": {
+        "label": "Email",
+        "placeholder": "you@email.com"
+      },
+      "username": {
+        "label": "Username",
+        "placeholder": "@yourhandle"
+      },
+      "channelName": {
+        "label": "Channel Name",
+        "placeholder": "Your Channel"
+      }
     },
     "integrationInDev ": "Integration in development",
     "platforms": {
@@ -344,16 +356,12 @@
       "tiktok": "TikTok",
       "youtube": "YouTube"
     },
-    "toast":
-    {
-      "connected" : "{name} connected successfully!",
-      "disconnected" : "{name} disconnected.",
-      "error" : "Failed to {action} {name}",
-      "submitError" : "Failed to connect. Please try again."
-
+    "toast": {
+      "connected": "{name} connected successfully!",
+      "disconnected": "{name} disconnected.",
+      "error": "Failed to {action} {name}",
+      "submitError": "Failed to connect. Please try again."
     }
-
-    
   },
   "dashboard": {
     "aiImageGenerator": "AI Image Generator",
@@ -1240,5 +1248,70 @@
       "submitError": "Something went wrong. Please try again.",
       "privacy": "We respect your privacy. Your information will never be shared."
     }
+  },
+  "poster": {
+    "title": "AI Poster Generator",
+    "subtitle": "Upload your product image, describe your vision, and let AI create a stunning marketing poster in seconds.",
+    "productImage": "Product Image",
+    "uploadHint": "Click to upload or drag & drop",
+    "uploadFormats": "JPEG, PNG, WebP · Max 10MB",
+    "previewAlt": "Product preview",
+    "removeImage": "Remove image",
+    "describeTitle": "Describe Your Poster",
+    "promptPlaceholder": "e.g. A luxury skincare poster with gold accents, soft pink background, elegant Arabic typography, featuring the product in the center with glowing light effects. Ramadan themed with crescent moon elements.",
+    "charCount": "{count}/1000 characters",
+    "generateBtn": "Generate Poster",
+    "generating": "Generating your poster… (30-60s)",
+    "generatedTitle": "Generated Poster",
+    "emptyState": "Your poster will appear here",
+    "emptyStateSub": "Upload a product image and describe your vision to get started",
+    "generatingMsg": "AI is designing your poster…",
+    "generatingDuration": "This may take 30–60 seconds",
+    "generatedAlt": "Generated poster",
+    "downloadBtn": "Download Poster",
+    "regenerateBtn": "Regenerate",
+    "promptUsed": "Prompt used",
+    "tipsTitle": "Tips for better results",
+    "quick": {
+      "luxury": "Luxury style",
+      "minimalist": "Minimalist",
+      "ramadan": "Ramadan themed",
+      "boldColors": "Bold colors",
+      "elegant": "Elegant",
+      "socialAd": "Social media ad"
+    },
+    "steps": {
+      "uploading": "Uploading",
+      "analyzing": "Analyzing",
+      "generating": "Generating",
+      "finalizing": "Finalizing"
+    },
+    "tips": {
+      "1": "Use high-quality product images with clear backgrounds for best results.",
+      "2": "Be specific about colors, mood, and style in your prompt.",
+      "3": "Mention your target platform (Instagram, Facebook, etc.) for optimal sizing.",
+      "4": "Include cultural elements (Ramadan, Eid) for region-specific appeal.",
+      "5": "Try multiple variations to find the perfect poster."
+    },
+    "error": {
+      "invalidDrop": "Please drop an image file (JPEG, PNG, WebP).",
+      "invalidType": "Invalid file type. Please use JPEG, PNG, or WebP.",
+      "fileTooLarge": "File too large. Maximum size is 10MB.",
+      "generationFailed": "Generation failed",
+      "generate": "Failed to generate poster. Please try again."
+    }
+  },
+  "publish": {
+    "platforms": {
+      "facebook": "Facebook",
+      "instagram": "Instagram"
+    },
+    "messagePlaceholder": "What's on your mind?",
+    "imageUrlPlaceholder": "Image URL (required for Instagram)",
+    "linkPlaceholder": "Link (optional)",
+    "publishing": "Publishing...",
+    "publishBtn": "Publish Post",
+    "successMessage": "Posted successfully! ID: {id}",
+    "errorMessage": "Failed to publish"
   }
 }

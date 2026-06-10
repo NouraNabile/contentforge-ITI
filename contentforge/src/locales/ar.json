@@ -314,12 +314,12 @@
     "fields": {
       "profileUrl": "رابط الملف الشخصي",
       "profileUrlPlaceholder": "https://linkedin.com/in/...",
-      "email":  "البريد الإلكتروني",
+      "email": "البريد الإلكتروني",
       "emailPlaceholder": "you@email.com",
       "username": "اسم المستخدم",
       "usernamePlaceholder": "@yourhandle",
       "channelName": "اسم القناة",
-      "channelNamePlaceholder" : "اسم قناتك"
+      "channelNamePlaceholder": "اسم قناتك"
     },
     "integrationInDev": "التكامل قيد التطوير",
     "platforms": {
@@ -330,13 +330,11 @@
       "tiktok": "تيك توك",
       "youtube": "يوتيوب"
     },
-    "toast":
-    {
-      "connected" : "تم ربط {name} بنجاح!",
-      "disconnected" : "تم إلغاء ربط {name}.",
-      "error" : "فشل {action} {name}",
-      "submitError" : "فشل الاتصال. حاول مجدداً."
-
+    "toast": {
+      "connected": "تم ربط {name} بنجاح!",
+      "disconnected": "تم إلغاء ربط {name}.",
+      "error": "فشل {action} {name}",
+      "submitError": "فشل الاتصال. حاول مجدداً."
     }
   },
   "dashboard": {
@@ -1242,5 +1240,70 @@
       "submitError": "حدث خطأ ما. يرجى المحاولة مرة أخرى.",
       "privacy": "نحترم خصوصيتك. لن تتم مشاركة معلوماتك أبداً."
     }
+  },
+  "poster": {
+    "title": "مولّد الملصقات بالذكاء الاصطناعي",
+    "subtitle": "ارفع صورة منتجك، صف رؤيتك، ودع الذكاء الاصطناعي يصنع ملصقاً تسويقياً رائعاً في ثوانٍ.",
+    "productImage": "صورة المنتج",
+    "uploadHint": "انقر للرفع أو اسحب وأفلت",
+    "uploadFormats": "JPEG، PNG، WebP · الحد الأقصى 10MB",
+    "previewAlt": "معاينة المنتج",
+    "removeImage": "إزالة الصورة",
+    "describeTitle": "صف ملصقك",
+    "promptPlaceholder": "مثال: ملصق عناية فاخر بلمسات ذهبية، خلفية وردية ناعمة، طباعة عربية أنيقة، المنتج في المنتصف مع تأثيرات ضوئية. بتصميم رمضاني مع عناصر الهلال.",
+    "charCount": "{count}/1000 حرف",
+    "generateBtn": "إنشاء الملصق",
+    "generating": "جارٍ إنشاء ملصقك… (30-60 ثانية)",
+    "generatedTitle": "الملصق المُنشأ",
+    "emptyState": "سيظهر ملصقك هنا",
+    "emptyStateSub": "ارفع صورة منتج وصف رؤيتك للبدء",
+    "generatingMsg": "الذكاء الاصطناعي يصمم ملصقك…",
+    "generatingDuration": "قد يستغرق ذلك 30–60 ثانية",
+    "generatedAlt": "الملصق المُنشأ",
+    "downloadBtn": "تحميل الملصق",
+    "regenerateBtn": "إعادة الإنشاء",
+    "promptUsed": "الوصف المستخدم",
+    "tipsTitle": "نصائح للحصول على نتائج أفضل",
+    "quick": {
+      "luxury": "أسلوب فاخر",
+      "minimalist": "بسيط",
+      "ramadan": "تصميم رمضاني",
+      "boldColors": "ألوان جريئة",
+      "elegant": "أنيق",
+      "socialAd": "إعلان سوشيال ميديا"
+    },
+    "steps": {
+      "uploading": "رفع",
+      "analyzing": "تحليل",
+      "generating": "إنشاء",
+      "finalizing": "إنهاء"
+    },
+    "tips": {
+      "1": "استخدم صور منتجات عالية الجودة بخلفيات واضحة للحصول على أفضل النتائج.",
+      "2": "كن محدداً بشأن الألوان والمزاج والأسلوب في وصفك.",
+      "3": "اذكر المنصة المستهدفة (إنستغرام، فيسبوك...) للحصول على أبعاد مثالية.",
+      "4": "أضف عناصر ثقافية (رمضان، عيد) لجاذبية خاصة بالمنطقة.",
+      "5": "جرب تنويعات متعددة للعثور على الملصق المثالي."
+    },
+    "error": {
+      "invalidDrop": "يرجى إفلات ملف صورة (JPEG، PNG، WebP).",
+      "invalidType": "نوع الملف غير صالح. يرجى استخدام JPEG أو PNG أو WebP.",
+      "fileTooLarge": "الملف كبير جداً. الحد الأقصى هو 10MB.",
+      "generationFailed": "فشل الإنشاء",
+      "generate": "فشل إنشاء الملصق. يرجى المحاولة مجدداً."
+    }
+  },
+  "publish": {
+    "platforms": {
+      "facebook": "فيسبوك",
+      "instagram": "إنستغرام"
+    },
+    "messagePlaceholder": "ماذا يدور في ذهنك؟",
+    "imageUrlPlaceholder": "رابط الصورة (مطلوب للإنستغرام)",
+    "linkPlaceholder": "رابط (اختياري)",
+    "publishing": "جارٍ النشر...",
+    "publishBtn": "نشر المنشور",
+    "successMessage": "تم النشر بنجاح! المعرّف: {id}",
+    "errorMessage": "فشل النشر"
   }
 }

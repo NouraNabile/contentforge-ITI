@@ -79,7 +79,7 @@ const router = createRouter({
     {
       path: '/payment-success',
       component: PaymentSuccessPage
-    },
+    }
   ],
   scrollBehavior(to) {
     if (to.hash) return { el: to.hash, behavior: "smooth" };

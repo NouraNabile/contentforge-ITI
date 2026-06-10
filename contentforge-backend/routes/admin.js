@@ -75,34 +75,41 @@ router.get('/settings', adminOnly, async (req, res) => {
 // احفظ الـ settings
 router.put('/settings', adminOnly, async (req, res) => {
   try {
-    const { trialDays, blockByPhone, demoEnabled, otpExpiryMinutes, sendExpiryWarning } = req.body
+    const { trialDays, blockByPhone, otpExpiryMinutes, sendExpiryWarning } = req.body
 
     let settings = await PlatformSettings.findOne()
     if (!settings) settings = await PlatformSettings.create({})
 
-    // حفظ كل الـ settings
+    const trialDaysChanged = settings.trialDays !== trialDays
+    // const sendExpiryWarningChanged = settings.sendExpiryWarning !== sendExpiryWarning
+
     settings.trialDays         = trialDays
     settings.blockByPhone      = blockByPhone
-    settings.demoEnabled       = demoEnabled
-    settings.otpExpiryMinutes  = otpExpiryMinutes
+    settings.otpExpiryMinutes  = otpExpiryMinutes  // ← minutes بس، من غير حسابات
     settings.sendExpiryWarning = sendExpiryWarning
     await settings.save()
 
-    // لو trialDays اتغير — حدث كل الـ trial users
-    const trialUsers = await User.find({ isTrial: true })
-    const updates = trialUsers.map(async (user) => {
-      const start  = new Date(user.trialStartDate)
-      const newEnd = new Date(start)
-      newEnd.setDate(newEnd.getDate() + trialDays)
-      user.trialEndsAt      = newEnd
-      user.trialDurationDays = trialDays
-      await user.save()
-      sendTrialUpdateEmail(user.email, user.name, trialDays, newEnd)
-        .catch(err => console.error(`Email error:`, err.message))
-    })
-    await Promise.all(updates)
+    let updatedUsers = 0
 
-    res.json({ message: 'Settings saved', updatedUsers: trialUsers.length })
+    // ← بس لو trialDays اتغير فعلاً
+    if (trialDaysChanged) {
+      const trialUsers = await User.find({ isTrial: true })
+      const updates = trialUsers.map(async (user) => {
+        const start  = new Date(user.trialStartDate)
+        const newEnd = new Date(start)
+        newEnd.setDate(newEnd.getDate() + trialDays)
+        user.trialEndsAt       = newEnd
+        user.trialDurationDays = trialDays
+        await user.save()
+        sendTrialUpdateEmail(user.email, user.name, trialDays, newEnd)
+          .catch(err => console.error(`Email error:`, err.message))
+      })
+      await Promise.all(updates)
+      updatedUsers = trialUsers.length
+    }
+    
+
+    res.json({ message: 'Settings saved', updatedUsers })
   } catch (err) {
     res.status(500).json({ message: err.message })
   }

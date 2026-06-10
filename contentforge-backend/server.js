@@ -22,6 +22,11 @@ const {
 } = require("./services/emailService");
 const contactRouter = require("./routes/contact");
 
+// السكريبت ده هيشتغل تلقائياً لوحده كل يوم الساعة 12 بالليل بتوقيت السيرفر
+cron.schedule('0 0 * * *', () => {
+  console.log('⏰ جاري تشغيل فحص انتهاء فترات التجربة للمستخدمين...');
+  checkAndSendExpiryWarnings();
+});
 // بيشتغل كل يوم الساعة 9 الصبح
 cron.schedule("0 9 * * *", async () => {
   try {

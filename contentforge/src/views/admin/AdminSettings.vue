@@ -1,3 +1,4 @@
+
 <template>
   <div class="flex flex-col gap-6">
 
@@ -109,6 +110,7 @@
             ></span>
           </label>
         </div>
+ 
       </div>
 
       <!-- Email Settings -->
@@ -204,7 +206,7 @@
 
   </div>
 </template>
-
+ 
 <script setup>
 import { ref, onMounted } from 'vue'
 import { useI18n } from 'vue-i18n'
@@ -218,7 +220,8 @@ const isDev = import.meta.env.DEV
 const saved = ref(false)
 const saving = ref(false)
 const saveMsg = ref('')
-
+const loading = ref(true)
+ 
 const settings = ref({
   trialDays: 14,
   blockByPhone: true,
@@ -227,15 +230,18 @@ const settings = ref({
   sendExpiryWarning: false,
 })
 
+ 
 onMounted(async () => {
   try {
     const data = await adminApi.getSettings()
-    settings.value = data.settings
+    settings.value = { ...settings.value, ...data.settings }
   } catch (err) {
     console.error('Failed to load settings:', err)
+  } finally {
+    loading.value = false
   }
 })
-
+ 
 async function save() {
   saving.value = true
   saveMsg.value = ''
@@ -251,3 +257,56 @@ async function save() {
   }
 }
 </script>
+ 
+<style scoped>
+.admin-settings { display: flex; flex-direction: column; gap: 1.5rem; }
+.settings-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1.25rem; }
+ 
+.loading-state { opacity: 0.4; text-align: center; padding: 2rem; color: var(--text,#f0f2f5); }
+ 
+.panel { background: var(--surface,#13151c); border: 1px solid var(--border,rgba(255,255,255,0.06)); border-radius: 14px; padding: 1.5rem; }
+ 
+.panel-header { margin-bottom: 1.25rem; }
+.panel-title  { font-size: 15px; font-weight: 600; color: var(--text,#f0f2f5); margin: 0; display: flex; align-items: center; gap: 8px; }
+ 
+.setting-row  { display: flex; align-items: center; justify-content: space-between; gap: 1rem; padding: 1rem 0; border-bottom: 1px solid var(--border,rgba(255,255,255,0.04)); }
+.setting-row:last-child { border-bottom: none; }
+.setting-info { flex: 1; }
+.setting-name { font-size: 13px; font-weight: 500; color: var(--text,#f0f2f5); margin: 0 0 2px; }
+.setting-desc { font-size: 12px; color: var(--sub,#6b7280); margin: 0; }
+ 
+.setting-control { display: flex; align-items: center; gap: 6px; }
+.num-input {
+  width: 64px; padding: 6px 10px; border-radius: 8px;
+  background: rgba(255,255,255,0.05); border: 1px solid var(--border,rgba(255,255,255,0.08));
+  color: var(--text,#f0f2f5); font-size: 14px; text-align: center; outline: none;
+}
+.setting-unit { font-size: 12px; color: var(--sub,#6b7280); }
+ 
+.toggle-switch { position: relative; display: inline-block; width: 40px; height: 22px; flex-shrink: 0; cursor: pointer; }
+.toggle-switch input { opacity: 0; width: 0; height: 0; }
+.toggle-track {
+  position: absolute; inset: 0; border-radius: 999px;
+  background: rgba(255,255,255,0.08); transition: background 0.2s;
+}
+.toggle-track::after {
+  content: ''; position: absolute; top: 3px; left: 3px;
+  width: 16px; height: 16px; border-radius: 50%;
+  background: #6b7280; transition: all 0.2s;
+}
+.toggle-switch input:checked + .toggle-track { background: rgba(59,130,246,0.3); }
+.toggle-switch input:checked + .toggle-track::after { background: #60a5fa; transform: translateX(18px); }
+ 
+.save-row  { display: flex; align-items: center; justify-content: space-between; gap: 1rem; }
+.save-note { font-size: 12px; color: var(--sub,#6b7280); margin: 0; }
+.save-btn  {
+  padding: 10px 24px; border-radius: 10px;
+  background: linear-gradient(135deg, #3b82f6, #14b8a6);
+  border: none; color: white; font-size: 13px; font-weight: 600;
+  cursor: pointer; transition: opacity 0.15s;
+}
+.save-btn:disabled { opacity: 0.6; cursor: not-allowed; }
+.save-btn:not(:disabled):hover { opacity: 0.85; }
+ 
+@media (max-width: 800px) { .settings-grid { grid-template-columns: 1fr; } }
+</style>

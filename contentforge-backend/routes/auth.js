@@ -28,40 +28,33 @@ router.post("/register", async (req, res) => {
       return res.status(400).json({ message: "Email already registered" });
 
     // بيشوف blockByPhone من الـ settings مش hardcoded
-    if (blockByPhone && (await User.findOne({ phone })))
-      return res
-        .status(400)
-        .json({ message: "This phone has already been used for a trial." });
+    if (blockByPhone && await User.findOne({ phone }))
+      return res.status(400).json({ message: 'This phone has already been used for a trial.' })
 
-    const verificationCode = Math.floor(
-      100000 + Math.random() * 900000,
-    ).toString();
-    const trialDays = settings.trialDays ?? 14;
-    const trialEndsAt = new Date(Date.now() + trialDays * 24 * 60 * 60 * 1000);
+    const verificationCode = Math.floor(100000 + Math.random() * 900000).toString()
+    const trialDays  = settings.trialDays ?? 14
+    const trialEndsAt = new Date(Date.now() + trialDays * 24 * 60 * 60 * 1000)
 
     const user = await User.create({
-      name,
-      email,
-      password,
-      phone,
+      name, email, password, phone,
       verificationCode,
       // بياخد الـ otpExpiryMinutes من الـ settings
       verificationCodeExpires: Date.now() + otpExpiryMinutes * 60 * 1000,
       isVerified: false,
       isTrial: true,
-      trialEndsAt,
+      trialStartDate: new Date(), // تاريخ البداية
+      trialEndsAt,              // تاريخ النهاية الديناميكي بتاع الأدمن
+      trialDurationDays: trialDays,
       hasUsedTrial: true,
     });
 
-    await sendVerificationEmail(email, verificationCode);
-    res
-      .status(201)
-      .json({ message: "User created. Please verify your email." });
+    await sendVerificationEmail(email, verificationCode)
+    res.status(201).json({ message: 'User created. Please verify your email.' })
   } catch (err) {
     console.error("REGISTER ERROR:", err);
     res.status(500).json({ message: err.message });
   }
-});
+})
 
 router.post("/verify-email", async (req, res) => {
   const { email, code } = req.body;
@@ -306,12 +299,10 @@ router.post("/resend-otp", async (req, res) => {
     const otpExpiryMinutes = settings?.otpExpiryMinutes ?? 10;
 
     // جدد الـ OTP
-    const verificationCode = Math.floor(
-      100000 + Math.random() * 900000,
-    ).toString();
-    user.verificationCode = verificationCode;
-    user.verificationCodeExpires = Date.now() + otpExpiryMinutes * 60 * 1000;
-    await user.save();
+    const verificationCode = Math.floor(100000 + Math.random() * 900000).toString()
+    user.verificationCode = verificationCode
+    user.verificationCodeExpires = Date.now() + otpExpiryMinutes * 60 * 1000
+    await user.save()
 
     await sendVerificationEmail(email, verificationCode);
 

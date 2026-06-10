@@ -106,28 +106,69 @@ async function sendTrialUpdateEmail(email, name, newDays, newEndDate) {
     `,
   });
 }
+// async function sendTrialExpiryWarningEmail(email, name, expiryDate) {
+//   const formattedDate = new Date(expiryDate).toLocaleString('ar-EG', {
+//     dateStyle: 'full', timeStyle: 'short'
+//   })
+//   await transporter.sendMail({
+//     from: process.env.ADMIN_EMAIL,
+//     to: email,
+//     subject: 'تذكير: فترة تجربتك المجانية على وشك الانتهاء',
+//     html: `
+//       <div style="direction:rtl; text-align:right; font-family:sans-serif; max-width:600px; margin:0 auto; padding:20px; border:1px solid #e1e8ed; border-radius:10px;">
+//         <h2 style="color:#f59e0b;">تذكير بانتهاء فترة التجربة</h2>
+//         <p>مرحباً ${name}،</p>
+//         <p>فترة تجربتك المجانية في ContentForge ستنتهي بعد <strong>3 أيام</strong>.</p>
+//         <div style="background:#fffbeb; padding:15px; border-radius:8px; margin:16px 0;">
+//           <p style="margin:0;"><strong>تاريخ الانتهاء:</strong> ${formattedDate}</p>
+//         </div>
+//         <p>قم بترقية حسابك الآن للاستمرار في استخدام جميع المميزات.</p>
+//         <p style="font-size:12px; color:#718096;">شكراً لاستخدامك ContentForge.</p>
+//       </div>
+//     `,
+//   })
+// }
 async function sendTrialExpiryWarningEmail(email, name, expiryDate) {
-  const formattedDate = new Date(expiryDate).toLocaleString('ar-EG', {
-    dateStyle: 'full', timeStyle: 'short'
-  })
+  // تنسيق التاريخ بشكل عربي شيك وقابل للقراءة
+  const formattedDate = new Date(expiryDate).toLocaleDateString('ar-EG', {
+    weekday: 'long',
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric'
+  });
+
   await transporter.sendMail({
     from: process.env.ADMIN_EMAIL,
     to: email,
-    subject: 'تذكير: فترة تجربتك المجانية على وشك الانتهاء',
+    subject: "⚠️ تنبيه: قُرب انتهاء الفترة التجريبية - منصة ContentForge",
     html: `
-      <div style="direction:rtl; text-align:right; font-family:sans-serif; max-width:600px; margin:0 auto; padding:20px; border:1px solid #e1e8ed; border-radius:10px;">
-        <h2 style="color:#f59e0b;">تذكير بانتهاء فترة التجربة</h2>
+      <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e1e8ed; border-radius: 10px; direction: rtl; text-align: right;">
+        <h2 style="color: #eab308;">تنبيه هام من ContentForge</h2>
         <p>مرحباً ${name}،</p>
-        <p>فترة تجربتك المجانية في ContentForge ستنتهي بعد <strong>3 أيام</strong>.</p>
-        <div style="background:#fffbeb; padding:15px; border-radius:8px; margin:16px 0;">
-          <p style="margin:0;"><strong>تاريخ الانتهاء:</strong> ${formattedDate}</p>
+        <p>نود تذكيرك بأن فترتك التجريبية المجانية على منصتنا أوشكت على الانتهاء.</p>
+        
+        <div style="background: #fef9c3; padding: 15px; border-radius: 8px; margin: 16px 0; border-right: 5px solid #eab308;">
+          <strong>تاريخ انتهاء التجربة:</strong> ${formattedDate} (متبقي 3 أيام فقط).
         </div>
-        <p>قم بترقية حسابك الآن للاستمرار في استخدام جميع المميزات.</p>
-        <p style="font-size:12px; color:#718096;">شكراً لاستخدامك ContentForge.</p>
+
+        <p>لضمان استمرار أعمالك وعدم توقف صناعة المحتوى، يمكنك ترقية حسابك إلى إحدى باقاتنا المميزة في أي وقت من لوحة التحكم.</p>
+        
+        <a href="${process.env.FRONTEND_URL || '#'}/dashboard/billing" style="display: inline-block; background: #3b82f6; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px; margin-top: 10px; font-weight: bold;">ترقية الحساب الآن</a>
+        
+        <hr style="border: 0; border-top: 1px solid #e1e8ed; margin-top: 20px;">
+        <p style="font-size: 12px; color: #718096;">إذا كان لديك أي استفسار، رد على هذا الإيميل مباشرة — فريق ContentForge</p>
       </div>
     `,
-  })
+  });
 }
+
+// ⚠️ ما تنسيش تضيفيها تحت في الـ module.exports مع باقي الدوال:
+module.exports = {
+  // الدوال القديمة بتاعتك...
+  sendVerificationEmail,
+  sendTrialUpdateEmail,
+  sendTrialExpiryWarningEmail // ← ضيفيها هنا
+};
 async function sendContactNotificationEmail(name, email, company, subject, message) {
   await transporter.sendMail({
     from: email,

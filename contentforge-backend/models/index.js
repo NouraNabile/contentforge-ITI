@@ -25,7 +25,7 @@ const userSchema = new mongoose.Schema({
   email:      { type: String, required: true, unique: true, lowercase: true },
   password:   { type: String, required: true, minlength: 6 },
  // الخانات الجديدة لفترة التجربة
-  plan: { type: String, enum: ['free','starter','growth','agency','enterprise'], default: 'free' },
+  plan: { type: String, enum: ['free','pro','enterprise'], default: 'free' },
   isVerified: { type: Boolean, default: false },// الميل حقيقي
   verificationCode: String,
   verificationCodeExpires: Date,
@@ -109,7 +109,6 @@ module.exports = User
 const platformSettingsSchema = new mongoose.Schema({
   trialDays:         { type: Number,   default: 14 },
   blockByPhone:      { type: Boolean,  default: true },
-  demoEnabled:       { type: Boolean,  default: true },
   otpExpiryMinutes:  { type: Number,   default: 10 },
   sendExpiryWarning: { type: Boolean,  default: false },
 }, { timestamps: true })

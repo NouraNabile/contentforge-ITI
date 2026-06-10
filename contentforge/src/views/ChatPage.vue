@@ -125,16 +125,18 @@
         </div>
       </div>
 
-      <!-- Mobile backdrop -->
+      <!-- Mobile backdrop — no change needed -->
       <Transition name="fade">
         <div v-if="contextOpen" class="fixed inset-0 z-30 bg-black/50 lg:hidden" @click="contextOpen = false" />
       </Transition>
 
       <!-- Right: Context panel -->
       <div
-        class="fixed lg:relative right-0 top-0 h-full z-40 lg:z-auto w-72 lg:w-64 border-l shrink-0 overflow-y-auto lg:p-4 p-4 pt-16 space-y-4 scrollbar-thin transition-transform duration-300 theme-sidebar"
-        :class="contextOpen || isLargeScreen ? 'translate-x-0' : 'translate-x-full'"
-        style="border-color: var(--border)">
+        class="fixed lg:relative top-0 h-full z-40 lg:z-auto w-72 lg:w-64 border-l shrink-0 overflow-y-auto lg:p-4 p-4 pt-16 space-y-4 scrollbar-thin transition-transform duration-300 theme-sidebar"
+        :class="[
+          locale === 'ar' ? 'left-0 border-r border-l-0' : 'right-0 border-l border-r-0',
+          contextOpen || isLargeScreen ? 'translate-x-0' : (locale === 'ar' ? '-translate-x-full' : 'translate-x-full')
+        ]" style="border-color: var(--border)">
 
         <!-- Close — mobile only -->
         <div class="flex items-center justify-between lg:hidden mb-4 pb-3 border-b" style="border-color: var(--border)">
@@ -254,7 +256,10 @@ import AppLayout from "../components/AppLayout.vue";
 import api from "../api/client";
 import { useI18n } from "vue-i18n";
 import brandApi from "../api/brandApi";
+import { useLang } from '../composables/useLang.js'
 
+
+const { locale } = useLang()
 const { t } = useI18n();
 
 

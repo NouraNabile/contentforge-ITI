@@ -262,6 +262,7 @@ async function submitBlockWarning() {
     // بنحدث البيانات في الفرونت إند عشان تاخد شكل التحذير الأصفر والعداد
     userToUpdate.isBlocked = res.isBlocked // هتبقى true في الـ DB وهتسمع فوراً
     userToUpdate.blockStatus = 'warning'
+    // userToUpdate.is = // اغير ال active بتاعه من غير م ياثر علي otp
     userToUpdate.gracePeriodExpiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString()
     
     // 💾 بنحفظ حالة الـ warning في المتصفح عشان لما تعملي Refresh تفتكر إن الـ true دي عبارة عن warning

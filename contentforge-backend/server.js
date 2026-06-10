@@ -130,6 +130,7 @@ app.use("/api/admin", require("./routes/admin"));
 app.use("/api/stats", require("./routes/stats"));
 app.use("/api/connections", require("./routes/connections"));
 app.use("/api/payment", require("./routes/payment"));
+app.use('/api/contact', require("./routes/contact"))
 // Mount poster routes at /api/posters
 app.use("/api/posters", posterRoutes);
 // Serve generated images statically

@@ -239,7 +239,7 @@ const TopPostSchema = new mongoose.Schema({
 const TopPost = mongoose.model('TopPost', TopPostSchema)
 const ContactMessage = mongoose.model('ContactMessage', contactMessageSchema)
 
-module.exports = { User, Brand, Post, Calendar, Trend, ChatMessage, OriginalCalendar, TopPost, PlatformSettings, ContactMessage }
+// module.exports = { User, Brand, Post, Calendar, Trend, ChatMessage, OriginalCalendar, TopPost, PlatformSettings, ContactMessage }
 
 // // وأضيفيها في الـ exports
 // module.exports = { User, Brand, Post, Calendar, Trend, ChatMessage, OriginalCalendar}
@@ -259,4 +259,5 @@ const connectionSchema = new mongoose.Schema({
 
 const Connection = mongoose.model('Connection', connectionSchema)
 
-module.exports = { User, Brand, Post, Calendar, Trend, ChatMessage, OriginalCalendar, TopPost ,PlatformSettings, Connection  }
+module.exports = { User, Brand, Post, Calendar, Trend, ChatMessage, OriginalCalendar, TopPost, PlatformSettings, ContactMessage }
+

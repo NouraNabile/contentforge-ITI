@@ -80,9 +80,11 @@ const countCards = computed(() => [
 ])
 
 const filteredTrialUsers = computed(() =>
-  trialUsers.value.filter(u => tab.value === 'expired' ? isExpired(u) : !isExpired(u))
+  trialUsers.value
+    .filter(u => !u.isBlocked && !u.isDeleted)
+    .filter(u => tab.value === 'expired' ? isExpired(u) : !isExpired(u))
+    
 )
-
 function isExpired(u) { return new Date(u.trialEndsAt) < new Date() }
 function daysLeft(u) {
   const d = Math.ceil((new Date(u.trialEndsAt) - Date.now()) / 86400000)
@@ -109,6 +111,8 @@ onMounted(async () => {
     const res          = await adminApi.getPlans()
     counts.value       = res.counts     || {}
     trialUsers.value   = res.trialUsers || []
+        console.log('trialUsers:', trialUsers.value) // ✅ زودي السطر ده
+
   } finally {
     loading.value = false
   }

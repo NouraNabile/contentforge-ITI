@@ -242,7 +242,7 @@ router.get('/plans', adminOnly, async (req, res) => {
     ])
 
     const trialUsers = await User.find({ isTrial: true })
-      .select('name email trialEndsAt plan isBlocked createdAt')
+      .select('name email trialEndsAt plan isBlocked createdAt isDeleted')
       .sort({ trialEndsAt: 1 })
       .limit(50)
 

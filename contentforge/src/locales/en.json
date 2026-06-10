@@ -30,7 +30,8 @@
     },
     "notifications": {
       "title": "Notifications",
-      "markAllRead": "Mark all read"
+      "markAllRead": "Mark all read",
+      "empty" : "no notifications"
     },
     "contactUs": "Contact Us",
     "deleteAccount": "Delete Account",
@@ -1171,7 +1172,19 @@
     "passwordMismatch": "New passwords do not match.",
     "passwordTooShort": "Password must be at least 6 characters long.",
     "passwordSuccess": "Password changed successfully!",
-    "passwordFailed": "Failed to change password. Please check your current password."
+    "passwordFailed": "Failed to change password. Please check your current password.",
+    "myBrands": "My Brands",
+    "myBrandsDesc": "Manage your uploaded brands and their settings",
+    "brandsCount": "brands",
+    "noBrands": "No brands yet",
+    "noBrandsHint": "Create your first brand to start generating content",
+    "noIndustry": "No industry",
+    "deleteBrand": "Delete brand",
+    "deleteBrandTitle": "Delete Brand",
+    "deleteBrandDesc": "Are you sure you want to delete {name}? This action cannot be undone and all associated content will be lost.",
+    "deleting": "Deleting...",
+    "confirmDelete": "Yes, delete",
+    "deleteBrandFailed": "Failed to delete brand"
   },
   "admin": {
     "administrator": "Administrator",

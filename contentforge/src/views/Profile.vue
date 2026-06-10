@@ -29,6 +29,77 @@
         </div>
       </div>
 
+      <!-- My Brands Section -->
+      <div class="theme-surface theme-border rounded-2xl p-6 sm:p-8 mb-6">
+        <div class="flex items-center justify-between mb-6">
+          <div>
+            <h3 class="font-display text-lg font-600 theme-text mb-1">{{ t('profile.myBrands') }}</h3>
+            <p class="text-xs theme-sub">{{ t('profile.myBrandsDesc') }}</p>
+          </div>
+          <span 
+            v-if="brands.length"
+            class="text-[11px] px-2.5 py-1 rounded-full bg-blue-600/15 text-blue-400 border border-blue-500/20 font-medium"
+          >
+            {{ brands.length }} {{ t('profile.brandsCount') }}
+          </span>
+        </div>
+
+        <!-- Loading State -->
+        <div v-if="brandsLoading" class="flex items-center justify-center py-12">
+          <svg class="w-6 h-6 animate-spin text-blue-400" fill="none" viewBox="0 0 24 24">
+            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" />
+            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+          </svg>
+        </div>
+
+        <!-- Empty State -->
+        <div v-else-if="!brands.length" class="text-center py-12">
+          <div class="w-16 h-16 mx-auto mb-4 rounded-2xl bg-slate-500/10 flex items-center justify-center">
+            <svg class="w-8 h-8 theme-muted" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+            </svg>
+          </div>
+          <p class="text-sm theme-sub mb-1">{{ t('profile.noBrands') }}</p>
+          <p class="text-xs theme-muted">{{ t('profile.noBrandsHint') }}</p>
+        </div>
+
+        <!-- Brands List -->
+        <div v-else class="space-y-3">
+          <div 
+            v-for="brand in brands" 
+            :key="brand._id"
+            class="flex items-center gap-4 p-4 rounded-xl border transition-colors"
+            style="border-color: var(--border)"
+          >
+            <!-- Brand Avatar -->
+            <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-blue-500 to-teal-400 flex items-center justify-center text-lg font-bold text-white shrink-0">
+              {{ brand.name?.[0]?.toUpperCase() || 'B' }}
+            </div>
+
+            <!-- Brand Info -->
+            <div class="flex-1 min-w-0">
+              <p class="text-sm font-medium theme-text truncate">{{ brand.name }}</p>
+              <p class="text-xs theme-sub truncate mt-0.5">
+                {{ brand.industry || t('profile.noIndustry') }}
+                <span v-if="brand.dialects?.length" class="mx-1.5">·</span>
+                {{ brand.dialects?.join(', ') }}
+              </p>
+            </div>
+
+            <!-- Delete Button -->
+            <button 
+              @click="confirmDeleteBrand(brand)"
+              class="shrink-0 w-9 h-9 rounded-lg flex items-center justify-center transition-colors theme-sub hover:text-rose-400 hover:bg-rose-500/10"
+              :title="t('profile.deleteBrand')"
+            >
+              <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+              </svg>
+            </button>
+          </div>
+        </div>
+      </div>
+
       <!-- Edit Profile Form -->
       <div class="theme-surface theme-border rounded-2xl p-6 sm:p-8 mb-6">
         <h3 class="font-display text-lg font-600 theme-text mb-1">{{ t('profile.accountInfo') }}</h3>
@@ -191,6 +262,59 @@
       </div>
 
     </div>
+
+    <!-- Delete Brand Confirmation Modal -->
+    <Teleport to="body">
+      <Transition name="modal-fade">
+        <div 
+          v-if="deleteBrandTarget" 
+          class="fixed inset-0 z-50 flex items-center justify-center p-4"
+          @click.self="deleteBrandTarget = null"
+        >
+          <div class="absolute inset-0 bg-black/70 backdrop-blur-sm"></div>
+          <div 
+            class="relative w-full max-w-md rounded-2xl p-6 shadow-xl theme-surface theme-border"
+            style="border: 1px solid var(--border)"
+          >
+            <div class="flex items-start gap-4 mb-6">
+              <div class="flex-shrink-0 w-11 h-11 rounded-xl bg-rose-500/10 flex items-center justify-center border border-rose-500/20">
+                <svg class="w-5 h-5 text-rose-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                </svg>
+              </div>
+              <div class="flex-1 min-w-0">
+                <h3 class="font-display text-lg font-600 theme-text">
+                  {{ t('profile.deleteBrandTitle') }}
+                </h3>
+                <p class="text-sm theme-sub leading-relaxed mt-1">
+                  {{ t('profile.deleteBrandDesc', { name: deleteBrandTarget.name }) }}
+                </p>
+              </div>
+            </div>
+
+            <div class="flex gap-3">
+              <button 
+                @click="deleteBrandTarget = null"
+                class="flex-1 py-3 rounded-xl theme-card theme-border theme-sub text-sm font-semibold hover:theme-text transition-colors"
+              >
+                {{ t('common.cancel') }}
+              </button>
+              <button 
+                @click="deleteBrand" 
+                :disabled="brandDeleting"
+                class="flex-1 py-3 rounded-xl bg-rose-600 text-white text-sm font-semibold hover:bg-rose-500 transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
+              >
+                <svg v-if="brandDeleting" class="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
+                  <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" />
+                  <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+                </svg>
+                {{ brandDeleting ? t('profile.deleting') : t('profile.confirmDelete') }}
+              </button>
+            </div>
+          </div>
+        </div>
+      </Transition>
+    </Teleport>
   </AppLayout>
 </template>
 
@@ -200,6 +324,7 @@ import { useI18n } from 'vue-i18n'
 import AppLayout from '../components/AppLayout.vue'
 import { useAuthStore } from '../stores/authStore'
 import api from '../api/client'
+import brandApi from '../api/brandApi' // ← Import your existing brandApi
 
 const { t } = useI18n()
 const authStore = useAuthStore()
@@ -219,11 +344,55 @@ const passwordForm = ref({ current: '', new: '', confirm: '' })
 const passwordLoading = ref(false)
 const passwordMsg = ref(null)
 
-onMounted(() => {
+// Brands State
+const brands = ref([])
+const brandsLoading = ref(true)
+const deleteBrandTarget = ref(null)
+const brandDeleting = ref(false)
+
+onMounted(async () => {
   if (authStore.user) {
     profileForm.value.name = authStore.user.name || ''
   }
+  await fetchBrands()
 })
+
+// Fetch user's brands using your existing brandApi
+async function fetchBrands() {
+  brandsLoading.value = true
+  try {
+    // Your backend returns an array directly from GET /api/brand
+    const response = await brandApi.getMyBrands()
+    brands.value = Array.isArray(response) ? response : []
+  } catch (err) {
+    console.error('Failed to fetch brands:', err)
+    brands.value = []
+  } finally {
+    brandsLoading.value = false
+  }
+}
+
+// Confirm brand deletion
+function confirmDeleteBrand(brand) {
+  deleteBrandTarget.value = brand
+}
+
+// Delete brand using your existing brandApi
+async function deleteBrand() {
+  if (!deleteBrandTarget.value) return
+  
+  brandDeleting.value = true
+  try {
+    await brandApi.deleteBrand(deleteBrandTarget.value._id)
+    brands.value = brands.value.filter(b => b._id !== deleteBrandTarget.value._id)
+    deleteBrandTarget.value = null
+  } catch (err) {
+    console.error('Failed to delete brand:', err)
+    alert(t('profile.deleteBrandFailed'))
+  } finally {
+    brandDeleting.value = false
+  }
+}
 
 // Update Profile Name
 async function updateProfile() {
@@ -273,3 +442,15 @@ async function updatePassword() {
   }
 }
 </script>
+
+<style scoped>
+.modal-fade-enter-active,
+.modal-fade-leave-active {
+  transition: opacity 0.2s ease;
+}
+
+.modal-fade-enter-from,
+.modal-fade-leave-to {
+  opacity: 0;
+}
+</style>

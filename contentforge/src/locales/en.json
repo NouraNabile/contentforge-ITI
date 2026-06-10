@@ -1284,6 +1284,11 @@
       "saveSettings": "Save settings",
       "trialUsersUpdated": "trial users updated",
       "saveFailed": "Something went wrong"
-    }
+    },
+    "trendsPage": {
+    "topArabicTrends": "Top Arabic Trends",
+    "topics": "topics",
+    "noTrends": "No trends data yet"
+  }
   }
 }

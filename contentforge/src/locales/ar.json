@@ -1276,6 +1276,11 @@
       "saveSettings": "حفظ الإعدادات",
       "trialUsersUpdated": "تم تحديث المستخدمين التجريبيين",
       "saveFailed": "حدث خطأ ما"
-    }
+    },
+    "trendsPage": {
+    "topArabicTrends": "أهم الاتجاهات العربية",
+    "topics": "مواضيع",
+    "noTrends": "لا توجد بيانات اتجاهات بعد"
+  }
   }
 }

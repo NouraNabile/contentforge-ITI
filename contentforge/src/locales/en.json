@@ -1238,31 +1238,52 @@
     "daysLeft": "d left",
     "trialExpired": "Trial expired",
     "plans": {
-    "trialUsers": "Trial Users",
-    "active": "Active",
-    "expired": "Expired",
-    "noUsers": "No {tab} trial users",
-    "extend7Days": "+7 days",
-    "table": {
-      "user": "User",
-      "trialEnds": "Trial Ends",
-      "daysLeft": "Days Left",
-      "status": "Status",
-      "action": "Action"
-    },
-    "status": {
+      "trialUsers": "Trial Users",
       "active": "Active",
-      "expired": "Expired"
+      "expired": "Expired",
+      "noUsers": "No {tab} trial users",
+      "extend7Days": "+7 days",
+      "table": {
+        "user": "User",
+        "trialEnds": "Trial Ends",
+        "daysLeft": "Days Left",
+        "status": "Status",
+        "action": "Action"
+      },
+      "status": {
+        "active": "Active",
+        "expired": "Expired"
+      },
+      "counts": {
+        "freeUsers": "Free Users",
+        "activeTrials": "Active Trials",
+        "proUsers": "Pro Users",
+        "enterprise": "Enterprise",
+        "expiredTrials": "Expired Trials"
+      },
+      "daysLeft": "{days}d left",
+      "daysAgo": "{days}d ago"
     },
-    "counts": {
-      "freeUsers": "Free Users",
-      "activeTrials": "Active Trials",
-      "proUsers": "Pro Users",
-      "enterprise": "Enterprise",
-      "expiredTrials": "Expired Trials"
-    },
-    "daysLeft": "{days}d left",
-    "daysAgo": "{days}d ago"
-  }
+    "settingsPage": {
+      "trialSettings": "Trial Settings",
+      "trialDuration": "Trial Duration",
+      "trialDurationDesc": "Days a new user gets on the free trial",
+      "days": "days",
+      "blockByPhone": "Block multi-account by phone",
+      "blockByPhoneDesc": "Prevent same phone from creating multiple trial accounts",
+      "demoEnabled": "Demo account enabled",
+      "demoEnabledDesc": "Allow users to try the app with the demo account",
+      "emailOtp": "Email & OTP",
+      "otpExpiry": "OTP Expiry",
+      "otpExpiryDesc": "Minutes before verification code expires",
+      "minutes": "min",
+      "sendExpiryWarning": "Send expiry warning email",
+      "sendExpiryWarningDesc": "Email users 3 days before their trial ends",
+      "saving": "Saving...",
+      "saved": "Saved",
+      "saveSettings": "Save settings",
+      "trialUsersUpdated": "trial users updated",
+      "saveFailed": "Something went wrong"
+    }
   }
 }

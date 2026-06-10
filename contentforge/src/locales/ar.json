@@ -1230,31 +1230,52 @@
     "daysLeft": "يوم متبقي",
     "trialExpired": "انتهت التجربة",
     "plans": {
-    "trialUsers": "مستخدمي التجربة",
-    "active": "نشط",
-    "expired": "منتهي",
-    "noUsers": "لا يوجد مستخدمين {tab}",
-    "extend7Days": "+7 أيام",
-    "table": {
-      "user": "المستخدم",
-      "trialEnds": "تنتهي التجربة",
-      "daysLeft": "الأيام المتبقية",
-      "status": "الحالة",
-      "action": "إجراء"
-    },
-    "status": {
+      "trialUsers": "مستخدمي التجربة",
       "active": "نشط",
-      "expired": "منتهي"
+      "expired": "منتهي",
+      "noUsers": "لا يوجد مستخدمين {tab}",
+      "extend7Days": "+7 أيام",
+      "table": {
+        "user": "المستخدم",
+        "trialEnds": "تنتهي التجربة",
+        "daysLeft": "الأيام المتبقية",
+        "status": "الحالة",
+        "action": "إجراء"
+      },
+      "status": {
+        "active": "نشط",
+        "expired": "منتهي"
+      },
+      "counts": {
+        "freeUsers": "مستخدمين مجانيين",
+        "activeTrials": "تجارب نشطة",
+        "proUsers": "مستخدمين محترفين",
+        "enterprise": "مؤسسات",
+        "expiredTrials": "تجارب منتهية"
+      },
+      "daysLeft": "{days} يوم متبقي",
+      "daysAgo": "منذ {days} يوم"
     },
-    "counts": {
-      "freeUsers": "مستخدمين مجانيين",
-      "activeTrials": "تجارب نشطة",
-      "proUsers": "مستخدمين محترفين",
-      "enterprise": "مؤسسات",
-      "expiredTrials": "تجارب منتهية"
-    },
-    "daysLeft": "{days} يوم متبقي",
-    "daysAgo": "منذ {days} يوم"
-  }
+    "settingsPage": {
+      "trialSettings": "إعدادات التجربة",
+      "trialDuration": "مدة التجربة",
+      "trialDurationDesc": "عدد الأيام التي يحصل عليها المستخدم الجديد في التجربة المجانية",
+      "days": "أيام",
+      "blockByPhone": "حظر الحسابات المتعددة برقم الهاتف",
+      "blockByPhoneDesc": "منع نفس رقم الهاتف من إنشاء حسابات تجريبية متعددة",
+      "demoEnabled": "تفعيل حساب العرض التوضيحي",
+      "demoEnabledDesc": "السماح للمستخدمين بتجربة التطبيق باستخدام حساب العرض التوضيحي",
+      "emailOtp": "البريد الإلكتروني ورمز التحقق",
+      "otpExpiry": "انتهاء صلاحية رمز التحقق",
+      "otpExpiryDesc": "الدقائق قبل انتهاء صلاحية رمز التحقق",
+      "minutes": "دقيقة",
+      "sendExpiryWarning": "إرسال بريد تحذير انتهاء الصلاحية",
+      "sendExpiryWarningDesc": "إرسال بريد إلكتروني للمستخدمين قبل 3 أيام من انتهاء تجربتهم",
+      "saving": "جاري الحفظ...",
+      "saved": "تم الحفظ",
+      "saveSettings": "حفظ الإعدادات",
+      "trialUsersUpdated": "تم تحديث المستخدمين التجريبيين",
+      "saveFailed": "حدث خطأ ما"
+    }
   }
 }

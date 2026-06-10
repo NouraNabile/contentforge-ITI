@@ -222,8 +222,9 @@ async function fetchUsers(p = 1) {
   try {
     const res = await adminApi.getUsers({ page: p, limit: 20, search: search.value, plan: planFilter.value })
     
-    // 🌟 التعديل السحري للـ Refresh:
-    const fetchedUsers = res.users || []
+    // 🌟 التعديل هنا: هنفلتر الـ users اللي جايين ونشيل منهم أي حد الـ isDeleted بتاعه بـ true
+    const fetchedUsers = (res.users || []).filter(u => u.isDeleted !== true)
+    
     users.value = fetchedUsers.map(u => {
       const savedStatus = localStorage.getItem(`user_status_${u._id}`)
       if (savedStatus) {
@@ -234,7 +235,8 @@ async function fetchUsers(p = 1) {
       return u
     })
 
-    total.value   = res.total  || 0
+    // تعديل الـ total عشان يعكس العدد الحقيقي بعد الفلترة في الـ UI
+    total.value   = fetchedUsers.length
     pages.value   = res.pages  || 1
   } finally {
     loading.value = false
@@ -385,16 +387,25 @@ function formatDate(d) {
   return d ? new Date(d).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: '2-digit' }) : '—'
 }
 async function approveDeletion(u) {
-  // ✅ عشان Vue يشوف التغيير
-  const idx = users.value.findIndex(x => x._id === u._id)
-  users.value[idx] = { ...users.value[idx], _approving: true }
-  
-  await adminApi.approveDeletion(u._id)
-  
-  setTimeout(() => {
-    users.value = users.value.filter(x => x._id !== u._id)
-    total.value--
-  }, 1500)
+  try {
+    const idx = users.value.findIndex(x => x._id === u._id)
+    if (idx !== -1) {
+      users.value[idx] = { ...users.value[idx], _approving: true }
+    }
+    
+    // اضربي السيرفر
+    await adminApi.approveDeletion(u._id)
+    
+    // استني لفة الـ أنيميشن وبعدها حدثي اللستة بالكامل من السيرفر النظيف
+    setTimeout(async () => {
+      await fetchUsers(page.value)
+    }, 1500)
+
+  } catch (err) {
+    console.error("Error approving deletion:", err)
+    const idx = users.value.findIndex(x => x._id === u._id)
+    if (idx !== -1) users.value[idx]._approving = false
+  }
 }
 onMounted(() => fetchUsers())
 </script>

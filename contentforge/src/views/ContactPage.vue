@@ -172,13 +172,31 @@ function validate() {
   return !Object.values(errors.value).some(Boolean)
 }
 
+// async function handleSubmit() {
+//   submitError.value = false
+//   if (!validate()) return
+//   loading.value = true
+//   try {
+//     // TODO: replace with real API call
+//     await new Promise(r => setTimeout(r, 1200))
+//     submitted.value = true
+//   } catch {
+//     submitError.value = true
+//   } finally {
+//     loading.value = false
+//   }
+// }
 async function handleSubmit() {
   submitError.value = false
   if (!validate()) return
   loading.value = true
   try {
-    // TODO: replace with real API call
-    await new Promise(r => setTimeout(r, 1200))
+    const res = await fetch('/api/contact', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(form.value),
+    })
+    if (!res.ok) throw new Error()
     submitted.value = true
   } catch {
     submitError.value = true

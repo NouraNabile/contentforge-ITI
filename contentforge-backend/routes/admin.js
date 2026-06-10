@@ -124,7 +124,11 @@ router.get('/users', adminOnly, async (req, res) => {
   try {
     const { page = 1, limit = 20, search = '', plan } = req.query
 
-    const query = {}
+    // 🌟 التعديل السحري: بنجيب فقط الناس اللي الـ isDeleted بتاعهم مش بـ true
+    const query = {
+      isDeleted: { $ne: true }
+    }
+
     if (search) {
       query.$or = [
         { name:  { $regex: search, $options: 'i' } },
@@ -272,21 +276,28 @@ router.get('/trends', adminOnly, async (req, res) => {
   }
 })
 // ── PUT /api/admin/users/:id/approve-deletion ───────────────────────────────
+// 🌟 ضيفي السطر ده فوق خالص في أول الملف مع الـ Requires
+const { sendTrialUpdateEmail } = require('../services/emailService')
+
+// الـ Route المعدل بالملي عشان يقلب true بجد في الـ DB
 router.put('/users/:id/approve-deletion', adminOnly, async (req, res) => {
   try {
     const user = await User.findByIdAndUpdate(
       req.params.id,
-      { isAskToDelete: false },
+      { 
+        isAskToDelete: false,  // خلاص شيلناه من قائمة الطلبات
+        isDeleted: true        // 🌟 التعديل السحري: كدا اتمسح كدا وكدا بجد في الـ DB ولما تعملي ريفريش مش هيرجع!
+      },
       { new: true }
     )
+    
     if (!user) return res.status(404).json({ message: 'User not found' })
-    res.json({ message: 'Approved', user })
+    
+    res.json({ message: 'Approved & Soft Deleted Successfully', user })
   } catch (err) {
     res.status(500).json({ message: err.message })
   }
 })
-const { sendTrialUpdateEmail } = require('../services/emailService')
-
 // PUT /api/admin/settings/trial-days
 router.put('/settings/trial-days', adminOnly, async (req, res) => {
   try {

@@ -2,6 +2,23 @@
 const mongoose = require('mongoose')
 const bcrypt   = require('bcryptjs')
 
+
+
+// ── contact message ──────────────────────────────────────────────────────────────────────
+const contactMessageSchema = new mongoose.Schema({
+  name:    { type: String, required: true },
+  email:   { type: String, required: true },
+  company: { type: String, default: '' },
+  subject: { type: String, required: true },
+  message: { type: String, required: true },
+  status:  { type: String, enum: ['new', 'read', 'replied'], default: 'new' },
+  replies: [{
+    text:      String,
+    repliedAt: { type: Date, default: Date.now }
+  }],
+}, { timestamps: true })
+
+
 // ── User ──────────────────────────────────────────────────────────────────────
 const userSchema = new mongoose.Schema({
   name:       { type: String, required: true, trim: true },
@@ -66,17 +83,27 @@ const userSchema = new mongoose.Schema({
   deletionReason:    { type: String,  default: null },
   isDeleted:         { type: Boolean, default: false }
 }, { timestamps: true })
+//ttd index on createdAt to auto-delete unverified users after 10 minutes
+userSchema.index(
+  { createdAt: 1 }, 
+  { 
+    expireAfterSeconds: 600, 
+    partialFilterExpression: { isVerified: false } 
+  }
+)
 
 userSchema.pre('save', async function(next) {
   if (!this.isModified('password')) return next()
   this.password = await bcrypt.hash(this.password, 10)
   next()
 })
+
 userSchema.methods.matchPassword = async function(entered) {
-  
   return await bcrypt.compare(entered, this.password)
 }
+
 const User = mongoose.model('User', userSchema)
+module.exports = User
 
 // models/Settings.js─────────────────────────────────────────────────────────────────────
 const platformSettingsSchema = new mongoose.Schema({
@@ -210,6 +237,9 @@ const TopPostSchema = new mongoose.Schema({
 }, { timestamps: true })
 
 const TopPost = mongoose.model('TopPost', TopPostSchema)
+const ContactMessage = mongoose.model('ContactMessage', contactMessageSchema)
+
+module.exports = { User, Brand, Post, Calendar, Trend, ChatMessage, OriginalCalendar, TopPost, PlatformSettings, ContactMessage }
 
 // // وأضيفيها في الـ exports
 // module.exports = { User, Brand, Post, Calendar, Trend, ChatMessage, OriginalCalendar}

@@ -198,5 +198,29 @@ router.post('/deletion-request', protect, async (req, res) => {
   }
 })
 
+router.post('/resend-otp', async (req, res) => {
+  try {
+    const { email } = req.body
+    const user = await User.findOne({ email })
 
+    if (!user) return res.status(404).json({ message: 'User not found' })
+    if (user.isVerified) return res.status(400).json({ message: 'Already verified' })
+
+    // جيب الـ settings عشان تاخد otpExpiryMinutes
+    const settings = await PlatformSettings.findOne()
+    const otpExpiryMinutes = settings?.otpExpiryMinutes ?? 10
+
+    // جدد الـ OTP
+    const verificationCode = Math.floor(100000 + Math.random() * 900000).toString()
+    user.verificationCode = verificationCode
+    user.verificationCodeExpires = Date.now() + otpExpiryMinutes * 60 * 1000
+    await user.save()
+
+    await sendVerificationEmail(email, verificationCode)
+
+    res.json({ message: 'New OTP sent successfully' })
+  } catch (err) {
+    res.status(500).json({ message: err.message })
+  }
+})
 module.exports = router

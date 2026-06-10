@@ -20,7 +20,7 @@ transporter.verify((err) => {
 // ─────────────────────────────────────────────────────────────
 async function sendVerificationEmail(email, code) {
   await transporter.sendMail({
-    from: process.env.EMAIL_USER,
+    from: process.env.ADMIN_EMAIL,
     to: email,
     subject: "Verify your email",
     html: `
@@ -39,7 +39,7 @@ async function sendPolicyWarningEmail(email, name, reason, expiryDate) {
   });
 
   await transporter.sendMail({
-    from: process.env.EMAIL_USER,
+    from: process.env.ADMIN_EMAIL,
     to: email,
     subject: "تنبيه هام: مخالفة سياسة الاستخدام لمنصة ContentForge",
     html: `
@@ -68,8 +68,8 @@ async function sendPolicyWarningEmail(email, name, reason, expiryDate) {
 // ───────────────────────────────────────────────────────────── 
 async function sendDeletionRequestEmail(name, email, reason) {
   await transporter.sendMail({
-    from: process.env.EMAIL_USER,
-    to:   process.env.EMAIL_USER,
+    from: email,
+    to:   process.env.ADMIN_EMAIL,
     subject: `طلب حذف حساب — ${name}`,
     html: `
       <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e1e8ed; border-radius: 10px;">
@@ -89,7 +89,7 @@ async function sendTrialUpdateEmail(email, name, newDays, newEndDate) {
   });
 
   await transporter.sendMail({
-    from: process.env.EMAIL_USER,
+    from: process.env.ADMIN_EMAIL,
     to: email,
     subject: 'تحديث فترة التجربة المجانية — ContentForge',
     html: `
@@ -111,7 +111,7 @@ async function sendTrialExpiryWarningEmail(email, name, expiryDate) {
     dateStyle: 'full', timeStyle: 'short'
   })
   await transporter.sendMail({
-    from: process.env.EMAIL_USER,
+    from: process.env.ADMIN_EMAIL,
     to: email,
     subject: 'تذكير: فترة تجربتك المجانية على وشك الانتهاء',
     html: `
@@ -128,49 +128,67 @@ async function sendTrialExpiryWarningEmail(email, name, expiryDate) {
     `,
   })
 }
-
-// Send email to remind user of scheduled posts for the day
-async function sendScheduledPostReminderEmail(email, name, posts) {
-  const postList = posts.map(p => `
-    <tr>
-      <td style="padding:8px 12px; border-bottom:1px solid #e2e8f0;">${p.platform}</td>
-      <td style="padding:8px 12px; border-bottom:1px solid #e2e8f0;">${p.copyAR || p.copyEN || 'No content'}</td>
-    </tr>
-  `).join('')
-
+async function sendContactNotificationEmail(name, email, company, subject, message) {
   await transporter.sendMail({
-    from: process.env.EMAIL_USER,
-    to: email,
-    subject: '📅 تذكير: لديك منشورات مجدولة اليوم — ContentForge',
+    from: email,
+    to: process.env.ADMIN_EMAIL,
+    subject: `[Contact] ${subject} — ${name}`,
     html: `
-      <div style="direction:rtl; text-align:right; font-family:sans-serif; max-width:600px; margin:0 auto; padding:20px; border:1px solid #e1e8ed; border-radius:10px;">
-        <h2 style="color:#3b82f6;">📅 تذكير بمنشورات اليوم</h2>
-        <p>مرحباً ${name}،</p>
-        <p>لديك <strong>${posts.length}</strong> منشور مجدول اليوم على ContentForge. لا تنسَ نشرها!</p>
-        <table style="width:100%; border-collapse:collapse; margin:16px 0; text-align:right;">
-          <thead>
-            <tr style="background:#f7fafc;">
-              <th style="padding:8px 12px; border-bottom:2px solid #e2e8f0;">المنصة</th>
-              <th style="padding:8px 12px; border-bottom:2px solid #e2e8f0;">المحتوى</th>
-            </tr>
-          </thead>
-          <tbody>${postList}</tbody>
-        </table>
-        <a href="${process.env.CLIENT_URL}/dashboard" 
-          style="display:inline-block; margin-top:8px; padding:10px 20px; background:#3b82f6; color:white; border-radius:8px; text-decoration:none; font-weight:bold;">
-          افتح التقويم
-        </a>
-        <p style="font-size:12px; color:#718096; margin-top:20px;">ContentForge — منصة إدارة المحتوى الذكية</p>
+      <div style="font-family:sans-serif; max-width:600px; margin:0 auto; padding:20px; border:1px solid #e1e8ed; border-radius:10px;">
+        <h2 style="color:#3b82f6;">رسالة تواصل جديدة</h2>
+        <p><strong>الاسم:</strong> ${name}</p>
+        <p><strong>الإيميل:</strong> ${email}</p>
+        ${company ? `<p><strong>الشركة:</strong> ${company}</p>` : ''}
+        <p><strong>الموضوع:</strong> ${subject}</p>
+        <hr style="border:0; border-top:1px solid #e2e8f0; margin:16px 0;"/>
+        <p style="white-space:pre-line;">${message}</p>
       </div>
     `,
   })
 }
 
+async function sendContactAutoReply(email, name) {
+  await transporter.sendMail({
+    from: process.env.ADMIN_EMAIL,
+    to:   email,
+    subject: 'تم استلام رسالتك ✉️ — ContentForge',
+    html: `
+      <div style="font-family:sans-serif; max-width:600px; margin:0 auto; padding:20px; border:1px solid #e1e8ed; border-radius:10px;">
+        <h2 style="color:#3b82f6;">شكراً للتواصل معنا!</h2>
+        <p>مرحباً ${name}،</p>
+        <p>تم استلام رسالتك بنجاح وسيقوم فريقنا بالرد عليك خلال 24 ساعة.</p>
+        <p style="font-size:12px; color:#718096;">— فريق ContentForge</p>
+      </div>
+    `,
+  })
+}
+
+async function sendContactReplyEmail(email, name, originalMessage, replyText) {
+  await transporter.sendMail({
+    from: process.env.ADMIN_EMAIL,
+    to:   email,
+    subject: 'رد من فريق ContentForge',
+    html: `
+      <div style="font-family:sans-serif; max-width:600px; margin:0 auto; padding:20px; border:1px solid #e1e8ed; border-radius:10px;">
+        <h2 style="color:#3b82f6;">رد من فريق الدعم</h2>
+        <p>مرحباً ${name}،</p>
+        <div style="background:#f0f9ff; padding:15px; border-radius:8px; margin:16px 0; white-space:pre-line;">
+          ${replyText}
+        </div>
+        <hr style="border:0; border-top:1px solid #e2e8f0; margin:16px 0;"/>
+        <p style="font-size:12px; color:#718096;"><strong>رسالتك الأصلية:</strong></p>
+        <p style="font-size:12px; color:#718096; white-space:pre-line;">${originalMessage}</p>
+      </div>
+    `,
+  })
+}
 module.exports = {
-  sendVerificationEmail,
+   sendVerificationEmail,
   sendPolicyWarningEmail,
   sendDeletionRequestEmail,
   sendTrialUpdateEmail,
   sendTrialExpiryWarningEmail,
-    sendScheduledPostReminderEmail,
+  sendContactNotificationEmail,   // ✅
+  sendContactAutoReply,           // ✅
+  sendContactReplyEmail, 
 };

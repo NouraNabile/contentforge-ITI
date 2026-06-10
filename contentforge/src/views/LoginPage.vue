@@ -115,8 +115,20 @@
             </svg>
             {{ loading ? t('auth.verifying') : t('auth.verifyCode') }}
           </button>
+          <!-- resend -->
+                  <div class="resend-row">
+          <span class="resend-text">{{ t('YouDidntReceive OTP ??') }}</span>
+          <button 
+            @click="resendOtp" 
+            :disabled="resendLoading || resendCooldown > 0"
+            class="resend-btn">
+            <span v-if="resendCooldown > 0">{{ t('auth.resendIn') }} {{ resendCooldown }}s</span>
+            <span v-else>{{ resendLoading ? t('sending') : t('resendCode') }}</span>
+          </button>
+        </div>
         </div>
 
+        
         <!-- Login / Register view -->
         <div v-else class="form-inner">
           <div class="form-head">
@@ -255,6 +267,10 @@ const otpCode = ref('')
 const router = useRouter()
 const authStore = useAuthStore()
 
+const resendLoading  = ref(false)
+const resendCooldown = ref(0)
+let cooldownTimer = null
+
 const isRegister = ref(false)
 const showPass = ref(false)
 const showConfirmPass = ref(false)
@@ -291,6 +307,74 @@ onMounted(async () => {
   }
 })
 
+
+// async function submit() {
+//   error.value = null
+//   if (!form.value.email || !form.value.password) {
+//     error.value = 'Please fill in all fields'
+//     return
+//   }
+//   if (isRegister.value && (!form.value.name || !form.value.phone)) {
+//     error.value = 'Please fill in all fields'
+//     return
+//   }
+//   loading.value = true
+//   try {
+//     if (isRegister.value) {
+//       await authStore.register(form.value)
+//       success.value = 'Check your email for a verification code'
+//       showOTP.value = true
+//       // ✅ No redirect here — user must verify first
+//     } else {
+//       await authStore.login(form.value)
+//       const userRaw = localStorage.getItem('cf_user')
+//       const user = userRaw ? JSON.parse(userRaw) : null
+
+//       if (localStorage.getItem('cf_token')) {
+//         // 🎯 الحتة السحرية الجديدة: لو أدمن وديه باث الأدمن، لو لأ وديه الـ dashboard العادي
+//         if (user && user.isAdmin === true) {
+//           router.push('/admin/dashboard')
+//         } else {
+//           router.push('/dashboard')
+//         }
+//       } else {
+//         error.value = 'تم تسجيل الدخول ولكن لم يتم حفظ التوكن، تأكدي من كود الـ Store'
+//       }
+//     }
+//   } catch (err) {
+//     error.value = err.message || 'Something went wrong. Is your backend running?'
+//   } finally {
+//     loading.value = false
+//   }
+// }
+
+async function resendOtp() {
+  resendLoading.value = true
+  error.value = null
+  try {
+    await api.post('/auth/resend-otp', { email: form.value.email })
+    successKey.value = 'auth.otpResent'
+    
+    // 🌟 السحر هنا: تصفير الـ 6 خانات تماماً أول ما الإرسال ينجح
+    otpInputs.value = ['', '', '', '', '', '']
+
+    // 🎯 نقل المؤشر (Focus) أوتوماتيك لأول خانة عشان يكتب من جديد
+    setTimeout(() => {
+      inputRefs.value[0]?.focus()
+    }, 50)
+
+    // كاونت داون 60 ثانية بتاعك زي ما هو
+    resendCooldown.value = 60
+    cooldownTimer = setInterval(() => {
+      resendCooldown.value--
+      if (resendCooldown.value <= 0) clearInterval(cooldownTimer)
+    }, 1000)
+  } catch (err) {
+    error.value = err.message
+  } finally {
+    resendLoading.value = false
+  }
+}
 async function submit() {
   error.value = null
 
@@ -373,7 +457,11 @@ async function verifyEmail() {
   grid-template-columns: 1fr 1fr;
   background: var(--bg);
 }
-
+.resend-row  { display: flex; align-items: center; justify-content: center; gap: 6px; margin-top: 12px; }
+.resend-text { font-size: 12px; color: var(--sub, #6b7280); }
+.resend-btn  { font-size: 12px; color: #60a5fa; background: none; border: none; cursor: pointer; }
+.resend-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+/* ── Left panel ── */
 .login-left {
   background: var(--surface);
   border-inline-end: 1px solid var(--border);

@@ -14,7 +14,9 @@ const cron = require('node-cron');
 const { User,PlatformSettings } = require('./models');const posterRoutes = require("./routes/posterRouter");
 
 const app = express()
-const { sendTrialExpiryWarningEmail, sendScheduledPostReminderEmail } = require('./services/emailService')
+const { sendTrialExpiryWarningEmail } = require('./services/emailService')
+const contactRouter = require('./routes/contact')
+
 
 // بيشتغل كل يوم الساعة 9 الصبح
 cron.schedule('0 9 * * *', async () => {
@@ -199,5 +201,11 @@ app.listen(PORT, () => {
   });
   // ============================================================================
 });
-
+cron.schedule('0 * * * *', async () => {
+  await User.deleteMany({
+    isVerified: false,
+    verificationCodeExpires: { $lt: new Date() }
+  })
+  console.log('[Cron] Cleaned unverified expired users')
+})
 

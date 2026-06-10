@@ -9,7 +9,7 @@ const transporter = nodemailer.createTransport({
     pass: process.env.EMAIL_PASS,
   },
   pool: true,
-  maxConnections: 5,
+  maxConnections: 1,
 });
 
 transporter.verify((err) => {
@@ -267,4 +267,5 @@ module.exports = {
   sendContactReplyEmail, 
   sendScheduledPostTomorrowEmail, // ✅
   sendScheduledPostReminderEmail, // ✅
+  transporter,
 };

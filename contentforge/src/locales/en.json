@@ -31,7 +31,7 @@
     "notifications": {
       "title": "Notifications",
       "markAllRead": "Mark all read",
-      "empty" : "no notifications"
+      "empty": "no notifications"
     },
     "contactUs": "Contact Us",
     "deleteAccount": "Delete Account",
@@ -786,7 +786,8 @@
       "features": "Features",
       "howItWorks": "How it Works",
       "competitors": "Competitors",
-      "pricing": "Pricing"
+      "pricing": "Pricing",
+      "contact": "Contact Us"
     },
     "closeMenu": "Close menu",
     "openMenu": "Open menu"

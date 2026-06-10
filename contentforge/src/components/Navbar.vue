@@ -16,39 +16,42 @@
 
       <!-- Desktop nav -->
       <div class="hidden md:flex items-center gap-8">
-        <a v-for="link in navLinks" :key="link.labelKey" :href="link.href"
-          class="text-sm transition-colors duration-200"
-          :class="isDark ? 'text-slate-400 hover:text-white' : 'text-slate-600 hover:text-slate-900'">
-          {{ t(link.labelKey) }}
-        </a>
+        <div v-for="link in navLinks" :key="link.labelKey" class="contents">
+          <RouterLink v-if="link.to" :to="link.to" class="text-sm transition-colors duration-200"
+            :class="isDark ? 'text-slate-400 hover:text-white' : 'text-slate-600 hover:text-slate-900'">
+            {{ t(link.labelKey) }}
+          </RouterLink>
+          <a v-else href="#" @click.prevent="handleNavClick(link)" class="text-sm transition-colors duration-200"
+            :class="isDark ? 'text-slate-400 hover:text-white' : 'text-slate-600 hover:text-slate-900'">
+            {{ t(link.labelKey) }}
+          </a>
+        </div>
       </div>
 
       <!-- Right side -->
       <div class="flex items-center gap-2 sm:gap-3">
 
         <!-- Lang toggle -->
-        <button @click="switchLang"
-          class="flex items-center gap-1.5 text-sm transition-colors px-2 py-1 rounded-lg"
+        <button @click="switchLang" class="flex items-center gap-1.5 text-sm transition-colors px-2 py-1 rounded-lg"
           :class="isDark ? 'text-slate-400 hover:text-white hover:bg-white/5' : 'text-slate-600 hover:text-slate-900 hover:bg-black/5'">
           <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-              d="M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18zm0 0c-4.97 0-9-4.03-9-9m9 9c4.97 0 9-4.03 9-9M3 12h18M12 3c-2.5 2.5-4 5.5-4 9s1.5 6.5 4 9M12 3c2.5 2.5 4 5.5 4 9s-1.5 6.5-4 9"/>
+              d="M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18zm0 0c-4.97 0-9-4.03-9-9m9 9c4.97 0 9-4.03 9-9M3 12h18M12 3c-2.5 2.5-4 5.5-4 9s1.5 6.5 4 9M12 3c2.5 2.5 4 5.5 4 9s-1.5 6.5-4 9" />
           </svg>
           <span class="hidden sm:inline">{{ locale === 'en' ? 'عربي' : 'English' }}</span>
         </button>
 
         <!-- Theme toggle -->
-        <button @click="toggleTheme"
-          class="w-8 h-8 rounded-lg flex items-center justify-center transition-colors"
+        <button @click="toggleTheme" class="w-8 h-8 rounded-lg flex items-center justify-center transition-colors"
           :class="isDark ? 'text-slate-400 hover:text-white hover:bg-white/5' : 'text-slate-600 hover:text-slate-900 hover:bg-black/5'"
           :title="isDark ? t('layout.switchLight') : t('layout.switchDark')">
           <svg v-if="isDark" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-              d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364-6.364l-.707.707M6.343 17.657l-.707.707M17.657 17.657l-.707-.707M6.343 6.343l-.707-.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"/>
+              d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364-6.364l-.707.707M6.343 17.657l-.707.707M17.657 17.657l-.707-.707M6.343 6.343l-.707-.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" />
           </svg>
           <svg v-else class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-              d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"/>
+              d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
           </svg>
         </button>
 
@@ -63,15 +66,13 @@
           class="md:hidden flex items-center justify-center w-9 h-9 rounded-lg transition-colors"
           :class="isDark ? 'hover:bg-white/5' : 'hover:bg-black/5'"
           :aria-label="menuOpen ? t('navbar.closeMenu') : t('navbar.openMenu')">
-          <svg v-if="!menuOpen" class="w-5 h-5"
-            :class="isDark ? 'text-slate-400' : 'text-slate-600'"
-            fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/>
+          <svg v-if="!menuOpen" class="w-5 h-5" :class="isDark ? 'text-slate-400' : 'text-slate-600'" fill="none"
+            viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
           </svg>
-          <svg v-else class="w-5 h-5"
-            :class="isDark ? 'text-slate-400' : 'text-slate-600'"
-            fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+          <svg v-else class="w-5 h-5" :class="isDark ? 'text-slate-400' : 'text-slate-600'" fill="none"
+            viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
           </svg>
         </button>
       </div>
@@ -79,17 +80,24 @@
 
     <!-- Mobile menu -->
     <Transition name="menu">
-      <div v-if="menuOpen"
-        class="md:hidden border-t px-6 py-5 flex flex-col gap-4 shadow-xl"
+      <div v-if="menuOpen" class="md:hidden border-t px-6 py-5 flex flex-col gap-4 shadow-xl"
         :class="isDark ? 'bg-forge-950 border-white/10 shadow-black/40' : 'bg-white border-slate-200 shadow-slate-200/60'">
-        <a v-for="link in navLinks" :key="link.labelKey" :href="link.href"
-          @click="menuOpen = false"
-          class="text-sm transition-colors py-1"
-          :class="isDark ? 'text-slate-400 hover:text-white' : 'text-slate-600 hover:text-slate-900'">
-          {{ t(link.labelKey) }}
-        </a>
+
+        <!-- Mobile menu links -->
+        <div v-for="link in navLinks" :key="link.labelKey" class="contents">
+          <RouterLink v-if="link.to" :to="link.to" @click="menuOpen = false" class="text-sm transition-colors py-1"
+            :class="isDark ? 'text-slate-400 hover:text-white' : 'text-slate-600 hover:text-slate-900'">
+            {{ t(link.labelKey) }}
+          </RouterLink>
+          <a v-else href="#" @click.prevent="handleNavClick(link)" @click="menuOpen = false"
+            class="text-sm transition-colors py-1"
+            :class="isDark ? 'text-slate-400 hover:text-white' : 'text-slate-600 hover:text-slate-900'">
+            {{ t(link.labelKey) }}
+          </a>
+        </div>
+
         <div class="h-px" :class="isDark ? 'bg-white/5' : 'bg-slate-100'"></div>
-        
+
         <!-- Mobile CTA -->
         <RouterLink to="/dashboard" @click="menuOpen = false"
           class="px-4 py-3 rounded-lg bg-blue-600 hover:bg-blue-500 text-white text-sm font-medium text-center transition-all duration-200">
@@ -103,7 +111,7 @@
 
 <script setup>
 import { ref, onMounted, onUnmounted } from 'vue'
-import { RouterLink } from 'vue-router'
+import { RouterLink, useRouter, useRoute } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { useLang } from '../composables/useLang.js'
 import { useTheme } from '../composables/useTheme.js'
@@ -111,16 +119,36 @@ import { useTheme } from '../composables/useTheme.js'
 const { t } = useI18n()
 const { locale, switchLang } = useLang()
 const { isDark, toggle: toggleTheme } = useTheme()
+const router = useRouter()
+const route = useRoute()
 
 const scrolled = ref(false)
 const menuOpen = ref(false)
 
 const navLinks = [
-  { labelKey: 'navbar.links.features',    href: '#features' },
-  { labelKey: 'navbar.links.howItWorks',  href: '#how-it-works' },
+  { labelKey: 'navbar.links.features', href: '#features' },
+  { labelKey: 'navbar.links.howItWorks', href: '#how-it-works' },
   { labelKey: 'navbar.links.competitors', href: '#competitors' },
-  { labelKey: 'navbar.links.pricing',     href: '#pricing' },
+  { labelKey: 'navbar.links.pricing', href: '#pricing' },
+  { labelKey: 'navbar.links.contact', to: '/contact' },
 ]
+
+// Smart navigation: scroll if on landing page, otherwise navigate first then scroll
+function handleNavClick(link) {
+  menuOpen.value = false
+
+  if (route.path === '/') {
+    // Already on landing page — just scroll smoothly
+    const el = document.querySelector(link.href)
+    if (el) {
+      el.scrollIntoView({ behavior: 'smooth' })
+    }
+  } else {
+    // Not on landing page — navigate to landing page with hash
+    // The router's scrollBehavior will handle the scroll automatically
+    router.push({ path: '/', hash: link.href })
+  }
+}
 
 function handleScroll() {
   scrolled.value = window.scrollY > 40
@@ -132,6 +160,14 @@ onUnmounted(() => window.removeEventListener('scroll', handleScroll))
 </script>
 
 <style scoped>
-.menu-enter-active, .menu-leave-active { transition: opacity 0.2s ease, transform 0.2s ease; }
-.menu-enter-from, .menu-leave-to       { opacity: 0; transform: translateY(-6px); }
+.menu-enter-active,
+.menu-leave-active {
+  transition: opacity 0.2s ease, transform 0.2s ease;
+}
+
+.menu-enter-from,
+.menu-leave-to {
+  opacity: 0;
+  transform: translateY(-6px);
+}
 </style>

@@ -574,7 +574,6 @@ const toast = ref(null);
 const filters = [
   { value: "All", labelKey: "posts.filterAll" },
   { value: "Draft", labelKey: "posts.filterDraft" },
-  // { value: "Pending", labelKey: "posts.filterPending" },
   { value: "Approved", labelKey: "posts.filterApproved" },
   { value: "Scheduled", labelKey: "posts.filterScheduled" },
   { value: "Published", labelKey: "posts.filterPublished" },

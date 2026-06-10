@@ -52,16 +52,11 @@
           </svg>
         </button>
 
-        <!-- Desktop-only links -->
+        <!-- Desktop CTA -->
         <RouterLink to="/dashboard"
-          class="hidden md:block text-sm transition-colors"
-          :class="isDark ? 'text-slate-400 hover:text-white' : 'text-slate-600 hover:text-slate-900'">
-          {{ t('navbar.previewDashboard') }}
-        </RouterLink>
-        <a href="#get-started"
           class="hidden md:block px-4 py-2 rounded-lg bg-blue-600 hover:bg-blue-500 text-white text-sm font-medium transition-all duration-200 hover:shadow-lg hover:shadow-blue-500/20">
           {{ t('navbar.getStarted') }}
-        </a>
+        </RouterLink>
 
         <!-- Hamburger — mobile only -->
         <button @click="menuOpen = !menuOpen"
@@ -94,15 +89,12 @@
           {{ t(link.labelKey) }}
         </a>
         <div class="h-px" :class="isDark ? 'bg-white/5' : 'bg-slate-100'"></div>
+        
+        <!-- Mobile CTA -->
         <RouterLink to="/dashboard" @click="menuOpen = false"
-          class="text-sm transition-colors py-1"
-          :class="isDark ? 'text-slate-400 hover:text-white' : 'text-slate-600 hover:text-slate-900'">
-          {{ t('navbar.previewDashboard') }}
-        </RouterLink>
-        <a href="#get-started" @click="menuOpen = false"
           class="px-4 py-3 rounded-lg bg-blue-600 hover:bg-blue-500 text-white text-sm font-medium text-center transition-all duration-200">
           {{ t('navbar.getStarted') }}
-        </a>
+        </RouterLink>
       </div>
     </Transition>
 

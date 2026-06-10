@@ -90,8 +90,8 @@
     "leftAccent": "resonates in Arabic",
     "leftSub": "AI-powered content calendar built for MENA brands. Generate, schedule, and publish in your dialect.",
     "feature1": "AI generation in Egyptian, Gulf & Levantine Arabic",
-    "feature2": "2-week calendar generated in under 30 seconds",
-    "feature3": "Brand vault — your voice, always consistent",
+    "feature2": "A calendar generated in under 30 seconds",
+    "feature3": "Brand vault - your voice, always consistent",
     "tryDemo": "Try demo account",
     "backHome": "Back",
     "errorPasswordMismatch": "Passwords do not match!"
@@ -145,8 +145,8 @@
       }
     },
     "title": "Your free trial has ended",
-    "subtitle": "Your 14-day trial of ContentForge has expired. Choose a plan below to keep generating Arabic content for your brand.",
-    "comingSoon": "Payments are coming soon — we'll notify you when they're live! 🚀",
+    "subtitle": "Your free trial of ContentForge has expired. Choose a plan below to keep generating Arabic content for your brand.",
+    "comingSoon": "Payments are coming soon - we'll notify you when they're live! 🚀",
     "signOut": "Sign out and use a different account",
     "starter": {
       "name": "Starter",
@@ -193,7 +193,7 @@
     "newDraft": "New Draft",
     "selected": "{count} selected",
     "approveAll": "Approve All",
-    "variantBLabel": "Version B — A/B Critic",
+    "variantBLabel": "Version B - A/B Critic",
     "editDraft": "Edit Draft",
     "copyEN": "English Copy",
     "copyAR": "Arabic Copy",
@@ -377,7 +377,7 @@
     "useVariantB": "Use Variant B",
     "title": "Content Calendar",
     "postsPlanned": "posts planned",
-    "noCalendar": "No calendar yet — generate your first plan",
+    "noCalendar": "No calendar yet - generate your first plan",
     "trending": "Trending",
     "approvePlan": "Approve Plan",
     "approving": "Approving…",
@@ -386,7 +386,7 @@
     "regenerateCalendar": "Regenerate Calendar",
     "generateNewPlan": "Generate New Plan",
     "posts": "posts",
-    "emptyState": "No calendar yet — click {action} to start",
+    "emptyState": "No calendar yet - click {action} to start",
     "generatePlan": "✦ Generate Plan",
     "generating": "Generating your calendar in few minutes…",
     "generatingHint": "This usually takes 20–40 seconds",
@@ -468,7 +468,6 @@
     },
     "statusName": {
       "draft": "Draft",
-      "pending": "Pending",
       "approved": "Approved",
       "scheduled": "Scheduled",
       "published": "Published",
@@ -509,7 +508,7 @@
     },
     "rows": {
       "dialect": "Arabic dialect support",
-      "calendar": "2-week content calendar",
+      "calendar": "A content calendar",
       "rag": "RAG brand voice memory",
       "trends": "Cultural trend injection",
       "dragdrop": "Drag-and-drop calendar",
@@ -533,14 +532,14 @@
       },
       "postflex": {
         "title": "vs. PostFlex AI",
-        "desc": "PostFlex AI has limited scheduling and fewer templates. ContentForge delivers a complete AI-generated 2-week strategy with live cultural trend awareness."
+        "desc": "PostFlex AI has limited scheduling and fewer templates. ContentForge delivers a complete AI-generated strategy with live cultural trend awareness."
       }
     },
     "scrollHint": "Swipe to compare"
   },
   "branding": {
     "title": "Brand Vault",
-    "subtitle": "Your brand's identity, voice, and memory — stored permanently in RAG.",
+    "subtitle": "Your brand's identity, voice, and memory - stored permanently in RAG.",
     "saveAndEmbed": "Save & Re-embed",
     "tabIdentity": "Brand Identity",
     "tabPosts": "Top Posts",
@@ -555,7 +554,7 @@
     "visualIdentity": "Visual Identity",
     "brandColors": "Brand Colors",
     "brandFont": "Brand Font / Typography Style",
-    "brandFontPlaceholder": "Modern, clean sans-serif — e.g. Cairo font",
+    "brandFontPlaceholder": "Modern, clean sans-serif - e.g. Cairo font",
     "logoUpload": "Logo Upload",
     "logoUploadHint": "Click to upload logo (PNG/SVG)",
     "logoUploadMax": "Max 2MB",
@@ -662,31 +661,31 @@
     "cta": {
       "title": "Start creating Arabic content",
       "titleAccent": "that actually converts",
-      "subtitle": "Join Arab marketing teams saving 2 days per content cycle. Your first calendar is free — no credit card needed.",
+      "subtitle": "Join Arab marketing teams saving 2 days per content cycle. Your first calendar is free - no credit card needed.",
       "primaryBtn": "Generate Your First Calendar Free",
       "secondaryBtn": "Explore Dashboard",
-      "fine": "14-day free trial · No credit card · Cancel anytime"
+      "fine": "A free trial · No credit card · Cancel anytime"
     }
   },
   "features": {
     "eyebrow": "Core Features",
     "heading": "Everything your Arabic brand",
     "headingAccent": "actually needs",
-    "subheading": "Built from the ground up for Arab SMEs — not retrofitted from a Western tool.",
+    "subheading": "Built from the ground up for Arab SMEs - not retrofitted from a Western tool.",
     "big": {
       "arabicIntelligence": {
         "title": "Arabic & Cultural Intelligence",
-        "description": "The only AI platform that generates posts in Egyptian, Gulf, and Levantine dialects — with automated cultural trend injection from X, Google Trends, and regional RSS feeds updated every hour.",
+        "description": "The only AI platform that generates posts in Egyptian, Gulf, and Levantine dialects - with automated cultural trend injection from X, Google Trends, and regional RSS feeds updated every hour.",
         "points": {
           "p1": "Egyptian, Gulf, Levantine dialect per post",
           "p2": "Ramadan, Eid, and regional holidays auto-detected",
           "p3": "Hourly trend scraping with velocity scoring",
-          "p4": "Bilingual output — Arabic + English in one calendar"
+          "p4": "Bilingual output - Arabic + English in one calendar"
         }
       },
       "ragBrandVoice": {
         "title": "RAG-Powered Brand Voice Memory",
-        "description": "Your brand voice is stored permanently in a RAG pipeline using Google Embedding API and MongoDB Atlas. Every generation pulls only the 4 most relevant chunks — so content always sounds like you, not a generic AI.",
+        "description": "Your brand voice is stored permanently in a RAG pipeline using Google Embedding API and MongoDB Atlas. Every generation pulls only the 4 most relevant chunks - so content always sounds like you, not a generic AI.",
         "points": {
           "p1": "Brand guidelines chunked into 300-word segments",
           "p2": "Top 10 past posts vectorized and stored",
@@ -697,8 +696,8 @@
     },
     "small": {
       "calendar": {
-        "title": "Interactive 2-Week Calendar",
-        "description": "Visual drag-and-drop grid with side drawer editing. Move posts, update statuses, and edit copy — all without regenerating."
+        "title": "Interactive Calendar",
+        "description": "Visual drag-and-drop grid with modal editing. Click any post to open a detailed editor, update statuses, and refine copy-all without regenerating."
       },
       "imageGen": {
         "title": "AI Image Generation",
@@ -706,7 +705,7 @@
       },
       "abCritic": {
         "title": "A/B Critic Agent",
-        "description": "Fires after every post to instantly produce a Version B with an alternative hook and CTA layout. Pick the winner in one click."
+        "description": "Fires when you click a button in the edit modal to instantly produce a Version B with an alternative hook and CTA layout. Pick the winner in one click."
       },
       "publishing": {
         "title": "One-Click Publishing",
@@ -718,10 +717,10 @@
       },
       "workflow": {
         "title": "Draft → Published Workflow",
-        "description": "Built-in approval state machine: Draft → Pending Review → Approved → Scheduled → Published. Full team collaboration ready."
+        "description": "Built-in approval state machine: Draft → Approved → Scheduled → Published. Full team collaboration ready."
       }
     }
-  },
+},
   "pricing": {
     "eyebrow": "Pricing",
     "heading": "Simple pricing for",
@@ -733,7 +732,7 @@
     "mostPopular": "✦ Most Popular",
     "perMonth": "/mo",
     "wasPrice": "was ${price}",
-    "bottomNote": "All plans include Arabic dialect support, cultural trend injection, and 14-day free trial. No credit card required to start.",
+    "bottomNote": "All plans include Arabic dialect support, cultural trend injection, and a free trial. No credit card required to start.",
     "plans": {
       "starter": {
         "name": "Starter",
@@ -777,7 +776,6 @@
     }
   },
   "navbar": {
-    "previewDashboard": "Preview Dashboard",
     "getStarted": "Get Started Free",
     "links": {
       "features": "Features",
@@ -787,125 +785,105 @@
     },
     "closeMenu": "Close menu",
     "openMenu": "Open menu"
-  },
+},
   "howItWorks": {
-    "eyebrow": "How it works",
-    "heading": "From brief to calendar",
-    "headingAccent": "in under 2 minutes",
-    "subheading": "One workflow — start to publish. No back-and-forth, no agency retainer.",
-    "stepLabel": "Step",
+    "eyebrow": "How It Works",
+    "heading": "From brand setup",
+    "headingAccent": "to published post",
+    "subheading": "Four simple steps to go from zero to a full content calendar - built around your brand voice, in the dialect your audience speaks.",
     "steps": {
       "s01": {
-        "title": "Upload your Brand Vault once",
-        "description": "Upload your brand guidelines and top 10 past posts. ContentForge learns your voice, colors, audience, and positioning — permanently stored in RAG memory.",
-        "b1": "Brand guidelines via PDF or form",
-        "b2": "Dialect preference (Egyptian, Gulf, Levantine)",
-        "b3": "Tone, CTA style, topics to avoid"
+        "title": "Build Your Brand Vault",
+        "description": "Tell Content Forge who you are. Upload your brand guidelines as a PDF, add your brand colors and font, describe your tone of voice, and import your top-performing past posts - manually, via link, or by uploading a file.",
+        "b1": "Upload brand guidelines PDF",
+        "b2": "Import past posts via link, file, or manual entry",
+        "b3": "Set your dialect, tone sliders, and target platforms"
       },
       "s02": {
-        "title": "Type one brief — watch trends auto-inject",
-        "description": "Describe your campaign goal in plain language. ContentForge pulls live trending topics from X, Google Trends, and regional RSS feeds to align your content with what's viral right now.",
-        "b1": "One sentence brief triggers the full engine",
-        "b2": "Hourly trend scraping from regional sources",
-        "b3": "Cultural moments auto-detected (Ramadan, Eid, etc.)"
+        "title": "Write Your Campaign Brief",
+        "description": "Tell the AI what you want to achieve. Pick your campaign dates, choose your dialect and platforms, and describe your campaign idea in plain language. Content Forge handles the rest.",
+        "b1": "Choose any start and end date - no fixed duration",
+        "b2": "Select dialect: Egyptian, Gulf, Levantine, or bilingual",
+        "b3": "Pick your platforms: Instagram, Facebook, LinkedIn, X, TikTok"
       },
       "s03": {
-        "title": "Get a visual 2-week calendar",
-        "description": "An interactive calendar grid appears with every post planned — drag and drop to reschedule, open the side drawer to edit copy, and see A/B variants from the Critic Agent instantly.",
-        "b1": "Drag-and-drop rescheduling",
-        "b2": "Side drawer for inline copy editing",
-        "b3": "A/B Critic generates alternative hooks"
+        "title": "Review & Edit Your Calendar",
+        "description": "Your full content calendar is generated instantly. Drag and drop posts to reschedule them, click any post to open the editor - where you can rewrite copy, switch platforms, run an A/B critic, generate an AI image, and update the post status.",
+        "b1": "Drag & drop to reschedule any post",
+        "b2": "Edit copy, platform, and status from the post modal",
+        "b3": "Generate an A/B variant or an AI image per post"
       },
       "s04": {
-        "title": "Approve, schedule & publish",
-        "description": "Review each post, update statuses, and hit Approve Plan to save the entire campaign to your dashboard permanently. Publish to Instagram, Facebook, and LinkedIn in one click.",
-        "b1": "Draft → Pending → Approved → Scheduled → Published",
-        "b2": "One-click publish to all major platforms",
-        "b3": "Calendar loads instantly on return — no regeneration"
+        "title": "Approve, Schedule & Publish",
+        "description": "Approve your plan in one click or post by post. Content Forge reminds you when a scheduled post day is approaching. When you're ready, publish directly to Facebook or Instagram - without leaving the app.",
+        "b1": "Approve all posts or individually per post",
+        "b2": "Get notified when a scheduled post day is near",
+        "b3": "Publish directly to Facebook and Instagram"
       }
     },
     "visual": {
-      "brandVaultSetup": "Brand Vault Setup",
-      "dialectPreference": "Dialect Preference",
-      "egyptian": "Egyptian ✓",
-      "gulf": "Gulf",
-      "levantine": "Levantine",
-      "campaignBrief": "Campaign Brief",
-      "briefQuote": "\"Create a 2-week Ramadan campaign for our new cold brew line targeting Egyptian millennials. Focus on iftar moments and morning suhoor energy.\"",
-      "trendDetected": "Trend detected: #رمضان_كريم trending in Egypt (+340%)",
-      "generatedCalendar": "Generated Calendar (2 weeks)",
-      "reviewApprove": "Review & Approve",
-      "suhoorPost": "Suhoor Energy Post",
-      "iftarPromo": "Iftar Promo",
-      "brandStory": "Brand Story",
-      "igEgy": "Instagram · Arabic (EGY)",
-      "fbBilingual": "Facebook · Bilingual",
-      "liEnglish": "LinkedIn · English",
-      "approved": "Approved ✓",
-      "pending": "Pending",
-      "draft": "Draft",
-      "approveAll": "✦ Approve All & Save to Dashboard",
+      "brandVaultSetup": "Brand Vault setup",
+      "dialectPreference": "Dialect preference",
+      "egyptian": "Egyptian 🇪🇬",
+      "gulf": "Gulf 🇸🇦",
+      "levantine": "Levantine 🇱🇧",
+      "campaignBrief": "Campaign brief",
+      "briefQuote": "Ramadan campaign for our coffee brand - warm, community-focused posts for Egyptian audience across Instagram and Facebook.",
+      "trendDetected": "Trend detected: #رمضان_كريم - injecting into plan",
+      "generatedCalendar": "Generated calendar",
       "mon": "Mon",
       "tue": "Tue",
       "wed": "Wed",
       "thu": "Thu",
       "igStory": "IG Story",
       "fbPost": "FB Post",
-      "rest": "REST",
       "liArticle": "LI Article",
-      "twThread": "TW Thread",
+      "twThread": "X Thread",
       "igReel": "IG Reel",
       "fbCover": "FB Cover",
-      "suhoor": "Suhoor",
-      "iftar": "Iftar",
+      "suhoor": "Suhoor moment",
+      "iftar": "Iftar offer",
       "brandStoryLabel": "Brand story",
-      "arabicContent": "Arabic content"
+      "arabicContent": "Arabic copy",
+      "reviewApprove": "Review & approve posts",
+      "suhoorPost": "Suhoor at the café ☕",
+      "iftarPromo": "Iftar special - 2 for 1",
+      "brandStory": "Our story, your morning",
+      "igEgy": "Instagram · Egyptian Arabic",
+      "fbBilingual": "Facebook · Bilingual",
+      "liEnglish": "LinkedIn · English",
+      "approved": "Approved",
+      "pending": "Pending",
+      "draft": "Draft",
+      "approveAll": "Approve all & schedule",
+      "stepLabel": "Step"
     }
   },
   "hero": {
-    "badge": "Built for Arab brands · مبني للعلامات التجارية العربية",
+    "badge": "Built for GCC brands - Arabic & English",
     "heading": "Your brand voice,",
     "headingAccent": "in Arabic & English",
     "headingSuffix": "in under 2 minutes",
-    "subheading": "ContentForge generates a full two-week social media strategy calendar that understands Egyptian, Gulf, and Levantine dialects — and remembers your brand voice.",
-    "ctaPrimary": "Start Free — No Credit Card",
-    "ctaSecondary": "See Dashboard Preview",
+    "subheading": "Content Forge generates a custom social media content calendar for your brand - any duration you choose. It understands Egyptian, Gulf, and Levantine dialects, learns your brand voice, and publishes directly to your platforms.",
+    "ctaPrimary": "Get Started Free",
     "trust": {
       "dialectAI": "Arabic Dialect AI",
-      "ragMemory": "RAG Brand Memory",
-      "calendar": "2-Week Calendar in 2 min",
-      "dragDrop": "Drag & Drop Scheduling"
+      "ragMemory": "Brand Voice Memory",
+      "calendar": "Flexible Content Calendar",
+      "dragDrop": "Drag & Drop Scheduling",
+      "directPublish": "Publish Directly to Platforms"
     }
   },
   "footer": {
-    "tagline": "AI content strategy platform built specifically for Arabic and bilingual brands across Egypt, the Gulf, and the Levant.",
-    "taglineAr": "منصة الذكاء الاصطناعي للعلامات التجارية العربية",
-    "copyright": "© 2026 ContentForge · UI&UX Development Team 3 · Graduate Project",
-    "builtWith": "Built with Vue 3 · Node.js · MongoDB Atlas · Gemini 2.5",
-    "product": {
-      "title": "Product",
-      "features": "Features",
-      "howItWorks": "How it Works",
-      "pricing": "Pricing",
-      "dashboardPreview": "Dashboard Preview",
-      "brandVault": "Brand Vault"
+    "tagline": "Your brand voice, in Arabic & English in under 2 minutes. Content Forge generates a custom social media content calendar for your brand - any duration you choose. It understands Egyptian, Gulf, and Levantine dialects, learns your brand voice, and publishes directly to your platforms.",
+    "taglineAr": "صوت علامتك التجارية، بالعربية والإنجليزية في أقل من دقيقتين. يولد Content Forge تقويماً مخصصاً لمحتوى وسائل التواصل الاجتماعي لعلامتك التجارية - بأي مدة تختارها. يفهم اللهجات المصرية والخليجية والشامية، ويتعلم نبرة علامتك التجارية، وينشر مباشرة على منصاتك.",
+    "support": {
+      "title": "Support",
+      "contact": "Contact Us"
     },
-    "platforms": {
-      "title": "Platforms",
-      "instagram": "Instagram",
-      "facebook": "Facebook",
-      "linkedin": "LinkedIn",
-      "twitterX": "Twitter/X",
-      "tiktok": "TikTok"
-    },
-    "company": {
-      "title": "Company",
-      "about": "About",
-      "blog": "Blog",
-      "careers": "Careers",
-      "contact": "Contact",
-      "privacyPolicy": "Privacy Policy"
-    }
+    "copyright": "© 2026 ContentForge. All rights reserved.",
+    "builtWith": "Built with Vue 3, Tailwind CSS, and Node.js",
+    "backToTop": "Back to Top"
   },
   "mockup": {
     "brandName": "Araby Coffee",
@@ -922,7 +900,7 @@
     "dialectEgy": "Arabic (EGY)",
     "status": "Status",
     "abCritic": "A/B Critic Agent",
-    "abHint": "Version B suggests stronger hook — leads with the offer.",
+    "abHint": "Version B suggests stronger hook - leads with the offer.",
     "viewVersionB": "View Version B",
     "statusPendingReview": "Pending Review",
     "nav": {
@@ -935,12 +913,12 @@
     },
     "post1": "Ramadan morning routine ☕",
     "post2": "لمة العيلة والقهوة",
-    "post3": "Product carousel — new flavors",
+    "post3": "Product carousel - new flavors",
     "post5": "Brand story thread",
     "post6": "اختار طعمك المفضل 🎯",
     "post8": "Customer highlight reel",
     "post9": "Tip: قهوتك أحسن بـ...",
-    "post11": "Weekend promo — 2 for 1",
+    "post11": "Weekend promo - 2 for 1",
     "post12": "Weekly roundup Arabic",
     "post13": "ترند الأسبوع 🔥"
   },
@@ -977,7 +955,7 @@
     "toastDeleted": "Post deleted.",
     "toastError": "Something went wrong.",
     "generatedImage": "Generated image",
-    "variantBLabel": "Variant B — A/B Critic",
+    "variantBLabel": "Variant B - A/B Critic",
     "platform": {
       "Instagram": "Instagram",
       "Facebook": "Facebook",
@@ -1021,7 +999,7 @@
     },
     "postPublished": {
       "title": "Post Published",
-      "message": "Instagram post published — 1.2K impressions so far."
+      "message": "Instagram post published - 1.2K impressions so far."
     },
     "time": {
       "justNow": "Just now",
@@ -1142,7 +1120,7 @@
       "jwtExpiry": "JWT Expiry",
       "envDev": "Development",
       "envProd": "Production",
-      "saveNote": "⚠ Settings are local config only — backend env variables are not updated via this panel.",
+      "saveNote": "⚠ Settings are local config only - backend env variables are not updated via this panel.",
       "saved": "✓ Saved",
       "saveBtn": "Save settings",
       "jwtExpiryVal": "7 days"
@@ -1152,7 +1130,7 @@
       "allPlans": "All plans",
       "totalCount": "{n} users",
       "noUsers": "No users found",
-      "editTitle": "Edit User — {name}",
+      "editTitle": "Edit User - {name}",
       "trialActive": "Trial Active",
       "trialEndsAt": "Trial Ends At",
       "emailVerified": "Email Verified",
@@ -1193,7 +1171,7 @@
     "successTitle": "You're all set! 🎉",
     "successMsg": "Your subscription is now active. Welcome aboard!",
     "cancelTitle": "Payment canceled",
-    "cancelMsg": "No worries — your current plan is unchanged. Upgrade anytime.",
+    "cancelMsg": "No worries - your current plan is unchanged. Upgrade anytime.",
     "tryAgain": "View Plans",
     "goToDashboard": "Go to Dashboard",
     "errorGeneric": "Something went wrong. Please try again.",
@@ -1207,7 +1185,7 @@
     "badge": "Get in touch",
     "title": "We'd love to",
     "titleAccent": "hear from you",
-    "subtitle": "Whether you have a question about pricing, a demo request, or just want to say hello — we're here.",
+    "subtitle": "Whether you have a question about pricing, a demo request, or just want to say hello - we're here.",
     "responseTitle": "Quick response guaranteed",
     "responseDesc": "We typically respond within 24 hours on business days.",
     "successTitle": "Message sent!",
@@ -1215,7 +1193,7 @@
     "sendAnother": "Send another message",
     "info": {
       "emailTitle": "Email us",
-      "emailDesc": "hello@contentforge.io — for general inquiries and support.",
+      "emailDesc": "hello@contentforge.io - for general inquiries and support.",
       "chatTitle": "Live chat",
       "chatDesc": "Available inside the app Monday–Friday, 9am–6pm GST.",
       "regionsTitle": "We serve MENA",

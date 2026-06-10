@@ -1,8 +1,7 @@
-<!-- HeroSection.vue -->
 <template>
   <section class="relative min-h-screen flex flex-col items-center justify-center overflow-hidden bg-grid pt-24 pb-16 transition-colors duration-300"
     :class="isDark ? 'bg-forge-950' : 'bg-white'">
-    
+
     <!-- Ambient orbs -->
     <div class="absolute top-1/4 left-1/4 w-96 h-96 rounded-full blur-3xl pointer-events-none transition-colors duration-300"
       :class="isDark ? 'bg-blue-600/8' : 'bg-blue-400/10'"></div>
@@ -15,8 +14,8 @@
 
       <!-- Badge -->
       <div class="inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-xs mb-8 animate-fade-up"
-        :class="isDark 
-          ? 'border border-white/8 bg-white/3 text-slate-400' 
+        :class="isDark
+          ? 'border border-white/8 bg-white/3 text-slate-400'
           : 'border border-slate-200 bg-slate-50 text-slate-600 shadow-sm'">
         <span class="w-1.5 h-1.5 rounded-full bg-teal-400 animate-pulse-slow"></span>
         {{ t('hero.badge') }}
@@ -35,31 +34,13 @@
         :class="isDark ? 'text-slate-400' : 'text-slate-600'">
         {{ t('hero.subheading') }}
       </p>
-
-      <!-- CTAs -->
-      <div class="flex flex-col gap-3 justify-center items-center mb-12 md:mb-16 animate-fade-up animate-delay-300 px-2 sm:flex-row sm:gap-4">
-        <a href="#get-started"
-          class="w-full sm:w-auto px-6 py-3.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-medium text-sm sm:text-base transition-all duration-200 hover:shadow-xl hover:shadow-blue-500/25 hover:-translate-y-0.5 text-center">
-          {{ t('hero.ctaPrimary') }}
-        </a>
-        <RouterLink to="/dashboard"
-          class="w-full sm:w-auto px-6 py-3.5 rounded-xl font-medium text-sm sm:text-base transition-all duration-200 flex items-center justify-center gap-2"
-          :class="isDark 
-            ? 'border border-white/8 text-slate-300 hover:border-white/15 hover:text-white' 
-            : 'border border-slate-200 text-slate-600 bg-white hover:bg-slate-50 hover:text-slate-900 shadow-sm'">
-          <svg width="16" height="16" viewBox="0 0 16 16" fill="none" class="shrink-0">
-            <polygon points="5,3 13,8 5,13" fill="currentColor" />
-          </svg>
-          {{ t('hero.ctaSecondary') }}
-        </RouterLink>
-      </div>
-
+      
       <!-- Trust bar -->
       <div class="grid grid-cols-2 sm:flex sm:flex-wrap sm:justify-center gap-3 sm:gap-8 animate-fade-up animate-delay-400">
         <span v-for="trust in trustItems" :key="trust.key"
           class="flex items-center justify-center sm:justify-start gap-2 text-xs sm:text-sm"
           :class="isDark ? 'text-slate-500' : 'text-slate-500'">
-          <span class="text-teal-500 dark:text-teal-400 shrink-0">✦</span>
+          <span class="text-teal-500 shrink-0">✦</span>
           {{ t(trust.key) }}
         </span>
       </div>
@@ -87,5 +68,6 @@ const trustItems = [
   { key: 'hero.trust.ragMemory' },
   { key: 'hero.trust.calendar' },
   { key: 'hero.trust.dragDrop' },
+  { key: 'hero.trust.directPublish' },
 ]
 </script>

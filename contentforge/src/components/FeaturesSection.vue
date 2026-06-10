@@ -1,10 +1,14 @@
 <template>
   <section id="features" class="py-24 relative overflow-hidden transition-colors duration-300"
     :class="isDark ? 'bg-forge-900' : 'bg-slate-50'">
-    <div class="absolute inset-0 bg-grid opacity-30"></div>
+    
+    <!-- Background Effects -->
+    <div class="absolute inset-0 bg-grid opacity-30 pointer-events-none"></div>
     <div class="absolute top-0 right-0 w-96 h-96 rounded-full bg-teal-500/5 blur-3xl pointer-events-none"></div>
+    
     <div class="relative z-10 max-w-6xl mx-auto px-6">
 
+      <!-- Section Header -->
       <div class="text-center mb-16">
         <span class="text-xs font-medium text-teal-500 dark:text-teal-400 uppercase tracking-widest mb-4 block">
           {{ t('features.eyebrow') }}
@@ -14,12 +18,13 @@
           {{ t('features.heading') }}<br />
           <span class="text-gradient-arabic">{{ t('features.headingAccent') }}</span>
         </h2>
-        <p class="max-w-xl mx-auto"
+        <p class="max-w-xl mx-auto text-lg"
           :class="isDark ? 'text-slate-400' : 'text-slate-600'">
           {{ t('features.subheading') }}
         </p>
       </div>
 
+      <!-- Big Features Grid -->
       <div class="grid md:grid-cols-2 gap-5 mb-5">
         <div v-for="feat in bigFeatures" :key="feat.key"
           class="rounded-2xl transition-all duration-300 group p-5 md:p-7"
@@ -50,6 +55,7 @@
         </div>
       </div>
 
+      <!-- Small Features Grid -->
       <div class="grid grid-cols-2 md:grid-cols-3 gap-4 md:gap-5">
         <div v-for="feat in smallFeatures" :key="feat.key"
           class="rounded-2xl transition-all duration-300 p-4 md:p-6"
@@ -90,7 +96,7 @@ const bigFeatures = [
     pointCount: 4,
     iconBg: 'bg-blue-500/15 text-blue-500 dark:text-blue-300',
     dotColor: 'bg-blue-500 dark:bg-blue-400',
-    glow: 'card-glow',
+    glow: 'card-glow', // Ensure you have a .card-glow class in your global CSS if desired
   },
   {
     key: 'ragBrandVoice',
@@ -105,9 +111,9 @@ const bigFeatures = [
 const smallFeatures = [
   { key: 'calendar',    emoji: '🗓️', iconBg: 'bg-teal-500/15 text-teal-600 dark:text-teal-300' },
   { key: 'imageGen',    emoji: '🎨', iconBg: 'bg-rose-500/15 text-rose-500 dark:text-rose-300' },
-  { key: 'abCritic',   emoji: '⚡', iconBg: 'bg-amber-500/15 text-amber-600 dark:text-amber-300' },
-  { key: 'publishing', emoji: '📤', iconBg: 'bg-green-500/15 text-green-600 dark:text-green-300' },
-  { key: 'dashboard',  emoji: '💾', iconBg: 'bg-blue-500/15 text-blue-500 dark:text-blue-300' },
-  { key: 'workflow',   emoji: '🚀', iconBg: 'bg-indigo-500/15 text-indigo-600 dark:text-indigo-300' },
+  { key: 'abCritic',    emoji: '⚡', iconBg: 'bg-amber-500/15 text-amber-600 dark:text-amber-300' },
+  { key: 'publishing',  emoji: '📤', iconBg: 'bg-green-500/15 text-green-600 dark:text-green-300' },
+  { key: 'dashboard',   emoji: '💾', iconBg: 'bg-blue-500/15 text-blue-500 dark:text-blue-300' },
+  { key: 'workflow',    emoji: '🚀', iconBg: 'bg-indigo-500/15 text-indigo-600 dark:text-indigo-300' },
 ]
 </script>

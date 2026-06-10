@@ -1236,6 +1236,33 @@
     "contentGenerated": "Content generated",
     "trial": "Trial",
     "daysLeft": "d left",
-    "trialExpired": "Trial expired"
+    "trialExpired": "Trial expired",
+    "plans": {
+    "trialUsers": "Trial Users",
+    "active": "Active",
+    "expired": "Expired",
+    "noUsers": "No {tab} trial users",
+    "extend7Days": "+7 days",
+    "table": {
+      "user": "User",
+      "trialEnds": "Trial Ends",
+      "daysLeft": "Days Left",
+      "status": "Status",
+      "action": "Action"
+    },
+    "status": {
+      "active": "Active",
+      "expired": "Expired"
+    },
+    "counts": {
+      "freeUsers": "Free Users",
+      "activeTrials": "Active Trials",
+      "proUsers": "Pro Users",
+      "enterprise": "Enterprise",
+      "expiredTrials": "Expired Trials"
+    },
+    "daysLeft": "{days}d left",
+    "daysAgo": "{days}d ago"
+  }
   }
 }

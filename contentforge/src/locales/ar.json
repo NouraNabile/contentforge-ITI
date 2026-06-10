@@ -1228,6 +1228,33 @@
     "contentGenerated": "تم توليد المحتوى",
     "trial": "تجربة",
     "daysLeft": "يوم متبقي",
-    "trialExpired": "انتهت التجربة"
+    "trialExpired": "انتهت التجربة",
+    "plans": {
+    "trialUsers": "مستخدمي التجربة",
+    "active": "نشط",
+    "expired": "منتهي",
+    "noUsers": "لا يوجد مستخدمين {tab}",
+    "extend7Days": "+7 أيام",
+    "table": {
+      "user": "المستخدم",
+      "trialEnds": "تنتهي التجربة",
+      "daysLeft": "الأيام المتبقية",
+      "status": "الحالة",
+      "action": "إجراء"
+    },
+    "status": {
+      "active": "نشط",
+      "expired": "منتهي"
+    },
+    "counts": {
+      "freeUsers": "مستخدمين مجانيين",
+      "activeTrials": "تجارب نشطة",
+      "proUsers": "مستخدمين محترفين",
+      "enterprise": "مؤسسات",
+      "expiredTrials": "تجارب منتهية"
+    },
+    "daysLeft": "{days} يوم متبقي",
+    "daysAgo": "منذ {days} يوم"
+  }
   }
 }

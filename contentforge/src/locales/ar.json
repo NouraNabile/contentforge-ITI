@@ -10,7 +10,6 @@
       "branding": "خزينة العلامة",
       "chat": "المحادثة الذكية",
       "connections": "الاتصالات",
-      "poster": "مولد بوستر بالذكاء الاصطناعي",
       "payment": "الفواتير"
     },
     "pageTitle": {
@@ -19,7 +18,6 @@
       "branding": "خزينة العلامة",
       "chat": "المحادثة الذكية",
       "connections": "الاتصالات",
-      "poster": "مولد بوستر بالذكاء الاصطناعي",
       "payment": "الفواتير والخطط"
     },
     "stats": {
@@ -31,6 +29,17 @@
     "notifications": {
       "title": "الإشعارات",
       "markAllRead": "تحديد الكل كمقروء"
+    },
+    "contactUs": "تواصل معنا",
+    "deleteAccount": "حذف الحساب",
+    "deleteModal": {
+      "title": "طلب حذف الحساب",
+      "desc": "سيتم حذف بياناتك نهائياً خلال 48 ساعة. لا يمكن التراجع عن هذا الإجراء.",
+      "reasonPlaceholder": "أخبرنا لماذا (اختياري)...",
+      "success": "✅ تم إرسال الطلب. سنتواصل معك خلال 48 ساعة.",
+      "sending": "جارٍ الإرسال...",
+      "confirm": "تأكيد",
+      "error": "حدث خطأ ما، يرجى المحاولة مرة أخرى."
     }
   },
   "auth": {
@@ -68,6 +77,8 @@
     "errorFillAll": "يرجى ملء جميع الحقول",
     "errorInvalidCode": "الكود غير صحيح أو منتهي الصلاحية",
     "guest": "زائر",
+    "wrongMail" : "الرجاء إدخال بريد إلكتروني صحيح!",
+    "confirmPassword" : "تأكيد كلمة المرور",
     "plan": {
       "free": "مجاني",
       "pro": "احترافي",
@@ -81,7 +92,8 @@
     "feature2": "تقويم أسبوعين في أقل من 30 ثانية",
     "feature3": "خزنة العلامة التجارية — صوتك دائماً متسق",
     "tryDemo": "جرّب الحساب التجريبي",
-    "backHome": "الرئيسية"
+    "backHome": "الرئيسية",
+    "errorPasswordMismatch": "كلمات المرور غير متطابقة!"
   },
   "trial": {
     "badge": "انتهت التجربة",
@@ -213,7 +225,7 @@
     "welcomeTitle": "ContentForge AI",
     "brandLoaded": "تم تحميل صوت علامة {name}. اطلب مني إنشاء منشورات أو التخطيط لحملة أو تحليل المحتوى.",
     "noBrand": "أنشئ خزينة العلامة التجارية أولاً للحصول على ردود مخصصة.",
-    "inputPlaceholder": "اطلب مني إنشاء منشور، تحليل علامتك، إنشاء حملة…",
+    "inputPlaceholder": "اسأل ContentForge Ai...",
     "sendHint": "Enter للإرسال · Shift+Enter لسطر جديد",
     "brandContext": "سياق العلامة",
     "brand": "العلامة",
@@ -598,7 +610,9 @@
     "uploadingPdf": "جاري رفع الـ PDF…",
     "pdfUploaded": "تم رفع الـ PDF بنجاح ✓",
     "pdfError": "فشل رفع الـ PDF",
-    "saveBrandFirst": "من فضلك احفظ الـ Brand أولاً"
+    "saveBrandFirst": "من فضلك احفظ الـ Brand أولاً",
+    "docFormatsHint": "ندعم ملفات PDF, DOCX, PNG, JPG",
+    "saving": "جاري حفظ السجلات في قاعدة البيانات..."
   },
   "landing": {
     "cta": {
@@ -726,7 +740,9 @@
       "howItWorks": "كيف يعمل",
       "competitors": "المقارنة",
       "pricing": "الأسعار"
-    }
+    },
+    "closeMenu": "إغلاق القائمة",
+    "openMenu": "فتح القائمة"
   },
   "howItWorks": {
     "eyebrow": "كيف يعمل",

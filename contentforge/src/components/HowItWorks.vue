@@ -1,6 +1,7 @@
 <!-- HowItWorks.vue -->
 <template>
-  <section id="how-it-works" class="py-24 bg-forge-950 relative overflow-hidden">
+  <section id="how-it-works" class="py-24 relative overflow-hidden transition-colors duration-300"
+    :class="isDark ? 'bg-forge-950' : 'bg-white'">
 
     <div class="absolute inset-0 bg-grid opacity-50"></div>
 
@@ -8,20 +9,25 @@
 
       <!-- Section header -->
       <div class="text-center mb-16">
-        <span class="text-xs font-medium text-blue-400 uppercase tracking-widest mb-4 block">
+        <span class="text-xs font-medium text-blue-600 dark:text-blue-400 uppercase tracking-widest mb-4 block">
           {{ t('howItWorks.eyebrow') }}
         </span>
-        <h2 class="font-display text-4xl md:text-5xl font-700 text-white mb-4">
+        <h2 class="font-display text-4xl md:text-5xl font-700 mb-4"
+          :class="isDark ? 'text-white' : 'text-slate-900'">
           {{ t('howItWorks.heading') }}<br />
           <span class="text-gradient-blue">{{ t('howItWorks.headingAccent') }}</span>
         </h2>
-        <p class="text-slate-400 max-w-xl mx-auto">
+        <p class="max-w-xl mx-auto"
+          :class="isDark ? 'text-slate-400' : 'text-slate-600'">
           {{ t('howItWorks.subheading') }}
         </p>
       </div>
 
       <!-- Step connector line — desktop only -->
-      <div class="hidden md:block absolute left-1/2 top-[380px] bottom-24 w-px bg-gradient-to-b from-blue-500/30 via-teal-500/20 to-transparent -translate-x-1/2 z-0"></div>
+      <div class="hidden md:block absolute left-1/2 top-[380px] bottom-24 w-px -translate-x-1/2 z-0"
+        :class="isDark 
+          ? 'bg-gradient-to-b from-blue-500/30 via-teal-500/20 to-transparent' 
+          : 'bg-gradient-to-b from-blue-500/20 via-teal-500/20 to-transparent'"></div>
 
       <!-- Steps -->
       <div class="space-y-8 md:space-y-6">
@@ -35,20 +41,26 @@
             <div class="flex items-center gap-3 mb-4">
               <div
                 class="w-8 h-8 rounded-full border flex items-center justify-center text-xs font-bold font-display shrink-0"
-                :class="step.numberClass">
+                :class="[
+                  step.numberClass,
+                  isDark ? 'bg-opacity-10' : 'bg-opacity-5'
+                ]">
                 {{ step.number }}
               </div>
               <span class="text-xs text-slate-500 uppercase tracking-wider">Step {{ step.number }}</span>
             </div>
-            <h3 class="font-display text-xl md:text-2xl font-600 text-white mb-3">
+            <h3 class="font-display text-xl md:text-2xl font-600 mb-3"
+              :class="isDark ? 'text-white' : 'text-slate-900'">
               {{ t(`howItWorks.steps.${step.key}.title`) }}
             </h3>
-            <p class="text-slate-400 leading-relaxed mb-4 text-sm md:text-base">
+            <p class="leading-relaxed mb-4 text-sm md:text-base"
+              :class="isDark ? 'text-slate-400' : 'text-slate-600'">
               {{ t(`howItWorks.steps.${step.key}.description`) }}
             </p>
             <ul class="space-y-2">
-              <li v-for="n in 3" :key="n" class="flex items-start gap-2 text-sm text-slate-400">
-                <svg class="w-4 h-4 text-teal-400 mt-0.5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <li v-for="n in 3" :key="n" class="flex items-start gap-2 text-sm"
+                :class="isDark ? 'text-slate-400' : 'text-slate-600'">
+                <svg class="w-4 h-4 text-teal-500 dark:text-teal-400 mt-0.5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
                 </svg>
                 {{ t(`howItWorks.steps.${step.key}.b${n}`) }}
@@ -58,8 +70,11 @@
 
           <!-- Step visual card -->
           <div class="flex-1 max-w-md w-full">
-            <div class="rounded-2xl border-subtle p-4 md:p-5 bg-forge-900" :class="step.cardGlow">
-              <component :is="step.visual" />
+            <div class="rounded-2xl p-4 md:p-5 transition-all duration-300"
+              :class="isDark
+                ? 'border border-white/8 bg-forge-900 ' + step.cardGlow
+                : 'border border-slate-200 bg-slate-50 shadow-sm'">
+              <component :is="step.visual" :is-dark="isDark" />
             </div>
           </div>
 
@@ -72,25 +87,28 @@
 <script setup>
 import { defineComponent, h } from 'vue'
 import { useI18n } from 'vue-i18n'
+import { useTheme } from '../composables/useTheme.js'
  
 const { t } = useI18n()
+const { isDark } = useTheme()
  
 const UploadVisual = defineComponent({
-  setup() { return { t: useI18n().t } },
+  props: { isDark: Boolean },
+  setup(props) { return { t: useI18n().t, isDark: props.isDark } },
   render() {
     return h('div', { class: 'space-y-3' }, [
-      h('p', { class: 'text-xs text-slate-500 font-medium mb-3' }, this.t('howItWorks.visual.brandVaultSetup')),
+      h('p', { class: 'text-xs font-medium mb-3 ' + (this.isDark ? 'text-slate-500' : 'text-slate-600') }, this.t('howItWorks.visual.brandVaultSetup')),
       h('div', { class: 'flex gap-2 flex-wrap' }, [
-        h('div', { class: 'px-3 py-1.5 rounded-lg bg-blue-600/15 border border-blue-500/20 text-xs text-blue-400 flex items-center gap-1.5' }, ['📄 Brand Guidelines.pdf']),
-        h('div', { class: 'px-3 py-1.5 rounded-lg bg-teal-600/15 border border-teal-500/20 text-xs text-teal-400 flex items-center gap-1.5' }, ['🖼️ ', this.t('howItWorks.visual.brandVaultSetup').includes('Brand') ? 'Top 10 Posts' : 'أفضل 10 منشورات']),
-        h('div', { class: 'px-3 py-1.5 rounded-lg bg-purple-600/15 border border-purple-500/20 text-xs text-purple-400 flex items-center gap-1.5' }, ['🎨 ', this.t('howItWorks.visual.dialectPreference').includes('Dialect') ? 'Brand Colors' : 'ألوان العلامة']),
+        h('div', { class: 'px-3 py-1.5 rounded-lg border text-xs flex items-center gap-1.5 ' + (this.isDark ? 'bg-blue-600/15 border-blue-500/20 text-blue-400' : 'bg-blue-50 border-blue-200 text-blue-700') }, ['📄 Brand Guidelines.pdf']),
+        h('div', { class: 'px-3 py-1.5 rounded-lg border text-xs flex items-center gap-1.5 ' + (this.isDark ? 'bg-teal-600/15 border-teal-500/20 text-teal-400' : 'bg-teal-50 border-teal-200 text-teal-700') }, ['🖼️ ', this.t('howItWorks.visual.brandVaultSetup').includes('Brand') ? 'Top 10 Posts' : 'أفضل 10 منشورات']),
+        h('div', { class: 'px-3 py-1.5 rounded-lg border text-xs flex items-center gap-1.5 ' + (this.isDark ? 'bg-purple-600/15 border-purple-500/20 text-purple-400' : 'bg-purple-50 border-purple-200 text-purple-700') }, ['🎨 ', this.t('howItWorks.visual.dialectPreference').includes('Brand') ? 'Brand Colors' : 'ألوان العلامة']),
       ]),
-      h('div', { class: 'mt-4 p-3 rounded-lg bg-forge-950/60 border-subtle' }, [
-        h('p', { class: 'text-xs text-slate-500 mb-1' }, this.t('howItWorks.visual.dialectPreference')),
+      h('div', { class: 'mt-4 p-3 rounded-lg border ' + (this.isDark ? 'bg-forge-950/60 border-white/5' : 'bg-white border-slate-200') }, [
+        h('p', { class: 'text-xs mb-1 ' + (this.isDark ? 'text-slate-500' : 'text-slate-400') }, this.t('howItWorks.visual.dialectPreference')),
         h('div', { class: 'flex gap-2' }, [
-          h('span', { class: 'px-2 py-1 rounded-md bg-blue-600/20 text-blue-300 text-xs' }, this.t('howItWorks.visual.egyptian')),
-          h('span', { class: 'px-2 py-1 rounded-md bg-forge-800 text-slate-500 text-xs' }, this.t('howItWorks.visual.gulf')),
-          h('span', { class: 'px-2 py-1 rounded-md bg-forge-800 text-slate-500 text-xs' }, this.t('howItWorks.visual.levantine')),
+          h('span', { class: 'px-2 py-1 rounded-md text-xs ' + (this.isDark ? 'bg-blue-600/20 text-blue-300' : 'bg-blue-100 text-blue-700 font-medium') }, this.t('howItWorks.visual.egyptian')),
+          h('span', { class: 'px-2 py-1 rounded-md text-xs ' + (this.isDark ? 'bg-forge-800 text-slate-500' : 'bg-slate-100 text-slate-400') }, this.t('howItWorks.visual.gulf')),
+          h('span', { class: 'px-2 py-1 rounded-md text-xs ' + (this.isDark ? 'bg-forge-800 text-slate-500' : 'bg-slate-100 text-slate-400') }, this.t('howItWorks.visual.levantine')),
         ]),
       ]),
     ])
@@ -98,14 +116,15 @@ const UploadVisual = defineComponent({
 })
  
 const BriefVisual = defineComponent({
-  setup() { return { t: useI18n().t } },
+  props: { isDark: Boolean },
+  setup(props) { return { t: useI18n().t, isDark: props.isDark } },
   render() {
     return h('div', { class: 'space-y-3' }, [
-      h('p', { class: 'text-xs text-slate-500 mb-3' }, this.t('howItWorks.visual.campaignBrief')),
-      h('div', { class: 'p-3 rounded-lg bg-forge-950/60 border-subtle' }, [
-        h('p', { class: 'text-xs text-slate-400 italic' }, this.t('howItWorks.visual.briefQuote')),
+      h('p', { class: 'text-xs mb-3 ' + (this.isDark ? 'text-slate-500' : 'text-slate-600') }, this.t('howItWorks.visual.campaignBrief')),
+      h('div', { class: 'p-3 rounded-lg border ' + (this.isDark ? 'bg-forge-950/60 border-white/5' : 'bg-white border-slate-200') }, [
+        h('p', { class: 'text-xs italic ' + (this.isDark ? 'text-slate-400' : 'text-slate-600') }, this.t('howItWorks.visual.briefQuote')),
       ]),
-      h('div', { class: 'flex items-center gap-2 text-xs text-amber-400 bg-amber-500/10 rounded-lg px-3 py-2 border border-amber-500/15' }, [
+      h('div', { class: 'flex items-center gap-2 text-xs rounded-lg px-3 py-2 border ' + (this.isDark ? 'text-amber-400 bg-amber-500/10 border-amber-500/15' : 'text-amber-800 bg-amber-50 border-amber-200 font-medium') }, [
         h('span', {}, '✦'),
         h('span', {}, this.t('howItWorks.visual.trendDetected')),
       ]),
@@ -114,7 +133,8 @@ const BriefVisual = defineComponent({
 })
  
 const CalendarVisual = defineComponent({
-  setup() { return { t: useI18n().t } },
+  props: { isDark: Boolean },
+  setup(props) { return { t: useI18n().t, isDark: props.isDark } },
   render() {
     const days = ['mon', 'tue', 'wed', 'thu'].map(d => this.t(`howItWorks.visual.${d}`))
     const row1Keys = ['igStory', 'fbPost', 'rest', 'liArticle']
@@ -122,26 +142,29 @@ const CalendarVisual = defineComponent({
     const row2Keys = ['twThread', 'igReel', 'fbCover', 'rest']
  
     return h('div', { class: 'space-y-2' }, [
-      h('p', { class: 'text-xs text-slate-500 mb-3' }, this.t('howItWorks.visual.generatedCalendar')),
+      h('p', { class: 'text-xs mb-3 ' + (this.isDark ? 'text-slate-500' : 'text-slate-600') }, this.t('howItWorks.visual.generatedCalendar')),
       h('div', { class: 'grid grid-cols-4 gap-1.5' }, [
-        ...days.map(d => h('div', { class: 'text-center text-[10px] text-slate-600 pb-1' }, d)),
+        ...days.map(d => h('div', { class: 'text-center text-[10px] pb-1 ' + (this.isDark ? 'text-slate-600' : 'text-slate-400') }, d)),
         ...row1Keys.map((key, i) => {
           const isRest = key === 'rest'
           const colorClass = isRest
-            ? 'border-white/5 bg-transparent text-slate-600 items-center justify-center'
-            : i === 0 ? 'border-pink-500/25 bg-pink-500/5 text-pink-400'
-            : i === 1 ? 'border-blue-500/25 bg-blue-500/5 text-blue-400'
-            : 'border-blue-600/25 bg-blue-600/5 text-blue-300'
+            ? (this.isDark ? 'border-white/5 bg-transparent text-slate-600' : 'border-slate-200 bg-transparent text-slate-400') + ' items-center justify-center'
+            : i === 0 ? (this.isDark ? 'border-pink-500/25 bg-pink-500/5 text-pink-400' : 'border-pink-200 bg-pink-50 text-pink-700')
+            : i === 1 ? (this.isDark ? 'border-blue-500/25 bg-blue-500/5 text-blue-400' : 'border-blue-200 bg-blue-50 text-blue-700')
+            : (this.isDark ? 'border-blue-600/25 bg-blue-600/5 text-blue-300' : 'border-indigo-200 bg-indigo-50 text-indigo-700')
           return h('div', { class: `rounded-lg p-1.5 text-[9px] min-h-[48px] flex flex-col gap-0.5 border ${colorClass}` }, [
             h('span', { class: 'font-medium' }, isRest ? '—' : this.t(`howItWorks.visual.${key}`)),
-            !isRest && row1Labels[i] && h('span', { class: 'text-slate-500 leading-tight' }, this.t(`howItWorks.visual.${row1Labels[i]}`)),
+            !isRest && row1Labels[i] && h('span', { class: 'leading-tight ' + (this.isDark ? 'text-slate-500' : 'text-slate-500') }, this.t(`howItWorks.visual.${row1Labels[i]}`)),
           ])
         }),
         ...row2Keys.map((key, i) => {
           const isRest = key === 'rest'
-          return h('div', { class: `rounded-lg p-1.5 text-[9px] min-h-[48px] flex flex-col gap-0.5 border ${isRest ? 'border-white/5 bg-transparent text-slate-600 items-center justify-center' : 'border-teal-500/25 bg-teal-500/5 text-teal-400'}` }, [
+          const cardStyle = isRest 
+            ? (this.isDark ? 'border-white/5 bg-transparent text-slate-600' : 'border-slate-200 bg-transparent text-slate-400') + ' items-center justify-center'
+            : (this.isDark ? 'border-teal-500/25 bg-teal-500/5 text-teal-400' : 'border-teal-200 bg-teal-50 text-teal-700')
+          return h('div', { class: `rounded-lg p-1.5 text-[9px] min-h-[48px] flex flex-col gap-0.5 border ${cardStyle}` }, [
             h('span', { class: 'font-medium' }, isRest ? '—' : this.t(`howItWorks.visual.${key}`)),
-            !isRest && h('span', { class: 'text-slate-500 leading-tight' }, this.t('howItWorks.visual.arabicContent')),
+            !isRest && h('span', { class: 'leading-tight ' + (this.isDark ? 'text-slate-500' : 'text-slate-500') }, this.t('howItWorks.visual.arabicContent')),
           ])
         }),
       ]),
@@ -150,20 +173,21 @@ const CalendarVisual = defineComponent({
 })
  
 const ApproveVisual = defineComponent({
-  setup() { return { t: useI18n().t } },
+  props: { isDark: Boolean },
+  setup(props) { return { t: useI18n().t, isDark: props.isDark } },
   render() {
     const posts = [
-      { titleKey: 'suhoorPost', metaKey: 'igEgy',      statusKey: 'approved', statusClass: 'bg-green-500/15 text-green-400' },
-      { titleKey: 'iftarPromo', metaKey: 'fbBilingual', statusKey: 'pending',  statusClass: 'bg-amber-500/15 text-amber-400' },
-      { titleKey: 'brandStory', metaKey: 'liEnglish',   statusKey: 'draft',    statusClass: 'bg-slate-700 text-slate-400' },
+      { titleKey: 'suhoorPost', metaKey: 'igEgy',      statusKey: 'approved', statusClass: this.isDark ? 'bg-green-500/15 text-green-400' : 'bg-green-100 text-green-800' },
+      { titleKey: 'iftarPromo', metaKey: 'fbBilingual', statusKey: 'pending',  statusClass: this.isDark ? 'bg-amber-500/15 text-amber-400' : 'bg-amber-100 text-amber-800' },
+      { titleKey: 'brandStory', metaKey: 'liEnglish',   statusKey: 'draft',    statusClass: this.isDark ? 'bg-slate-700 text-slate-400' : 'bg-slate-200 text-slate-600' },
     ]
     return h('div', { class: 'space-y-3' }, [
-      h('p', { class: 'text-xs text-slate-500 mb-3' }, this.t('howItWorks.visual.reviewApprove')),
+      h('p', { class: 'text-xs mb-3 ' + (this.isDark ? 'text-slate-500' : 'text-slate-600') }, this.t('howItWorks.visual.reviewApprove')),
       h('div', { class: 'space-y-2' }, posts.map(p =>
-        h('div', { class: 'flex items-center justify-between p-2.5 rounded-lg border-subtle bg-forge-950/40' }, [
+        h('div', { class: 'flex items-center justify-between p-2.5 rounded-lg border ' + (this.isDark ? 'bg-forge-950/40 border-white/5' : 'bg-white border-slate-200') }, [
           h('div', {}, [
-            h('p', { class: 'text-xs text-slate-300' }, this.t(`howItWorks.visual.${p.titleKey}`)),
-            h('p', { class: 'text-[10px] text-slate-500' }, this.t(`howItWorks.visual.${p.metaKey}`)),
+            h('p', { class: 'text-xs ' + (this.isDark ? 'text-slate-300' : 'text-slate-800') }, this.t(`howItWorks.visual.${p.titleKey}`)),
+            h('p', { class: 'text-[10px] ' + (this.isDark ? 'text-slate-500' : 'text-slate-400') }, this.t(`howItWorks.visual.${p.metaKey}`)),
           ]),
           h('span', { class: `text-[9px] px-2 py-1 rounded-full font-medium ${p.statusClass}` }, this.t(`howItWorks.visual.${p.statusKey}`)),
         ])
@@ -174,10 +198,9 @@ const ApproveVisual = defineComponent({
 })
  
 const steps = [
-  { key: 's01', number: '01', numberClass: 'border-blue-500/40 text-blue-400 bg-blue-500/10',   cardGlow: 'card-glow',      visual: UploadVisual  },
-  { key: 's02', number: '02', numberClass: 'border-amber-500/40 text-amber-400 bg-amber-500/10', cardGlow: 'card-glow-warm', visual: BriefVisual   },
-  { key: 's03', number: '03', numberClass: 'border-teal-500/40 text-teal-400 bg-teal-500/10',    cardGlow: '',               visual: CalendarVisual },
-  { key: 's04', number: '04', numberClass: 'border-green-500/40 text-green-400 bg-green-500/10', cardGlow: '',               visual: ApproveVisual },
+  { key: 's01', number: '01', numberClass: 'border-blue-500/40 text-blue-500 dark:text-blue-400 bg-blue-500',   cardGlow: 'card-glow',      visual: UploadVisual  },
+  { key: 's02', number: '02', numberClass: 'border-amber-500/40 text-amber-600 dark:text-amber-400 bg-amber-500', cardGlow: 'card-glow-warm', visual: BriefVisual   },
+  { key: 's03', number: '03', numberClass: 'border-teal-500/40 text-teal-600 dark:text-teal-400 bg-teal-500',    cardGlow: '',               visual: CalendarVisual },
+  { key: 's04', number: '04', numberClass: 'border-green-500/40 text-green-600 dark:text-green-400 bg-green-500', cardGlow: '',               visual: ApproveVisual },
 ]
-
 </script>

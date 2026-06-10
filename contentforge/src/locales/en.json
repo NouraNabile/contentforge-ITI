@@ -10,7 +10,6 @@
       "branding": "Brand Vault",
       "chat": "AI Chat",
       "connections": "Connections",
-      "poster": "AI Poster Generator",
       "payment": "Billing"
     },
     "pageTitle": {
@@ -19,7 +18,6 @@
       "branding": "Brand Vault",
       "chat": "AI Chat",
       "connections": "Connections",
-      "poster": "AI Poster Generator",
       "payment": "Billing & Plans"
     },
     "stats": {
@@ -31,6 +29,17 @@
     "notifications": {
       "title": "Notifications",
       "markAllRead": "Mark all read"
+    },
+    "contactUs": "Contact Us",
+    "deleteAccount": "Delete Account",
+    "deleteModal": {
+      "title": "Request Account Deletion",
+      "desc": "Your data will be permanently deleted within 48 hours. This action cannot be undone.",
+      "reasonPlaceholder": "Tell us why (optional)...",
+      "success": "✅ Request sent. We'll contact you within 48 hours.",
+      "sending": "Sending...",
+      "confirm": "Confirm",
+      "error": "Something went wrong, please try again."
     }
   },
   "auth": {
@@ -68,6 +77,8 @@
     "errorFillAll": "Please fill in all fields",
     "errorInvalidCode": "Invalid or expired code",
     "guest": "Guest",
+    "wrongMail": "Please enter a valid email address!",
+    "confirmPassword": "Confirm Password",
     "plan": {
       "free": "Free",
       "pro": "Pro",
@@ -81,7 +92,8 @@
     "feature2": "2-week calendar generated in under 30 seconds",
     "feature3": "Brand vault — your voice, always consistent",
     "tryDemo": "Try demo account",
-    "backHome": "Back"
+    "backHome": "Back",
+    "errorPasswordMismatch": "Passwords do not match!"
   },
   "trial": {
     "badge": "Trial Expired",
@@ -213,7 +225,7 @@
     "welcomeTitle": "ContentForge AI Chat",
     "brandLoaded": "{name} brand voice is loaded. Ask me to generate posts, plan a campaign, or analyze your content.",
     "noBrand": "Set up your Brand Vault first to get personalized AI responses.",
-    "inputPlaceholder": "Ask me to generate a post, analyze your brand, create a campaign…",
+    "inputPlaceholder": "Ask ContentForge Ai...",
     "sendHint": "Enter to send · Shift+Enter for new line",
     "brandContext": "Brand Context",
     "brand": "Brand",
@@ -598,7 +610,9 @@
     "uploadingPdf": "Uploading PDF…",
     "pdfUploaded": "PDF uploaded successfully ✓",
     "pdfError": "Failed to upload PDF",
-    "saveBrandFirst": "Please save your brand first"
+    "saveBrandFirst": "Please save your brand first",
+    "docFormatsHint": "PDF, DOCX, PNG, JPG files supported",
+    "saving": "Writing database logs..."
   },
   "landing": {
     "cta": {
@@ -726,7 +740,9 @@
       "howItWorks": "How it Works",
       "competitors": "Competitors",
       "pricing": "Pricing"
-    }
+    },
+    "closeMenu": "Close menu",
+    "openMenu": "Open menu"
   },
   "howItWorks": {
     "eyebrow": "How it works",

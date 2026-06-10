@@ -1,350 +1,205 @@
-<!-- DashboardPreview.vue-->
 <template>
   <AppLayout>
     <div class="flex flex-col h-full">
+
       <!-- Page toolbar -->
       <div
-        class="px-6 py-4 border-b flex items-center justify-between sticky top-0 z-10 theme-glass"
-        style="border-color: var(--border)"
-      >
-        <div>
-          <h1 class="font-display text-lg font-600 theme-text">
-            {{ t("dashboard.title") }}
-          </h1>
-          <p class="text-xs theme-sub mt-0.5">
-            <template v-if="currentCalendar">
-              {{ calendarDateRange }} · {{ store.posts?.length || 0 }}
-              {{ t("dashboard.postsPlanned") }}
-            </template>
-            <template v-else>{{ t("dashboard.noCalendar") }}</template>
-          </p>
+        class="px-4 sm:px-6 py-3 sm:py-4 border-b flex flex-col sm:flex-row sm:items-center sm:justify-between sticky top-0 z-10 theme-glass gap-3"
+        style="border-color: var(--border)">
+
+        <!-- ROW 1: Title and Date Range (Tuck inside a row wrapper that handles mobile distribution) -->
+        <div class="flex items-center justify-between sm:contents w-full">
+          <div class="min-w-0">
+            <h1 class="font-display text-base sm:text-lg font-600 theme-text truncate">
+              {{ t("dashboard.title") }}
+            </h1>
+            <p class="text-xs theme-sub mt-0.5 whitespace-normal sm:truncate">
+              <template v-if="currentCalendar">
+                {{ calendarDateRange }} · {{ store.posts?.length || 0 }} {{ t("dashboard.postsPlanned") }}
+              </template>
+              <template v-else>{{ t("dashboard.noCalendar") }}</template>
+            </p>
+          </div>
         </div>
-        <div class="flex items-center gap-2">
-          <!-- Top trend badge -->
-          <span
-            v-if="topTrend"
-            class="text-[11px] px-2.5 py-1.5 rounded-lg bg-amber-500/10 text-amber-400 border border-amber-500/20 cursor-default"
-            :title="`${t('dashboard.trending')} ${topTrend.change}`"
-          >
+
+        <!-- ROW 2 (Mobile): Action Buttons -->
+        <!-- Using flex-row-reverse globally keeps the green check/actions consistently ordered relative to the language direction, while self-end / sm:justify-end handles proper container placement -->
+        <div class="flex items-center gap-1.5 sm:gap-2 shrink-0 flex-wrap self-end sm:self-auto justify-end flex-row">
+          <!-- Top trend badge — hidden on mobile -->
+          <span v-if="topTrend"
+            class="hidden sm:inline text-[11px] px-2.5 py-1.5 rounded-lg bg-amber-500/10 text-amber-400 border border-amber-500/20 cursor-default"
+            :title="`${t('dashboard.trending')} ${topTrend.change}`">
             ✦ {{ topTrend.tag }}
           </span>
 
-          <!-- Calendar actions -->
           <template v-if="currentCalendar">
-            <!-- Approve Plan -->
-            <button
-              @click="approvePlan"
-              :disabled="approving || planApproved"
-              class="group px-2.5 py-2 rounded-xl bg-green-600 text-white hover:bg-green-500 transition-all duration-200 disabled:opacity-50 flex items-center overflow-hidden"
-            >
-              <svg
-                class="w-3.5 h-3.5 shrink-0"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-              >
-                <path
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  stroke-width="2"
-                  d="M5 13l4 4L19 7"
-                />
+            <!-- Approve -->
+            <button @click="approvePlan" :disabled="approving || planApproved"
+              class="group px-2.5 py-2 rounded-xl bg-green-600 text-white hover:bg-green-500 transition-all duration-200 disabled:opacity-50 flex items-center overflow-hidden">
+              <svg class="w-3.5 h-3.5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
               </svg>
               <span
-                class="max-w-0 group-hover:max-w-[7rem] overflow-hidden transition-all duration-200 whitespace-nowrap text-xs font-medium group-hover:ml-1.5"
-              >
-                {{
-                  approving
-                    ? t("dashboard.approving")
-                    : t("dashboard.approvePlan")
-                }}
+                class="max-w-0 group-hover:max-w-[7rem] overflow-hidden transition-all duration-200 whitespace-nowrap text-xs font-medium group-hover:ml-1.5">
+                {{ approving ? t("dashboard.approving") : t("dashboard.approvePlan") }}
               </span>
             </button>
 
-            <div class="w-px h-5 bg-white/10 mx-1"></div>
+            <div class="w-px h-5 bg-white/10 hidden sm:block"></div>
 
-            <!-- Reset Calendar -->
-            <button
-              @click="confirmReset"
-              class="group px-2.5 py-2 rounded-xl border border-zinc-600/50 text-zinc-400 hover:bg-zinc-700/40 transition-all duration-200 flex items-center overflow-hidden"
-            >
-              <svg
-                class="w-3.5 h-3.5 shrink-0"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-              >
-                <path
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  stroke-width="2"
-                  d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"
-                />
-                <path
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  stroke-width="2"
-                  d="M3 3v5h5"
-                />
+            <!-- Reset -->
+            <button @click="confirmReset"
+              class="group px-2.5 py-2 rounded-xl border border-zinc-600/50 text-zinc-400 hover:bg-zinc-700/40 transition-all duration-200 flex items-center overflow-hidden">
+              <svg class="w-3.5 h-3.5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                  d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8" />
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3v5h5" />
               </svg>
               <span
-                class="max-w-0 group-hover:max-w-[8rem] overflow-hidden transition-all duration-200 whitespace-nowrap text-xs font-medium group-hover:ml-1.5"
-              >
+                class="max-w-0 group-hover:max-w-[8rem] overflow-hidden transition-all duration-200 whitespace-nowrap text-xs font-medium group-hover:ml-1.5">
                 {{ t("dashboard.resetCalendar") }}
               </span>
             </button>
 
-            <div class="w-px h-5 bg-white/10 mx-1"></div>
+            <div class="w-px h-5 bg-white/10 hidden sm:block"></div>
 
             <!-- Delete -->
-            <button
-              @click="confirmDelete"
-              class="group px-2.5 py-2 rounded-xl bg-rose-600/10 text-rose-400 border border-rose-500/20 hover:bg-rose-600/20 transition-all duration-200 flex items-center overflow-hidden"
-            >
-              <svg
-                class="w-3.5 h-3.5 shrink-0"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-              >
-                <path
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  stroke-width="2"
-                  d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
-                />
+            <button @click="confirmDelete"
+              class="group px-2.5 py-2 rounded-xl bg-rose-600/10 text-rose-400 border border-rose-500/20 hover:bg-rose-600/20 transition-all duration-200 flex items-center overflow-hidden">
+              <svg class="w-3.5 h-3.5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                  d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
               </svg>
               <span
-                class="max-w-0 group-hover:max-w-[8rem] overflow-hidden transition-all duration-200 whitespace-nowrap text-xs font-medium group-hover:ml-1.5"
-              >
+                class="max-w-0 group-hover:max-w-[8rem] overflow-hidden transition-all duration-200 whitespace-nowrap text-xs font-medium group-hover:ml-1.5">
                 {{ t("dashboard.deleteCalendar") }}
               </span>
             </button>
           </template>
 
-          <!-- Separator -->
-          <div class="w-px h-5 bg-white/10 dark:bg-white/10 mx-1"></div>
+          <div class="w-px h-5 bg-white/10 hidden sm:block"></div>
 
           <!-- Generate -->
-          <button
-            v-if="!currentCalendar"
-            @click="showModal = true"
-            class="px-4 py-2 rounded-xl bg-blue-600 text-white text-xs font-medium hover:bg-blue-500 transition-colors flex items-center gap-1.5"
-          >
-            <svg
-              class="w-3.5 h-3.5"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-            >
-              <path
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                stroke-width="2"
-                d="M12 4v16m8-8H4"
-              />
+          <button v-if="!currentCalendar" @click="showModal = true"
+            class="px-3 sm:px-4 py-2 rounded-xl bg-blue-600 text-white text-xs font-medium hover:bg-blue-500 transition-colors flex items-center gap-1.5">
+            <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
             </svg>
-            <strong>{{ t("dashboard.generatePlan") }}</strong>
+            <span class="hidden sm:inline"><strong>{{ t("dashboard.generatePlan") }}</strong></span>
+            <span class="sm:hidden"><strong>{{ t("dashboard.generatePlan") }}</strong></span>
           </button>
+
           <!-- Regenerate -->
-          <button
-            v-if="currentCalendar"
-            @click="openRegenerate"
-            class="group px-2.5 py-2 rounded-xl theme-card theme-border theme-sub hover:theme-text transition-all duration-200 flex items-center overflow-hidden"
-          >
-            <svg
-              class="w-3.5 h-3.5 shrink-0"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-            >
-              <path
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                stroke-width="2"
-                d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
-              />
+          <button v-if="currentCalendar" @click="openRegenerate"
+            class="group px-2.5 py-2 rounded-xl theme-card theme-border theme-sub hover:theme-text transition-all duration-200 flex items-center overflow-hidden">
+            <svg class="w-3.5 h-3.5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
             </svg>
             <span
-              class="max-w-0 group-hover:max-w-[8rem] overflow-hidden transition-all duration-200 whitespace-nowrap text-xs font-medium group-hover:ml-1.5"
-            >
+              class="max-w-0 group-hover:max-w-[8rem] overflow-hidden transition-all duration-200 whitespace-nowrap text-xs font-medium group-hover:ml-1.5">
               {{ t("dashboard.regenerateCalendar") }}
             </span>
+          </button>
+
+          <!-- Trends toggle — mobile/tablet only -->
+          <button @click="trendsOpen = !trendsOpen"
+            class="lg:hidden px-2.5 py-2 rounded-xl theme-card theme-border theme-sub hover:theme-text transition-colors flex items-center gap-1.5 text-xs">
+            🔥
           </button>
         </div>
       </div>
 
       <div class="flex flex-1 overflow-hidden">
+
         <!-- Calendar area -->
-        <div class="flex-1 overflow-auto p-6">
-          <div class="grid grid-cols-7 gap-2 mb-3">
-            <div
-              v-for="d in weekDays"
-              :key="d"
-              class="text-center text-[11px] theme-muted font-medium py-1"
-            >
-              {{ d }}
+        <div class="flex-1 overflow-auto p-3 sm:p-6">
+
+          <!-- Day labels — horizontal scroll on mobile -->
+          <div class="overflow-x-auto">
+            <div class="grid grid-cols-7 gap-1 sm:gap-2 mb-2 sm:mb-3 min-w-[560px]">
+              <div v-for="d in weekDays" :key="d"
+                class="text-center text-[10px] sm:text-[11px] theme-muted font-medium py-1">
+                {{ d }}
+              </div>
             </div>
-          </div>
 
-          <!-- Empty state -->
-          <div
-            v-if="filteredWeeks.length === 0 && !loadingCalendar"
-            class="flex flex-col items-center justify-center py-24 theme-sub gap-3"
-          >
-            <svg
-              class="w-12 h-12 opacity-20"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-            >
-              <path
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                stroke-width="1.5"
-                d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
-              />
-            </svg>
-            {{ t("dashboard.generatePlan") }}
-          </div>
+            <!-- Empty state -->
+            <div v-if="filteredWeeks.length === 0 && !loadingCalendar"
+              class="flex flex-col items-center justify-center py-24 theme-sub gap-3">
+              <svg class="w-12 h-12 opacity-20" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+                  d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+              </svg>
+              {{ t("dashboard.generatePlan") }}
+            </div>
 
-          <!-- Loading state -->
-          <div
-            v-if="loadingCalendar"
-            class="flex flex-col items-center justify-center py-24 gap-3 theme-sub"
-          >
-            <svg
-              class="w-8 h-8 animate-spin text-blue-400"
-              fill="none"
-              viewBox="0 0 24 24"
-            >
-              <circle
-                class="opacity-25"
-                cx="12"
-                cy="12"
-                r="10"
-                stroke="currentColor"
-                stroke-width="4"
-              />
-              <path
-                class="opacity-75"
-                fill="currentColor"
-                d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"
-              />
-            </svg>
-            <p class="text-sm">{{ t("dashboard.generating") }}</p>
-            <p class="text-xs opacity-60">
-              {{ t("dashboard.generatingHint") }}
-            </p>
-          </div>
+            <!-- Loading state -->
+            <div v-if="loadingCalendar" class="flex flex-col items-center justify-center py-24 gap-3 theme-sub">
+              <svg class="w-8 h-8 animate-spin text-blue-400" fill="none" viewBox="0 0 24 24">
+                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" />
+                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+              </svg>
+              <p class="text-sm">{{ t("dashboard.generating") }}</p>
+              <p class="text-xs opacity-60">{{ t("dashboard.generatingHint") }}</p>
+            </div>
 
-          <!-- Weeks -->
-          <div v-if="!loadingCalendar" class="space-y-3">
-            <div
-              v-for="week in filteredWeeks"
-              :key="week.id"
-              class="grid grid-cols-7 gap-3"
-            >
-              <div
-                v-for="dayCell in week.cells"
-                :key="dayCell.id"
-                @dragover.prevent
-                @dragenter="dragOverId = dayCell.rawDate"
-                @dragleave="dragOverId = null"
-                @drop="onDrop(dayCell)"
-                class="rounded-xl border p-2 flex flex-col min-h-[160px] transition-all bg-forge-900/40 relative overflow-hidden"
-                :class="[
-                  dragOverId === dayCell.rawDate && dayCell.rawDate
-                    ? 'ring-2 ring-amber-400/50 border-amber-400/50 bg-amber-500/5 scale-[1.01]'
-                    : '',
-                  dayCell.cellClass,
-                ]"
-                style="border-color: var(--border)"
-              >
-                <div class="flex items-center justify-between mb-2 px-1">
-                  <span
-                    class="text-[11px] font-semibold tracking-wide"
-                    :class="
-                      dayCell.posts && dayCell.posts.length > 0
-                        ? 'theme-text'
-                        : 'theme-muted'
-                    "
-                  >
-                    {{ dayCell.date }}
-                  </span>
-                  <span
-                    v-if="dayCell.posts && dayCell.posts.length > 1"
-                    class="text-[9px] px-1.5 py-0.5 rounded-full bg-blue-500/10 text-blue-400 font-medium"
-                  >
-                    {{ dayCell.posts.length }} {{ t("dashboard.posts") }}
-                  </span>
-                </div>
-
-                <div
-                  class="flex flex-col gap-2 flex-1 overflow-y-scroll overflow-x-hidden max-h-[340px] no-scrollbar"
-                >
-                  <template v-if="dayCell.posts && dayCell.posts.length > 0">
-                    <div
-                      v-for="post in dayCell.posts"
-                      :key="post._id || post.id"
-                      draggable="true"
-                      @dragstart="onDragStart(post)"
-                      @click.stop="selectPost(post)"
-                      class="relative rounded-lg border p-2.5 flex flex-col justify-between transition-all duration-200 ease-in-out w-full aspect-square cursor-grab shadow-sm shrink-0 select-none active:cursor-grabbing active:scale-[0.97]"
-                      :class="[
-                        statusToClass(post.status),
-                        getHoverStatusClass(post.status),
-                      ]"
-                    >
-                      <div class="flex items-start justify-between">
-                        <span class="text-[9px] font-mono opacity-60 text-left">
-                          {{ dayCell.date }}
-                        </span>
-                        <span
-                          v-if="post.platform"
-                          class="text-[8px] px-1.5 py-0.5 rounded font-medium transform -mt-0.5"
-                          :class="platformBadge(post.platform)"
-                        >
-                          {{
-                            t(
-                              `dashboard.platformName.${post.platform}`,
-                              post.platform
-                            )
-                          }}
-                        </span>
-                      </div>
-
-                      <p
-                        class="text-[10px] leading-snug theme-sub flex-1 line-clamp-3 mt-1.5 text-left"
-                      >
-                        {{ post.copyAR || post.copy || post.text }}
-                      </p>
-
-                      <div
-                        class="flex items-center justify-between mt-1 pt-1 border-t border-white/5"
-                      >
-                        <span
-                          v-if="post.status"
-                          class="text-[8px] font-medium tracking-wide"
-                          :class="statusColor(post.status)"
-                        >
-                          ●
-                          {{
-                            t(
-                              `dashboard.statusName.${post.status}`,
-                              post.status
-                            )
-                          }}
-                        </span>
-                      </div>
-                    </div>
-                  </template>
+            <!-- Weeks -->
+            <div v-if="!loadingCalendar" class="space-y-2 sm:space-y-3 min-w-[560px]">
+              <div v-for="week in filteredWeeks" :key="week.id" class="grid grid-cols-7 gap-1.5 sm:gap-3">
+                <div v-for="dayCell in week.cells" :key="dayCell.id" @dragover.prevent
+                  @dragenter="dragOverId = dayCell.rawDate" @dragleave="dragOverId = null" @drop="onDrop(dayCell)"
+                  class="rounded-xl border p-1.5 sm:p-2 flex flex-col min-h-[100px] sm:min-h-[160px] transition-all bg-forge-900/40 relative overflow-hidden"
+                  :class="[
+                    dragOverId === dayCell.rawDate && dayCell.rawDate
+                      ? 'ring-2 ring-amber-400/50 border-amber-400/50 bg-amber-500/5 scale-[1.01]'
+                      : '',
+                    dayCell.cellClass,
+                  ]" style="border-color: var(--border)">
+                  <div class="flex items-center justify-between mb-1 sm:mb-2 px-0.5 sm:px-1">
+                    <span class="text-[9px] sm:text-[11px] font-semibold tracking-wide"
+                      :class="dayCell.posts && dayCell.posts.length > 0 ? 'theme-text' : 'theme-muted'">
+                      {{ dayCell.date }}
+                    </span>
+                    <span v-if="dayCell.posts && dayCell.posts.length > 1"
+                      class="text-[8px] sm:text-[9px] px-1 sm:px-1.5 py-0.5 rounded-full bg-blue-500/10 text-blue-400 font-medium">
+                      {{ dayCell.posts.length }}
+                    </span>
+                  </div>
 
                   <div
-                    v-else-if="dayCell.rawDate"
-                    class="text-[10px] theme-muted flex-1 flex items-center justify-center opacity-40 italic py-4"
-                  >
-                    —
+                    class="flex flex-col gap-1 sm:gap-2 flex-1 overflow-y-scroll overflow-x-hidden max-h-[200px] sm:max-h-[340px] no-scrollbar">
+                    <template v-if="dayCell.posts && dayCell.posts.length > 0">
+                      <div v-for="post in dayCell.posts" :key="post._id || post.id" draggable="true"
+                        @dragstart="onDragStart(post)" @click.stop="selectPost(post)"
+                        class="relative rounded-lg border p-1.5 sm:p-2.5 flex flex-col justify-between transition-all duration-200 ease-in-out w-full aspect-square cursor-grab shadow-sm shrink-0 select-none active:cursor-grabbing active:scale-[0.97]"
+                        :class="[statusToClass(post.status), getHoverStatusClass(post.status)]">
+                        <div class="flex items-start justify-between">
+                          <span class="text-[7px] sm:text-[9px] font-mono opacity-60 text-left">
+                            {{ dayCell.date }}
+                          </span>
+                          <span v-if="post.platform"
+                            class="text-[7px] sm:text-[8px] px-1 py-0.5 rounded font-medium transform -mt-0.5"
+                            :class="platformBadge(post.platform)">
+                            {{ t(`dashboard.platformName.${post.platform}`, post.platform) }}
+                          </span>
+                        </div>
+                        <p
+                          class="text-[8px] sm:text-[10px] leading-snug theme-sub flex-1 line-clamp-2 sm:line-clamp-3 mt-1 text-left">
+                          {{ post.copyAR || post.copy || post.text }}
+                        </p>
+                        <div class="flex items-center justify-between mt-1 pt-1 border-t border-white/5">
+                          <span v-if="post.status" class="text-[7px] sm:text-[8px] font-medium tracking-wide"
+                            :class="statusColor(post.status)">
+                            ● {{ t(`dashboard.statusName.${post.status}`, post.status) }}
+                          </span>
+                        </div>
+                      </div>
+                    </template>
+                    <div v-else-if="dayCell.rawDate"
+                      class="text-[9px] sm:text-[10px] theme-muted flex-1 flex items-center justify-center opacity-40 italic py-2 sm:py-4">
+                      —
+                    </div>
                   </div>
                 </div>
               </div>
@@ -352,499 +207,266 @@
           </div>
 
           <!-- Legend -->
-          <div
-            v-if="filteredWeeks.length > 0"
-            class="flex items-center gap-5 flex-wrap mt-5 pt-4 border-t"
-            style="border-color: var(--border)"
-          >
-            <p class="text-[11px] theme-muted font-medium">
-              {{ t("dashboard.status") }}:
-            </p>
-            <div
-              v-for="s in legend"
-              :key="s.labelKey"
-              class="flex items-center gap-1.5"
-            >
+          <div v-if="filteredWeeks.length > 0"
+            class="flex items-center gap-3 sm:gap-5 flex-wrap mt-4 sm:mt-5 pt-4 border-t"
+            style="border-color: var(--border)">
+            <p class="text-[11px] theme-muted font-medium">{{ t("dashboard.status") }}:</p>
+            <div v-for="s in legend" :key="s.labelKey" class="flex items-center gap-1.5">
               <div class="w-1.5 h-1.5 rounded-full" :class="s.dot"></div>
               <span class="text-[10px] theme-sub">{{ t(s.labelKey) }}</span>
             </div>
           </div>
         </div>
 
-        <!-- ── Trends panel (always visible, right side) ── -->
+        <!-- Trends panel — hidden on mobile, toggle button shows it -->
+        <!-- Mobile backdrop -->
+        <Transition name="fade">
+          <div v-if="trendsOpen" class="fixed inset-0 z-30 bg-black/50 lg:hidden"
+            :class="locale === 'ar' ? 'left-0' : 'right-0'" @click="trendsOpen = false" />
+        </Transition>
+
         <div
-          class="w-52 shrink-0 border-l p-4 space-y-3"
-          style="border-color: var(--border)"
-        >
+          class="fixed lg:relative top-0 h-full z-40 lg:z-auto w-64 lg:w-52 lg:p-4 pt-20 p-4 space-y-3 overflow-y-auto transition-transform duration-300 theme-sidebar"
+          :class="[
+            locale === 'ar' ? 'left-0 border-r' : 'right-0 border-l',
+            trendsOpen || isTrendsAlwaysVisible
+              ? 'translate-x-0'
+              : (locale === 'ar' ? '-translate-x-full' : 'translate-x-full')
+          ]" style="border-color: var(--border)">
+
+          <div class="flex items-center justify-between lg:hidden mb-2">
+            <p class="text-xs font-medium theme-text">🔥 {{ t("dashboard.trendingNow") }}</p>
+            <button @click="trendsOpen = false" class="theme-muted hover:theme-text p-1 rounded-lg">
+              <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+          </div>
+
           <div class="rounded-xl theme-surface theme-border p-3">
             <div class="flex items-center justify-between mb-3">
-              <p class="text-xs font-medium theme-text">
-                🔥 {{ t("dashboard.trendingNow") }}
-              </p>
-              <span v-if="trendsLastUpdated" class="text-[9px] theme-muted">{{
-                trendsLastUpdated
-              }}</span>
+              <p class="text-xs font-medium theme-text hidden lg:block">🔥 {{ t("dashboard.trendingNow") }}</p>
+              <span v-if="trendsLastUpdated" class="text-[9px] theme-muted">{{ trendsLastUpdated }}</span>
             </div>
             <div class="space-y-2">
-              <div
-                v-for="t in trends"
-                :key="t.tag"
-                class="flex items-center justify-between"
-              >
-                <span class="text-[11px] theme-sub">{{ t.tag }}</span>
-                <span class="text-[10px]" :class="t.color">{{ t.change }}</span>
+              <div v-for="trend in trends" :key="trend.tag" class="flex items-center justify-between">
+                <span class="text-[11px] theme-sub">{{ trend.tag }}</span>
+                <span class="text-[10px]" :class="trend.color">{{ trend.change }}</span>
               </div>
             </div>
-            <button
-              @click="injectTrend"
-              class="w-full mt-3 py-1.5 rounded-lg theme-card theme-border theme-muted text-[10px] hover:theme-text transition-colors"
-            >
+            <button @click="injectTrend"
+              class="w-full mt-3 py-1.5 rounded-lg theme-card theme-border theme-muted text-[10px] hover:theme-text transition-colors">
               {{ t("dashboard.injectTrend") }}
             </button>
           </div>
         </div>
+
       </div>
     </div>
 
-    <!-- ── Post Detail Modal ── -->
+    <!-- Post Detail Modal -->
     <Teleport to="body">
       <Transition name="modal-fade">
-        <div
-          v-if="selectedPost"
-          class="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6"
-          @click.self="selectedPost = null"
-        >
-          <!-- Backdrop -->
+        <div v-if="selectedPost"
+          class="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 md:p-6"
+          @click.self="selectedPost = null">
           <div class="absolute inset-0 bg-black/70 backdrop-blur-sm"></div>
-
-          <!-- Modal card -->
           <div
-            class="relative w-full max-w-2xl max-h-[90vh] flex flex-col rounded-2xl theme-surface theme-shadow overflow-hidden"
-            style="border: 1px solid var(--border)"
-          >
-            <!-- ── Modal Header ── -->
-            <div
-              class="flex items-center gap-3 px-6 py-4 border-b shrink-0"
-              style="border-color: var(--border)"
-            >
-              <!-- Platform + dialect badges -->
-              <span
-                class="text-[11px] px-2.5 py-1 rounded-full font-medium"
-                :class="platformBadge(selectedPost.platform)"
-              >
-                {{
-                  t(
-                    `dashboard.platformName.${selectedPost.platform}`,
-                    selectedPost.platform
-                  )
-                }}
+            class="relative w-full sm:max-w-2xl max-h-[95vh] sm:max-h-[90vh] flex flex-col rounded-t-2xl sm:rounded-2xl theme-surface theme-shadow overflow-hidden"
+            style="border: 1px solid var(--border)">
+
+            <!-- Modal Header -->
+            <div class="flex items-center gap-2 sm:gap-3 px-4 sm:px-6 py-3 sm:py-4 border-b shrink-0 flex-wrap"
+              style="border-color: var(--border)">
+              <span class="text-[11px] px-2.5 py-1 rounded-full font-medium"
+                :class="platformBadge(selectedPost.platform)">
+                {{ t(`dashboard.platformName.${selectedPost.platform}`, selectedPost.platform) }}
               </span>
-              <span
-                class="text-[11px] px-2.5 py-1 rounded-full theme-card theme-border theme-muted"
-              >
+              <span class="text-[11px] px-2.5 py-1 rounded-full theme-card theme-border theme-muted">
                 {{ selectedPost.dialect || t("dashboard.arabic") }}
               </span>
-              <!-- Status badge -->
-              <span
-                class="text-[11px] px-2.5 py-1 rounded-full font-medium ml-auto"
-                :class="
-                  statuses.find((s) => s.value === selectedPost.status)
-                    ?.dot?.replace('bg-', 'bg-')
-                    ?.replace('-500', '-500/20') || 'bg-slate-500/20'
-                "
-                :style="{}"
-              >
-                {{
-                  t(
-                    statuses.find((s) => s.value === selectedPost.status)
-                      ?.labelKey || "",
-                    selectedPost.status
-                  )
-                }}
+              <span class="text-[11px] px-2.5 py-1 rounded-full font-medium"
+                :class="statuses.find((s) => s.value === selectedPost.status)?.dot?.replace('bg-', 'bg-')?.replace('-500', '-500/20') || 'bg-slate-500/20'">
+                {{t(statuses.find((s) => s.value === selectedPost.status)?.labelKey || "", selectedPost.status)}}
               </span>
-              <!-- Date -->
-              <span class="text-[11px] theme-muted">{{
-                selectedPost.scheduledDate
-                  ? new Date(selectedPost.scheduledDate).toLocaleDateString(
-                      locale === "ar" ? "ar-EG" : "en-GB",
-                      { day: "numeric", month: "short" }
-                    )
-                  : ""
-              }}</span>
-              <!-- Close -->
-              <button
-                @click="selectedPost = null"
-                class="w-8 h-8 rounded-xl theme-card theme-border flex items-center justify-center theme-muted hover:theme-text transition-colors ml-2"
-              >
-                <svg
-                  class="w-4 h-4"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                >
-                  <path
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                    stroke-width="2"
-                    d="M6 18L18 6M6 6l12 12"
-                  />
+              <span class="text-[11px] theme-muted">
+                {{ selectedPost.scheduledDate ? new Date(selectedPost.scheduledDate).toLocaleDateString(locale === "ar"
+                  ?
+                  "ar-EG" : "en-GB", { day: "numeric", month: "short" }) : "" }}
+              </span>
+              <button @click="selectedPost = null"
+                class="w-8 h-8 rounded-xl theme-card theme-border flex items-center justify-center theme-muted hover:theme-text transition-colors ml-auto">
+                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
                 </svg>
               </button>
             </div>
 
-            <!-- ── Tabs ── -->
-            <div
-              class="flex gap-0 border-b shrink-0"
-              style="border-color: var(--border)"
-            >
-              <button
-                v-for="tab in modalTabs"
-                :key="tab.id"
-                @click="activeModalTab = tab.id"
-                class="flex items-center gap-1.5 px-5 py-3 text-xs font-medium transition-all border-b-2 -mb-px"
-                :class="
-                  activeModalTab === tab.id
-                    ? 'border-blue-500 text-blue-400'
-                    : 'border-transparent theme-sub hover:theme-text'
-                "
-              >
+            <!-- Tabs -->
+            <div class="flex gap-0 border-b shrink-0 overflow-x-auto" style="border-color: var(--border)">
+              <button v-for="tab in modalTabs" :key="tab.id" @click="activeModalTab = tab.id"
+                class="flex items-center gap-1.5 px-4 sm:px-5 py-3 text-xs font-medium transition-all border-b-2 -mb-px whitespace-nowrap"
+                :class="activeModalTab === tab.id ? 'border-blue-500 text-blue-400' : 'border-transparent theme-sub hover:theme-text'">
                 {{ tab.icon }} {{ tab.label }}
               </button>
             </div>
 
-            <!-- ── Scrollable Body ── -->
+            <!-- Scrollable Body -->
             <div class="flex-1 overflow-y-auto">
               <!-- TAB: Edit -->
-              <div v-if="activeModalTab === 'edit'" class="p-6 space-y-5">
-                <!-- EN Copy -->
+              <div v-if="activeModalTab === 'edit'" class="p-4 sm:p-6 space-y-5">
                 <div>
-                  <label
-                    class="text-xs font-medium theme-sub mb-2 flex items-center gap-1.5"
-                  >
+                  <label class="text-xs font-medium theme-sub mb-2 flex items-center gap-1.5">
                     <span
-                      class="w-4 h-4 rounded bg-slate-500/20 text-[9px] flex items-center justify-center text-slate-400 font-bold"
-                      >EN</span
-                    >
+                      class="w-4 h-4 rounded bg-slate-500/20 text-[9px] flex items-center justify-center text-slate-400 font-bold">EN</span>
                     {{ t("dashboard.editPost") }}
                   </label>
-                  <textarea
-                    v-model="editCopy"
-                    rows="4"
+                  <textarea v-model="editCopy" rows="4"
                     class="w-full theme-input rounded-xl p-3.5 text-sm theme-text border focus:outline-none focus:border-blue-500/40 resize-none leading-relaxed"
-                    style="border-color: var(--border)"
-                  ></textarea>
+                    style="border-color: var(--border)"></textarea>
                 </div>
-                <!-- AR Copy (read-only preview) -->
                 <div v-if="selectedPost.copyAR">
-                  <label
-                    class="text-xs font-medium theme-sub mb-2 flex items-center gap-1.5"
-                  >
+                  <label class="text-xs font-medium theme-sub mb-2 flex items-center gap-1.5">
                     <span
-                      class="w-4 h-4 rounded bg-blue-500/20 text-[9px] flex items-center justify-center text-blue-400 font-bold"
-                      >ع</span
-                    >
+                      class="w-4 h-4 rounded bg-blue-500/20 text-[9px] flex items-center justify-center text-blue-400 font-bold">ع</span>
                     {{ t("dashboard.arabic") }}
                   </label>
-                  <p
-                    class="text-sm theme-sub leading-relaxed text-right p-3.5 rounded-xl theme-card theme-border font-arabic"
-                    dir="rtl"
-                  >
+                  <p class="text-sm theme-sub leading-relaxed text-right p-3.5 rounded-xl theme-card theme-border font-arabic"
+                    dir="rtl">
                     {{ selectedPost.copyAR }}
                   </p>
                 </div>
-                <!-- Hashtags -->
                 <div>
-                  <label class="text-xs font-medium theme-sub mb-2 block">
-                    # {{ t("dashboard.hashtags") }}
-                  </label>
-                  <div
-                    class="flex flex-wrap gap-1.5 p-3 rounded-xl theme-card theme-border"
-                  >
-                    <span
-                      v-for="tag in selectedPost.hashtags"
-                      :key="tag"
-                      class="text-xs px-2 py-0.5 rounded-full bg-blue-600/15 text-blue-400 border border-blue-500/20"
-                    >
+                  <label class="text-xs font-medium theme-sub mb-2 block"># {{ t("dashboard.hashtags") }}</label>
+                  <div class="flex flex-wrap gap-1.5 p-3 rounded-xl theme-card theme-border">
+                    <span v-for="tag in selectedPost.hashtags" :key="tag"
+                      class="text-xs px-2 py-0.5 rounded-full bg-blue-600/15 text-blue-400 border border-blue-500/20">
                       #{{ tag }}
                     </span>
-                    <span
-                      v-if="!selectedPost.hashtags?.length"
-                      class="text-xs theme-muted"
-                      >—</span
-                    >
+                    <span v-if="!selectedPost.hashtags?.length" class="text-xs theme-muted">—</span>
                   </div>
                 </div>
-                <!-- Status -->
                 <div>
-                  <label class="text-xs font-medium theme-sub mb-2 block">
-                    {{t("dashboard.status")}}
-                  </label>
+                  <label class="text-xs font-medium theme-sub mb-2 block">{{ t("dashboard.status") }}</label>
                   <div class="flex flex-wrap gap-2">
-                    <button
-                      v-for="s in statuses"
-                      :key="s.labelKey"
-                      @click="selectedPost.status = s.value"
+                    <button v-for="s in statuses" :key="s.labelKey" @click="selectedPost.status = s.value"
                       class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs transition-all border"
-                      :class="
-                        selectedPost.status === s.value
-                          ? 'bg-blue-600/15 text-blue-400 border-blue-500/20'
-                          : 'theme-sub border-transparent theme-card hover:theme-text'
-                      "
-                    >
-                      <div
-                        class="w-1.5 h-1.5 rounded-full shrink-0"
-                        :class="s.dot"
-                      ></div>
+                      :class="selectedPost.status === s.value ? 'bg-blue-600/15 text-blue-400 border-blue-500/20' : 'theme-sub border-transparent theme-card hover:theme-text'">
+                      <div class="w-1.5 h-1.5 rounded-full shrink-0" :class="s.dot"></div>
                       {{ t(s.labelKey) }}
                     </button>
                   </div>
                 </div>
-                <!-- Save feedback -->
-                <p v-if="saveMsg" class="text-xs text-green-400 text-center">
-                  {{ saveMsg }}
-                </p>
+                <p v-if="saveMsg" class="text-xs text-green-400 text-center">{{ saveMsg }}</p>
               </div>
 
               <!-- TAB: A/B Critic -->
-              <div v-if="activeModalTab === 'ab'" class="p-6">
-                <div
-                  class="rounded-xl border border-amber-500/20 bg-amber-500/5 p-5"
-                >
+              <div v-if="activeModalTab === 'ab'" class="p-4 sm:p-6">
+                <div class="rounded-xl border border-amber-500/20 bg-amber-500/5 p-4 sm:p-5">
                   <div class="flex items-center gap-2 mb-4">
                     <span class="text-lg">⚡</span>
-                    <p class="text-sm font-medium text-amber-300">
-                      {{ t("dashboard.abCritic") }}
-                    </p>
+                    <p class="text-sm font-medium text-amber-300">{{ t("dashboard.abCritic") }}</p>
                   </div>
-                  <!-- No variant yet -->
-                  <p
-                    v-if="!variantB"
-                    class="text-sm theme-sub leading-relaxed mb-5"
-                  >
-                    {{ t("dashboard.abHint") }}
-                  </p>
-                  <!-- Variant result -->
+                  <p v-if="!variantB" class="text-sm theme-sub leading-relaxed mb-5">{{ t("dashboard.abHint") }}</p>
                   <div v-if="variantB" class="space-y-3 mb-5">
-                    <div
-                      v-if="variantB.copyAR"
-                      class="p-4 rounded-xl theme-card theme-border"
-                    >
-                      <p
-                        class="text-[10px] text-amber-400/70 mb-2 uppercase tracking-wider"
-                      >
-                        Variant B — Arabic
-                      </p>
-                      <p
-                        class="text-sm theme-text leading-relaxed text-right font-arabic"
-                        dir="rtl"
-                      >
-                        {{ variantB.copyAR }}
+                    <div v-if="variantB.copyAR" class="p-4 rounded-xl theme-card theme-border">
+                      <p class="text-[10px] text-amber-400/70 mb-2 uppercase tracking-wider">Variant B — Arabic</p>
+                      <p class="text-sm theme-text leading-relaxed text-right font-arabic" dir="rtl">{{ variantB.copyAR
+                      }}
                       </p>
                     </div>
-                    <div
-                      v-if="variantB.copyEN"
-                      class="p-4 rounded-xl theme-card theme-border"
-                    >
-                      <p
-                        class="text-[10px] text-amber-400/70 mb-2 uppercase tracking-wider"
-                      >
-                        Variant B — English
-                      </p>
-                      <p class="text-sm theme-text leading-relaxed">
-                        {{ variantB.copyEN }}
-                      </p>
+                    <div v-if="variantB.copyEN" class="p-4 rounded-xl theme-card theme-border">
+                      <p class="text-[10px] text-amber-400/70 mb-2 uppercase tracking-wider">Variant B — English</p>
+                      <p class="text-sm theme-text leading-relaxed">{{ variantB.copyEN }}</p>
                     </div>
-                    <div
-                      v-if="variantB.hashtags?.length"
-                      class="flex flex-wrap gap-1.5"
-                    >
-                      <span
-                        v-for="tag in variantB.hashtags"
-                        :key="tag"
-                        class="text-xs text-amber-400"
-                        >#{{ tag.replace("#", "") }}</span
-                      >
+                    <div v-if="variantB.hashtags?.length" class="flex flex-wrap gap-1.5">
+                      <span v-for="tag in variantB.hashtags" :key="tag" class="text-xs text-amber-400">#{{
+                        tag.replace("#",
+                          "") }}</span>
                     </div>
                     <div class="flex gap-3 pt-2">
-                      <button
-                        @click="applyVariantB"
-                        class="flex-1 py-2.5 rounded-xl bg-amber-500/15 text-amber-400 text-sm hover:bg-amber-500/25 border border-amber-500/20 transition-colors font-medium"
-                      >
+                      <button @click="applyVariantB"
+                        class="flex-1 py-2.5 rounded-xl bg-amber-500/15 text-amber-400 text-sm hover:bg-amber-500/25 border border-amber-500/20 transition-colors font-medium">
                         ✓ {{ t("dashboard.useB") }}
                       </button>
-                      <button
-                        @click="variantB = null"
-                        class="flex-1 py-2.5 rounded-xl theme-card theme-border theme-muted text-sm hover:theme-text transition-colors"
-                      >
+                      <button @click="variantB = null"
+                        class="flex-1 py-2.5 rounded-xl theme-card theme-border theme-muted text-sm hover:theme-text transition-colors">
                         {{ t("dashboard.keepA") }}
                       </button>
                     </div>
                   </div>
-                  <button
-                    @click="generateVariantB"
-                    :disabled="loadingVariant"
-                    class="w-full py-2.5 rounded-xl theme-card theme-border theme-sub text-sm hover:theme-text transition-colors disabled:opacity-50"
-                  >
-                    {{
-                      loadingVariant
-                        ? t("dashboard.generatingVariant")
-                        : t("dashboard.generateVariantB")
-                    }}
+                  <button @click="generateVariantB" :disabled="loadingVariant"
+                    class="w-full py-2.5 rounded-xl theme-card theme-border theme-sub text-sm hover:theme-text transition-colors disabled:opacity-50">
+                    {{ loadingVariant ? t("dashboard.generatingVariant") : t("dashboard.generateVariantB") }}
                   </button>
                 </div>
               </div>
 
               <!-- TAB: AI Image -->
-              <div v-if="activeModalTab === 'image'" class="p-6">
-                <div
-                  class="rounded-xl border border-blue-500/20 bg-blue-500/5 p-5"
-                >
+              <div v-if="activeModalTab === 'image'" class="p-4 sm:p-6">
+                <div class="rounded-xl border border-blue-500/20 bg-blue-500/5 p-4 sm:p-5">
                   <div class="flex items-center gap-2 mb-4">
                     <span class="text-lg">🎨</span>
-                    <p class="text-sm font-medium text-blue-300">
-                      {{ t("dashboard.aiImageGenerator") }}
-                    </p>
+                    <p class="text-sm font-medium text-blue-300">{{ t("dashboard.aiImageGenerator") }}</p>
                     <span
-                      class="text-[10px] px-2 py-0.5 rounded-full bg-blue-600/20 text-blue-400 border border-blue-500/20 ml-auto"
-                      >FLUX</span
-                    >
+                      class="text-[10px] px-2 py-0.5 rounded-full bg-blue-600/20 text-blue-400 border border-blue-500/20 ml-auto">FLUX</span>
                   </div>
-
                   <div
-                    class="w-full h-[260px] sm:h-[300px] mb-4 flex items-center justify-center overflow-hidden rounded-xl bg-slate-950/40 border border-blue-500/10"
-                  >
-                    <div
-                      v-if="selectedPost.imageUrl"
-                      class="w-full h-full p-1 flex items-center justify-center"
-                    >
-                      <img
-                        :src="selectedPost.imageUrl"
-                        :alt="t('dashboard.generatedImage')"
-                        class="max-w-full max-h-full rounded-lg object-contain opacity-95 hover:opacity-100 transition-opacity"
-                      />
+                    class="w-full h-[220px] sm:h-[300px] mb-4 flex items-center justify-center overflow-hidden rounded-xl bg-slate-950/40 border border-blue-500/10">
+                    <div v-if="selectedPost.imageUrl" class="w-full h-full p-1 flex items-center justify-center">
+                      <img :src="selectedPost.imageUrl" :alt="t('dashboard.generatedImage')"
+                        class="max-w-full max-h-full rounded-lg object-contain opacity-95 hover:opacity-100 transition-opacity" />
                     </div>
-
-                    <div
-                      v-else-if="!generatingImage"
-                      class="w-full h-full flex flex-col items-center justify-center gap-2 text-center p-4"
-                    >
+                    <div v-else-if="!generatingImage"
+                      class="w-full h-full flex flex-col items-center justify-center gap-2 text-center p-4">
                       <span class="text-3xl opacity-25">🖼️</span>
-                      <p class="text-sm theme-muted">
-                        {{ t("dashboard.noImageYet") }}<br />
-                        <span class="text-xs opacity-60">{{
-                          t("dashboard.generateHint")
-                        }}</span>
-                      </p>
+                      <p class="text-sm theme-muted">{{ t("dashboard.noImageYet") }}<br /><span
+                          class="text-xs opacity-60">{{ t("dashboard.generateHint") }}</span></p>
                     </div>
-
-                    <div
-                      v-else-if="generatingImage"
-                      class="w-full h-full flex flex-col items-center justify-center gap-3 p-4"
-                    >
+                    <div v-else-if="generatingImage"
+                      class="w-full h-full flex flex-col items-center justify-center gap-3 p-4">
                       <div class="relative flex items-center justify-center">
-                        <svg
-                          class="w-9 h-9 animate-spin text-blue-500"
-                          fill="none"
-                          viewBox="0 0 24 24"
-                        >
-                          <circle
-                            class="opacity-25"
-                            cx="12"
-                            cy="12"
-                            r="10"
-                            stroke="currentColor"
-                            stroke-width="4"
-                          />
-                          <path
-                            class="opacity-75"
-                            fill="currentColor"
-                            d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"
-                          />
+                        <svg class="w-9 h-9 animate-spin text-blue-500" fill="none" viewBox="0 0 24 24">
+                          <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" />
+                          <path class="opacity-75" fill="currentColor"
+                            d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
                         </svg>
-                        <span class="absolute text-xs scale-75 animate-pulse"
-                          >🪄</span
-                        >
+                        <span class="absolute text-xs scale-75 animate-pulse">🪄</span>
                       </div>
                       <div class="text-center">
-                        <p
-                          class="text-sm font-medium text-blue-300 animate-pulse"
-                        >
-                          {{ t("dashboard.generatingImage") }}
+                        <p class="text-sm font-medium text-blue-300 animate-pulse">{{ t("dashboard.generatingImage") }}
                         </p>
-                        <p class="text-[11px] theme-muted opacity-60 mt-0.5">
-                          {{ t("dashboard.generationTime") }}
-                        </p>
+                        <p class="text-[11px] theme-muted opacity-60 mt-0.5">{{ t("dashboard.generationTime") }}</p>
                       </div>
                     </div>
                   </div>
-
-                  <p
-                    v-if="imageError"
-                    class="text-xs text-rose-400 mb-3 text-center bg-rose-500/10 py-1.5 px-3 rounded-lg border border-rose-500/15"
-                  >
-                    {{ imageError }}
-                  </p>
-
-                  <button
-                    @click="generateImage"
-                    :disabled="generatingImage"
+                  <p v-if="imageError"
+                    class="text-xs text-rose-400 mb-3 text-center bg-rose-500/10 py-1.5 px-3 rounded-lg border border-rose-500/15">
+                    {{ imageError }}</p>
+                  <button @click="generateImage" :disabled="generatingImage"
                     class="w-full py-2.5 rounded-xl text-sm font-medium transition-colors disabled:opacity-50 shadow-md"
-                    :class="
-                      selectedPost.imageUrl
-                        ? 'theme-card theme-border theme-sub hover:theme-text'
-                        : 'bg-blue-600 text-white hover:bg-blue-500'
-                    "
-                  >
-                    {{
-                      generatingImage
-                        ? t("dashboard.generatingBtnImage")
-                        : selectedPost.imageUrl
-                        ? t("dashboard.regenerateBtnImage")
-                        : t("dashboard.generateBtnImage")
-                    }}
+                    :class="selectedPost.imageUrl ? 'theme-card theme-border theme-sub hover:theme-text' : 'bg-blue-600 text-white hover:bg-blue-500'">
+                    {{ generatingImage ? t("dashboard.generatingBtnImage") : selectedPost.imageUrl ?
+                      t("dashboard.regenerateBtnImage") : t("dashboard.generateBtnImage") }}
                   </button>
                 </div>
               </div>
             </div>
-            <!-- ── Modal Footer (Save) ── -->
-            <div
-              class="flex items-center justify-between gap-3 px-6 py-4 border-t shrink-0"
-              style="border-color: var(--border)"
-            >
-              <button
-                @click="selectedPost = null"
-                class="px-5 py-2.5 rounded-xl theme-card theme-border theme-sub text-sm hover:theme-text transition-colors"
-              >
+
+            <!-- Modal Footer -->
+            <div class="flex items-center justify-between gap-3 px-4 sm:px-6 py-3 sm:py-4 border-t shrink-0"
+              style="border-color: var(--border)">
+              <button @click="selectedPost = null"
+                class="px-4 sm:px-5 py-2.5 rounded-xl theme-card theme-border theme-sub text-sm hover:theme-text transition-colors">
                 {{ t("common.cancel") || "Cancel" }}
               </button>
-              <button
-                @click="savePost"
-                :disabled="saving"
-                class="px-6 py-2.5 rounded-xl bg-blue-600 text-white text-sm font-medium hover:bg-blue-500 transition-colors disabled:opacity-50 flex items-center gap-2"
-              >
-                <svg
-                  v-if="saving"
-                  class="w-4 h-4 animate-spin"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                >
-                  <circle
-                    class="opacity-25"
-                    cx="12"
-                    cy="12"
-                    r="10"
-                    stroke="currentColor"
-                    stroke-width="4"
-                  />
-                  <path
-                    class="opacity-75"
-                    fill="currentColor"
-                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"
-                  />
+              <button @click="savePost" :disabled="saving"
+                class="px-5 sm:px-6 py-2.5 rounded-xl bg-blue-600 text-white text-sm font-medium hover:bg-blue-500 transition-colors disabled:opacity-50 flex items-center gap-2">
+                <svg v-if="saving" class="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
+                  <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" />
+                  <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
                 </svg>
-                {{
-                  saving ? t("dashboard.saving") : t("dashboard.saveChanges")
-                }}
+                {{ saving ? t("dashboard.saving") : t("dashboard.saveChanges") }}
               </button>
             </div>
           </div>
@@ -852,266 +474,134 @@
       </Transition>
     </Teleport>
 
-    <!-- ── Generate / Regenerate Modal ── -->
-    <div
-      v-if="showModal"
-      class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-6"
-    >
+    <!-- Generate / Regenerate Modal -->
+    <div v-if="showModal"
+      class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-end sm:items-center justify-center p-0 sm:p-6">
       <div
-        class="theme-surface rounded-2xl theme-border max-w-lg w-full p-7 theme-shadow"
-      >
+        class="theme-surface rounded-t-2xl sm:rounded-2xl theme-border max-w-lg w-full p-5 sm:p-7 theme-shadow max-h-[95vh] overflow-y-auto">
         <div class="flex items-center justify-between mb-5">
-          <h2 class="font-display text-xl font-600 theme-text">
-            {{
-              isRegenerate
-                ? t("dashboard.regenerateCalendar")
-                : t("dashboard.generateNewPlan")
-            }}
+          <h2 class="font-display text-lg sm:text-xl font-600 theme-text">
+            {{ isRegenerate ? t("dashboard.regenerateCalendar") : t("dashboard.generateNewPlan") }}
           </h2>
-          <button
-            @click="showModal = false"
-            class="theme-muted hover:theme-text"
-          >
-            <svg
-              class="w-5 h-5"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-            >
-              <path
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                stroke-width="2"
-                d="M6 18L18 6M6 6l12 12"
-              />
+          <button @click="showModal = false" class="theme-muted hover:theme-text">
+            <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
             </svg>
           </button>
         </div>
-
-        <div
-          v-if="isRegenerate"
-          class="mb-4 p-3 rounded-xl bg-amber-500/10 border border-amber-500/20 text-amber-400 text-xs"
-        >
+        <div v-if="isRegenerate"
+          class="mb-4 p-3 rounded-xl bg-amber-500/10 border border-amber-500/20 text-amber-400 text-xs">
           ⚠️ {{ t("dashboard.regenerateWarning") }}
         </div>
-
-        <div
-          v-if="!brandId"
-          class="mb-4 p-3 rounded-xl bg-rose-500/10 border border-rose-500/20 text-rose-400 text-xs"
-        >
+        <div v-if="!brandId" class="mb-4 p-3 rounded-xl bg-rose-500/10 border border-rose-500/20 text-rose-400 text-xs">
           ⚠️ {{ t("dashboard.noBrandWarning") }}
         </div>
-
         <div class="space-y-4">
-          <!-- Brief -->
           <div>
-            <label class="text-xs theme-sub mb-1.5 block">{{
-              t("dashboard.campaignBrief")
-            }}</label>
-            <textarea
-              v-model="brief"
-              rows="3"
-              :placeholder="t('dashboard.briefPlaceholder')"
+            <label class="text-xs theme-sub mb-1.5 block">{{ t("dashboard.campaignBrief") }}</label>
+            <textarea v-model="brief" rows="3" :placeholder="t('dashboard.briefPlaceholder')"
               class="w-full theme-input rounded-xl p-3.5 text-sm theme-text border resize-none focus:outline-none focus:border-blue-500/40"
-              style="border-color: var(--border)"
-            ></textarea>
+              style="border-color: var(--border)"></textarea>
           </div>
-
-          <!-- Dialect + Start Date -->
-          <div class="grid grid-cols-2 gap-3">
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
-              <label class="text-xs theme-sub mb-1.5 block">{{
-                t("dashboard.dialectLabel")
-              }}</label>
-              <select
-                v-model="selectedDialect"
+              <label class="text-xs theme-sub mb-1.5 block">{{ t("dashboard.dialectLabel") }}</label>
+              <select v-model="selectedDialect"
                 class="w-full theme-input rounded-xl px-3 py-2.5 text-sm theme-text border focus:outline-none"
-                style="border-color: var(--border)"
-              >
-                <option
-                  v-for="d in dialectOptions"
-                  :key="d.value"
-                  :value="d.value"
-                >
-                  {{ t(d.labelKey) }}
-                </option>
+                style="border-color: var(--border)">
+                <option v-for="d in dialectOptions" :key="d.value" :value="d.value">{{ t(d.labelKey) }}</option>
               </select>
             </div>
             <div>
-              <label class="text-xs theme-sub mb-1.5 block">{{
-                t("dashboard.startDate")
-              }}</label>
-              <input
-                type="date"
-                v-model="startDate"
-                @change="validateDates"
+              <label class="text-xs theme-sub mb-1.5 block">{{ t("dashboard.startDate") }}</label>
+              <input type="date" v-model="startDate" @change="validateDates"
                 class="w-full theme-input rounded-xl px-3 py-2.5 text-sm theme-text border focus:outline-none"
-                style="border-color: var(--border)"
-                :min="todayDate"
-              />
+                style="border-color: var(--border)" :min="todayDate" />
             </div>
           </div>
-
-          <!-- End Date -->
           <div>
-            <label class="text-xs theme-sub mb-1.5 block">{{
-              t("dashboard.endDate")
-            }}</label>
-            <input
-              type="date"
-              v-model="endDate"
-              @change="validateDates"
+            <label class="text-xs theme-sub mb-1.5 block">{{ t("dashboard.endDate") }}</label>
+            <input type="date" v-model="endDate" @change="validateDates"
               class="w-full theme-input rounded-xl px-3 py-2.5 text-sm theme-text border focus:outline-none"
-              style="border-color: var(--border)"
-              :min="startDate || todayDate"
-            />
+              style="border-color: var(--border)" :min="startDate || todayDate" />
             <p class="text-[10px] theme-muted mt-1">{{ durationLabel }}</p>
-            <p
-              v-if="errorMessage"
-              class="text-xs text-rose-400 font-medium mt-2"
-            >
-              {{ errorMessage }}
-            </p>
+            <p v-if="errorMessage" class="text-xs text-rose-400 font-medium mt-2">{{ errorMessage }}</p>
           </div>
-
-          <!-- Platforms -->
           <div>
-            <label class="text-xs theme-sub mb-1.5 block">{{
-              t("dashboard.platforms")
-            }}</label>
+            <label class="text-xs theme-sub mb-1.5 block">{{ t("dashboard.platforms") }}</label>
             <div class="flex flex-wrap gap-2">
-              <button
-                v-for="p in platforms"
-                :key="p.name"
-                @click="p.on = !p.on"
+              <button v-for="p in platforms" :key="p.name" @click="p.on = !p.on"
                 class="px-3 py-1.5 rounded-lg text-xs border transition-all"
-                :class="
-                  p.on
-                    ? 'bg-blue-600/20 text-blue-400 border-blue-500/30'
-                    : 'theme-border theme-muted hover:theme-text'
-                "
-              >
+                :class="p.on ? 'bg-blue-600/20 text-blue-400 border-blue-500/30' : 'theme-border theme-muted hover:theme-text'">
                 {{ t(p.labelKey) }}
               </button>
             </div>
           </div>
-
-          <!-- Trends preview -->
-          <div
-            v-if="trends.length"
-            class="p-3 rounded-xl bg-amber-500/5 border border-amber-500/15"
-          >
-            <p class="text-[11px] text-amber-400 font-medium mb-1">
-              ✦ {{ t("dashboard.trendsInjected") }}
-            </p>
-            <p class="text-[11px] theme-muted">
-              {{
-                trends
-                  .slice(0, 3)
-                  .map((t) => `${t.tag} (${t.change})`)
-                  .join(" · ")
-              }}
+          <div v-if="trends.length" class="p-3 rounded-xl bg-amber-500/5 border border-amber-500/15">
+            <p class="text-[11px] text-amber-400 font-medium mb-1">✦ {{ t("dashboard.trendsInjected") }}</p>
+            <p class="text-[11px] theme-muted">{{trends.slice(0, 3).map((t) => `${t.tag} (${t.change})`).join(" · ")}}
             </p>
           </div>
-
-          <p v-if="generateError" class="text-xs text-rose-400">
-            {{ generateError }}
-          </p>
+          <p v-if="generateError" class="text-xs text-rose-400">{{ generateError }}</p>
         </div>
-
         <div class="flex gap-3 mt-6">
-          <button
-            @click="showModal = false"
-            class="flex-1 py-3 rounded-xl theme-card theme-border theme-sub text-sm hover:theme-text transition-colors"
-          >
+          <button @click="showModal = false"
+            class="flex-1 py-3 rounded-xl theme-card theme-border theme-sub text-sm hover:theme-text transition-colors">
             {{ t("common.cancel") }}
           </button>
-          <button
-            @click="doGenerate"
-            :disabled="
-              generating || !brief || !brandId || !startDate || !endDate
-            "
-            class="flex-1 py-3 rounded-xl bg-blue-600 text-white text-sm font-medium hover:bg-blue-500 transition-colors disabled:opacity-50"
-          >
-            {{
-              generating
-                ? t("dashboard.generatingLong")
-                : isRegenerate
-                ? t("dashboard.regenerateBtn")
-                : t("dashboard.generateBtn")
-            }}
+          <button @click="doGenerate" :disabled="generating || !brief || !brandId || !startDate || !endDate"
+            class="flex-1 py-3 rounded-xl bg-blue-600 text-white text-sm font-medium hover:bg-blue-500 transition-colors disabled:opacity-50">
+            {{ generating ? t("dashboard.generatingLong") : isRegenerate ? t("dashboard.regenerateBtn") :
+              t("dashboard.generateBtn") }}
           </button>
         </div>
       </div>
     </div>
 
-    <!-- ── Reset Confirm Dialog ── -->
-    <div
-      v-if="showResetConfirm"
-      class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-6"
-    >
-      <div
-        class="theme-surface rounded-2xl theme-border max-w-sm w-full p-6 theme-shadow"
-      >
-        <h2 class="font-display text-lg font-600 theme-text mb-2">
-          {{ t("dashboard.resetTitle") }}
-        </h2>
+    <!-- Reset Confirm -->
+    <div v-if="showResetConfirm"
+      class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-end sm:items-center justify-center p-0 sm:p-6">
+      <div class="theme-surface rounded-t-2xl sm:rounded-2xl theme-border max-w-sm w-full p-5 sm:p-6 theme-shadow">
+        <h2 class="font-display text-lg font-600 theme-text mb-2">{{ t("dashboard.resetTitle") }}</h2>
         <p class="text-sm theme-sub mb-6">{{ t("dashboard.resetDesc") }}</p>
         <div class="flex gap-3">
-          <button
-            @click="showResetConfirm = false"
-            class="flex-1 py-2.5 rounded-xl theme-card theme-border theme-sub text-sm hover:theme-text transition-colors"
-          >
+          <button @click="showResetConfirm = false"
+            class="flex-1 py-2.5 rounded-xl theme-card theme-border theme-sub text-sm hover:theme-text transition-colors">
             {{ t("common.cancel") }}
           </button>
-          <button
-            @click="resetCalendar"
-            :disabled="resetting"
-            class="flex-1 py-2.5 rounded-xl bg-rose-600 text-white text-sm hover:bg-rose-500 transition-colors disabled:opacity-50"
-          >
+          <button @click="resetCalendar" :disabled="resetting"
+            class="flex-1 py-2.5 rounded-xl bg-rose-600 text-white text-sm hover:bg-rose-500 transition-colors disabled:opacity-50">
             {{ resetting ? t("dashboard.resetting") : t("dashboard.resetBtn") }}
           </button>
         </div>
       </div>
     </div>
 
-    <!-- ── Delete Confirm Dialog ── -->
-    <div
-      v-if="showDeleteConfirm"
-      class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-6"
-    >
-      <div
-        class="theme-surface rounded-2xl theme-border max-w-sm w-full p-6 theme-shadow"
-      >
-        <h2 class="font-display text-lg font-600 theme-text mb-2">
-          {{ t("dashboard.deleteTitle") }}
-        </h2>
+    <!-- Delete Confirm -->
+    <div v-if="showDeleteConfirm"
+      class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-end sm:items-center justify-center p-0 sm:p-6">
+      <div class="theme-surface rounded-t-2xl sm:rounded-2xl theme-border max-w-sm w-full p-5 sm:p-6 theme-shadow">
+        <h2 class="font-display text-lg font-600 theme-text mb-2">{{ t("dashboard.deleteTitle") }}</h2>
         <p class="text-sm theme-sub mb-6">{{ t("dashboard.deleteDesc") }}</p>
         <div class="flex gap-3">
-          <button
-            @click="showDeleteConfirm = false"
-            class="flex-1 py-2.5 rounded-xl theme-card theme-border theme-sub text-sm hover:theme-text transition-colors"
-          >
+          <button @click="showDeleteConfirm = false"
+            class="flex-1 py-2.5 rounded-xl theme-card theme-border theme-sub text-sm hover:theme-text transition-colors">
             {{ t("common.cancel") }}
           </button>
-          <button
-            @click="deleteCalendar"
-            :disabled="deleting"
-            class="flex-1 py-2.5 rounded-xl bg-rose-600 text-white text-sm hover:bg-rose-500 transition-colors disabled:opacity-50"
-          >
+          <button @click="deleteCalendar" :disabled="deleting"
+            class="flex-1 py-2.5 rounded-xl bg-rose-600 text-white text-sm hover:bg-rose-500 transition-colors disabled:opacity-50">
             {{ deleting ? t("dashboard.deleting") : t("dashboard.deleteBtn") }}
           </button>
         </div>
       </div>
     </div>
 
-    <!-- ── Approve success toast ── -->
-    <div
-      v-if="approveMsg"
-      class="fixed bottom-6 right-6 z-50 px-4 py-3 rounded-xl bg-green-600 text-white text-sm font-medium shadow-lg"
-    >
+    <!-- Approve toast -->
+    <div v-if="approveMsg"
+      class="fixed bottom-6 right-6 z-50 px-4 py-3 rounded-xl bg-green-600 text-white text-sm font-medium shadow-lg">
       ✓ {{ approveMsg }}
     </div>
+
   </AppLayout>
 </template>
 
@@ -1179,6 +669,8 @@ const trends = ref([]);
 const trendsLastUpdated = ref("");
 const store = useCalendarStore();
 const planApproved = ref(false);
+const trendsOpen = ref(false)
+const isTrendsAlwaysVisible = ref(window.innerWidth >= 1024)
 
 // ── Drag & Drop state ─────────────────────────────────────────────────────
 const draggedCell = ref(null);
@@ -1256,7 +748,7 @@ const duration = computed(() => {
   if (!startDate.value || !endDate.value) return 0;
   return Math.round(
     (new Date(endDate.value) - new Date(startDate.value)) /
-      (1000 * 60 * 60 * 24)
+    (1000 * 60 * 60 * 24)
   );
 });
 
@@ -1400,6 +892,9 @@ watch(
 
 // ── Load on mount ─────────────────────────────────────────────────────────────
 onMounted(async () => {
+  window.addEventListener('resize', () => {
+    isTrendsAlwaysVisible.value = window.innerWidth >= 1024
+  })
   try {
     const data = await api.get("/trends");
     trends.value = data.trends.map((t) => ({
@@ -1445,7 +940,7 @@ async function doGenerate() {
     if (isRegenerate.value && currentCalendar.value) {
       await calendarApi
         .deleteCalendar(currentCalendar.value._id)
-        .catch(() => {});
+        .catch(() => { });
       currentCalendar.value = null;
       store.posts = [];
     }
@@ -1579,7 +1074,7 @@ function buildWeeks(posts) {
           dialect: post.dialect || "",
           status: post.status
             ? post.status.charAt(0).toUpperCase() +
-              post.status.slice(1).replace("_", " ")
+            post.status.slice(1).replace("_", " ")
             : "Draft",
           hashtags: post.hashtags || [],
           cellClass: statusToClass(post.status),
@@ -1619,23 +1114,23 @@ function buildWeeks(posts) {
 
 function statusToClass(status) {
   if (!status) return 'bg-slate-500/5 border-slate-500/20 text-slate-400';
-  
+
   switch (status.toLowerCase()) {
     case 'approved':
       return 'bg-green-500/10 border-green-500/20 text-green-400';
-    
+
     case 'scheduled':
       // المجدول: أزرق سيان ناصع
       return 'bg-cyan-500/10 border-cyan-500/20 text-cyan-400';
-      
+
     case 'published':
       // المنشور: تم التغيير إلى البنفسجي المضيء ليكون واضحاً ومختلفاً عن المجدول
       return 'bg-indigo-500/15 border-indigo-500/25 text-indigo-300';
-      
+
     case 'pending':
       // الانتظار: تم التغيير إلى البرتقالي/الذهبي الواضح ليفترق عن الرمادي
       return 'bg-amber-500/10 border-amber-500/20 text-amber-400';
-      
+
     case 'draft':
     default:
       // المسودة: رمادي فضي واضح
@@ -1646,7 +1141,7 @@ function statusToClass(status) {
 // 3. تحديث تأثير الـ Hover المتناسق مع الألوان الجديدة
 function getHoverStatusClass(status) {
   if (!status) return '';
-  
+
   switch (status.toLowerCase()) {
     case 'approved':
       return 'hover:bg-green-500/20 hover:border-green-500/60 hover:shadow-green-500/10';
@@ -1688,11 +1183,11 @@ async function savePost() {
     store.posts = store.posts.map((p) =>
       p._id === postId || p.id === postId
         ? {
-            ...p,
-            copyAR: editCopy.value,
-            copy: editCopy.value,
-            status: formattedStatus,
-          }
+          ...p,
+          copyAR: editCopy.value,
+          copy: editCopy.value,
+          status: formattedStatus,
+        }
         : p
     );
     // تحديث نفس الكائن المختار حالياً بالشاشة
@@ -1755,11 +1250,11 @@ async function applyVariantB() {
   store.posts = store.posts.map((p) =>
     p._id === postId || p.id === postId
       ? {
-          ...p,
-          copyAR: variantB.value.copyAR,
-          copy: variantB.value.copyAR,
-          hashtags: variantB.value.hashtags,
-        }
+        ...p,
+        copyAR: variantB.value.copyAR,
+        copy: variantB.value.copyAR,
+        hashtags: variantB.value.hashtags,
+      }
       : p
   );
 
@@ -1867,14 +1362,17 @@ async function onDrop(targetCell) {
 .modal-fade-leave-active {
   transition: opacity 0.2s ease;
 }
+
 .modal-fade-enter-from,
 .modal-fade-leave-to {
   opacity: 0;
 }
+
 .modal-fade-enter-active .relative,
 .modal-fade-leave-active .relative {
   transition: transform 0.2s ease;
 }
+
 .modal-fade-enter-from .relative,
 .modal-fade-leave-to .relative {
   transform: scale(0.97) translateY(8px);
@@ -1908,7 +1406,19 @@ async function onDrop(targetCell) {
 
 /* إخفاء شريط التمرير لمتصفح فايرفوكس وإنترنت إكسبلورر */
 .no-scrollbar {
-  -ms-overflow-style: none; /* IE and Edge */
-  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none;
+  /* IE and Edge */
+  scrollbar-width: none;
+  /* Firefox */
+}
+
+.fade-enter-active,
+.fade-leave-active {
+  transition: opacity 0.2s ease;
+}
+
+.fade-enter-from,
+.fade-leave-to {
+  opacity: 0;
 }
 </style>

@@ -48,18 +48,34 @@
       <!-- Back to home — mobile only -->
       <RouterLink to="/" class="back-btn">
         <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-          <path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7" />
+          <path stroke-linecap="round" stroke-linejoin="round"
+            :d="locale === 'ar' ? 'M9 5l7 7-7 7' : 'M15 19l-7-7 7-7'" />
         </svg>
         {{ t('auth.backHome') }}
       </RouterLink>
-      <!-- Lang toggle -->
-      <button @click="switchLang" class="lang-toggle">
-        <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-          <path
-            d="M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18zm0 0c-4.97 0-9-4.03-9-9m9 9c4.97 0 9-4.03 9-9M3 12h18M12 3c-2.5 2.5-4 5.5-4 9s1.5 6.5 4 9M12 3c2.5 2.5 4 5.5 4 9s-1.5 6.5-4 9" />
-        </svg>
-        {{ locale === 'en' ? 'عربي' : 'English' }}
-      </button>
+
+      <div class="top-controls">
+        <button @click="switchLang" class="lang-toggle">
+          <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path
+              d="M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18zm0 0c-4.97 0-9-4.03-9-9m9 9c4.97 0 9-4.03 9-9M3 12h18M12 3c-2.5 2.5-4 5.5-4 9s1.5 6.5 4 9M12 3c2.5 2.5 4 5.5 4 9s-1.5 6.5-4 9" />
+          </svg>
+          {{ locale === 'en' ? 'عربي' : 'English' }}
+        </button>
+
+        <button @click="toggleTheme" class="theme-toggle"
+          :title="isDark ? t('layout.switchLight') : t('layout.switchDark')">
+          <svg v-if="isDark" width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor"
+            stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round"
+              d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364-6.364l-.707.707M6.343 17.657l-.707.707M17.657 17.657l-.707-.707M6.343 6.343l-.707-.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" />
+          </svg>
+          <svg v-else width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round"
+              d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
+          </svg>
+        </button>
+      </div>
 
       <div class="form-wrap">
 
@@ -147,17 +163,49 @@
                 @keyup.enter="submit" />
             </div>
 
+            <!-- Password Field -->
             <div class="field">
               <label>{{ t('auth.password') }}</label>
               <div class="pass-wrap">
                 <input v-model="form.password" :type="showPass ? 'text' : 'password'"
                   :placeholder="t('auth.passwordPlaceholder')" @keyup.enter="submit" />
-                <button @click="showPass = !showPass" type="button" class="pass-toggle">
-                  <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                    <path v-if="!showPass" stroke-linecap="round" stroke-linejoin="round"
-                      d="M15 12a3 3 0 11-6 0 3 3 0 016 0zM2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-                    <path v-else stroke-linecap="round" stroke-linejoin="round"
-                      d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21" />
+                <button @click="showPass = !showPass" type="button" class="pass-toggle"
+                  :style="locale === 'ar' ? 'right: auto; left: 12px' : 'right: 12px; left: auto'">
+                  <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                    stroke-linejoin="round">
+                    <template v-if="showPass">
+                      <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
+                      <circle cx="12" cy="12" r="3" />
+                    </template>
+                    <template v-else>
+                      <path
+                        d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24" />
+                      <line x1="1" y1="1" x2="23" y2="23" />
+                    </template>
+                  </svg>
+                </button>
+              </div>
+            </div>
+
+            <div class="field" v-if="isRegister">
+              <label>{{ t('auth.confirmPassword') }}</label>
+              <div class="pass-wrap">
+                <input v-model="form.confirmPassword" :type="showConfirmPass ? 'text' : 'password'"
+                  :placeholder="locale === 'ar' ? 'أعد كتابة كلمة المرور' : 'Re-enter your password'"
+                  @keyup.enter="submit" />
+                <button @click="showConfirmPass = !showConfirmPass" type="button" class="pass-toggle"
+                  :style="locale === 'ar' ? 'right: auto; left: 12px' : 'right: 12px; left: auto'">
+                  <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                    stroke-linejoin="round">
+                    <template v-if="showConfirmPass">
+                      <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
+                      <circle cx="12" cy="12" r="3" />
+                    </template>
+                    <template v-else>
+                      <path
+                        d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24" />
+                      <line x1="1" y1="1" x2="23" y2="23" />
+                    </template>
                   </svg>
                 </button>
               </div>
@@ -170,19 +218,9 @@
               <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
             </svg>
             {{ loading
-              ? (isRegister ? t('auth.creatingAccount') : t('auth.signingIn'))
+              ? (isRegister ? t('auth(' + 'creatingAccount' + ')') : t('auth.signingIn'))
               : (isRegister ? t('auth.createAccountBtn') : t('auth.signIn')) }}
           </button>
-
-          <!-- <div class="divider">
-            <span></span>
-            <p>{{ t('common.or') }}</p>
-            <span></span>
-          </div> -->
-<!-- 
-          <button @click="demoLogin" :disabled="loading" class="btn-secondary">
-            🚀 {{ t('auth.tryDemo') }}
-          </button> -->
 
           <p class="switch-mode">
             {{ isRegister ? t('auth.alreadyHaveAccount') : t('auth.noAccount') }}
@@ -205,6 +243,9 @@ import { useAuthStore } from '../stores/authStore'
 import { useI18n } from 'vue-i18n'
 import { useLang } from '../composables/useLang.js'
 import api from '../api/client'
+import { useTheme } from '../composables/useTheme.js'
+
+const { isDark, toggle: toggleTheme } = useTheme()
 
 const { t } = useI18n()
 const { locale, switchLang } = useLang()
@@ -216,31 +257,25 @@ const authStore = useAuthStore()
 
 const isRegister = ref(false)
 const showPass = ref(false)
+const showConfirmPass = ref(false)
 const loading = ref(false)
 const error = ref(null)
 const successKey = ref(null)
 const serverOnline = ref(false)
 const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:3000/api'
 
-const form = ref({ name: '', email: '', password: '', phone: '' })
+const form = ref({ name: '', email: '', password: '', confirmPassword: '', phone: '' })
 
-// 1. مصفوفة فيها 6 خانات فاضية للـ OTP
 const otpInputs = ref(['', '', '', '', '', ''])
-
-// 2. reference عشان نلقط صناديق الـ HTML في الكود
 const inputRefs = ref([])
 
-// 3. فانكشن بتتحكم في الحركة بين البوكسات أوتوماتيك
 const handleOtpInput = (index, event) => {
   const value = event.target.value
-
-  // لو كتب رقم، انقل للبوكس اللي بعده
   if (value && index < 5) {
     inputRefs.value[index + 1].focus()
   }
 }
 
-// 4. فانكشن عشان لو داس Backspace يرجع للبوكس اللي قبله
 const handleOtpKeyDown = (index, event) => {
   if (event.key === 'Backspace' && !otpInputs.value[index] && index > 0) {
     inputRefs.value[index - 1].focus()
@@ -256,80 +291,36 @@ onMounted(async () => {
   }
 })
 
-
-// async function submit() {
-//   error.value = null
-//   if (!form.value.email || !form.value.password) {
-//     error.value = 'Please fill in all fields'
-//     return
-//   }
-//   if (isRegister.value && (!form.value.name || !form.value.phone)) {
-//     error.value = 'Please fill in all fields'
-//     return
-//   }
-//   loading.value = true
-//   try {
-//     if (isRegister.value) {
-//       await authStore.register(form.value)
-//       success.value = 'Check your email for a verification code'
-//       showOTP.value = true
-//       // ✅ No redirect here — user must verify first
-//     } else {
-//       await authStore.login(form.value)
-//       const userRaw = localStorage.getItem('cf_user')
-//       const user = userRaw ? JSON.parse(userRaw) : null
-
-//       if (localStorage.getItem('cf_token')) {
-//         // 🎯 الحتة السحرية الجديدة: لو أدمن وديه باث الأدمن، لو لأ وديه الـ dashboard العادي
-//         if (user && user.isAdmin === true) {
-//           router.push('/admin/dashboard')
-//         } else {
-//           router.push('/dashboard')
-//         }
-//       } else {
-//         error.value = 'تم تسجيل الدخول ولكن لم يتم حفظ التوكن، تأكدي من كود الـ Store'
-//       }
-//     }
-//   } catch (err) {
-//     error.value = err.message || 'Something went wrong. Is your backend running?'
-//   } finally {
-//     loading.value = false
-//   }
-// }
-
-// // ✅ Now a top-level function, accessible from the template
-// async function verifyEmail() {
-//   error.value = null
-//   try {
-//     loading.value = true
-//     await api.post('/auth/verify-email', {
-//       email: form.value.email,
-//       code: otpInputs.value.join('') // نجمع الأرقام من المصفوفة
-//     })
-//     success.value = 'Email verified successfully 🎉'
-//     // 2. 🚀 السطر السحري: بنعمل تسجيل دخول أوتوماتيك فوراً عشان الـ Store يجيب التوكن ويسيفه
-//     await authStore.login(form.value)
-
-//     // 3. ننتقل للداش بورد والقلب جامد والتوكن متسيف
-//     router.push('/dashboard')
-//   } catch (err) {
-//     error.value = err.response?.data?.message || 'Invalid or expired code'
-//   } finally {
-//     loading.value = false
-//   }
-// }
 async function submit() {
   error.value = null
+
+  // 1. Basic validation: check email and password fields exist
   if (!form.value.email || !form.value.password) {
     error.value = t('auth.errorFillAll')
     return
   }
 
-  if (isRegister.value && (!form.value.name || !form.value.phone)) {
-    error.value = t('auth.errorFillAll')
-    return
+  // 2. Registration specific validations
+  if (isRegister.value) {
+    if (!form.value.name || !form.value.phone || !form.value.confirmPassword) {
+      error.value = t('auth.errorFillAll')
+      return
+    }
+
+    // Email format validation: check if the email contains '@'
+    if (!form.value.email.includes('@')) {
+      error.value = t('auth.wrongMail')
+      return // Halts execution here so the server is never reached
+    }
+
+    // CRITICAL FIX: Match check MUST happen before calling authStore.register
+    if (form.value.password !== form.value.confirmPassword) {
+      error.value = t('auth.errorPasswordMismatch')
+      return // Halts execution so the server is never reached
+    }
   }
 
+  // 3. Proceed to network request safely
   loading.value = true
   try {
     if (isRegister.value) {
@@ -337,19 +328,15 @@ async function submit() {
       successKey.value = 'auth.checkEmail'
       showOTP.value = true
     } else {
-      // 1. بنعمل تسجيل دخول ونستنى الـ Store يخلص تماماً
       await authStore.login(form.value)
-
-      // 2. بنشوف التوكن اتسيف ولا لأ
       await nextTick()
-
       if (localStorage.getItem('cf_token')) {
-  const userRaw = localStorage.getItem('cf_user')
-  const user = userRaw ? JSON.parse(userRaw) : null
-  router.push(user?.isAdmin ? '/admin' : '/dashboard')
-} else {
-      error.value = 'تم تسجيل الدخول ولكن لم يتم حفظ التوكن، تأكدي من كود الـ Store'
-    }
+        const userRaw = localStorage.getItem('cf_user')
+        const user = userRaw ? JSON.parse(userRaw) : null
+        router.push(user?.isAdmin ? '/admin' : '/dashboard')
+      } else {
+        error.value = t('auth.errorTokenMissing')
+      }
     }
   } catch (err) {
     error.value = err.message || t('auth.errorGeneric')
@@ -367,63 +354,40 @@ async function verifyEmail() {
       code: otpInputs.value.join('')
     })
     successKey.value = t('auth.verifiedSuccess')
-    // 2. 🚀 السطر السحري: بنعمل تسجيل دخول أوتوماتيك فوراً عشان الـ Store يجيب التوكن ويسيفه
-    // في verifyEmail() — بعد authStore.login
-await authStore.login(form.value)
-const userRaw = localStorage.getItem('cf_user')
-const user = userRaw ? JSON.parse(userRaw) : null
-router.push(user?.isAdmin ? '/admin' : '/dashboard')
+    await authStore.login(form.value)
+    const userRaw = localStorage.getItem('cf_user')
+    const user = userRaw ? JSON.parse(userRaw) : null
+    router.push(user?.isAdmin ? '/admin' : '/dashboard')
   } catch (err) {
     error.value = err.response?.data?.message || t('auth.errorInvalidCode')
   } finally {
     loading.value = false
   }
 }
-
-
-async function demoLogin() {
-  try {
-    loading.value = true;
-    error.value = null;
-
-    const response = await api.post('/auth/demo');
-
-    // 1. السطر السحري: هيطبع لنا شكل الـ response بالظبط في الـ Console عشان نفهمه
-    // console.log("الباك إند رجع لنا إيه بالظبط؟ :", response);
-
-    // 2. هنحط شرط ذكي: لو الـ response جواه (.data) هنقرأ منها، لو معندوش هنقرأ منه مباشرة
-    const responseData = response.data ? response.data : response;
-
-    // 3. بنسيف وأنتِ مطمنة لأننا أمّنا السطرين
-    localStorage.setItem('cf_token', responseData.token);
-    localStorage.setItem('cf_user', JSON.stringify(responseData.user));
-
-    router.push('/dashboard');
-
-  } catch (err) {
-    console.error("Demo login failed:", err);
-    error.value = err.response?.data?.message || 'Something went wrong';
-  } finally {
-    loading.value = false;
-  }
-}
-
 </script>
+
 <style scoped>
 .login-page {
   min-height: 100vh;
   display: grid;
   grid-template-columns: 1fr 1fr;
-  background: var(--bg, #0d0f14);
+  background: var(--bg);
 }
 
-/* ── Left panel ── */
 .login-left {
-  background: linear-gradient(160deg, #0f1623 0%, #0d0f14 100%);
-  border-right: 1px solid rgba(255, 255, 255, 0.06);
+  background: var(--surface);
+  border-inline-end: 1px solid var(--border);
   display: flex;
   align-items: stretch;
-  padding: 0;
+  position: relative;
+}
+
+.login-left::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.06);
+  pointer-events: none;
 }
 
 .login-left-inner {
@@ -455,7 +419,7 @@ async function demoLogin() {
 .brand-name {
   font-size: 17px;
   font-weight: 700;
-  color: #f0f2f5;
+  color: var(--text);
 }
 
 .left-body {
@@ -470,7 +434,7 @@ async function demoLogin() {
 .left-headline {
   font-size: 32px;
   font-weight: 700;
-  color: #f0f2f5;
+  color: var(--text);
   line-height: 1.25;
   margin: 0;
 }
@@ -481,7 +445,7 @@ async function demoLogin() {
 
 .left-sub {
   font-size: 15px;
-  color: #6b7280;
+  color: var(--sub);
   line-height: 1.7;
   margin: 0;
   max-width: 340px;
@@ -498,7 +462,7 @@ async function demoLogin() {
   align-items: center;
   gap: 12px;
   font-size: 14px;
-  color: #9ca3af;
+  color: var(--muted);
 }
 
 .feature-dot {
@@ -522,44 +486,50 @@ async function demoLogin() {
 
 .left-footer {
   font-size: 12px;
-  color: #374151;
+  color: var(--muted);
 }
 
-/* ── Right panel ── */
 .login-right {
   position: relative;
   display: flex;
   align-items: center;
   justify-content: center;
   padding: 2rem;
-  background: #13151c;
+  background: var(--surface);
 }
 
-.lang-toggle {
+.top-controls {
   position: absolute;
   top: 1.25rem;
-  right: 1.25rem;
+  inset-inline-end: 1.25rem;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.lang-toggle,
+.theme-toggle {
   display: flex;
   align-items: center;
   gap: 6px;
   font-size: 12px;
-  color: #6b7280;
+  color: var(--sub);
   background: transparent;
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  border: 1px solid var(--border);
   border-radius: 8px;
   padding: 6px 10px;
   cursor: pointer;
   transition: all 0.15s;
 }
 
-.lang-toggle:hover {
-  color: #f0f2f5;
-  border-color: rgba(255, 255, 255, 0.15);
+.lang-toggle:hover,
+.theme-toggle:hover {
+  color: var(--text);
+  border-color: var(--border-hover, rgba(255, 255, 255, 0.2));
 }
 
-[dir="rtl"] .lang-toggle {
-  right: auto;
-  left: 1.25rem;
+.theme-toggle {
+  padding: 6px 8px;
 }
 
 .form-wrap {
@@ -585,17 +555,16 @@ async function demoLogin() {
 .form-title {
   font-size: 24px;
   font-weight: 700;
-  color: #f0f2f5;
+  color: var(--text);
   margin: 0 0 6px;
 }
 
 .form-sub {
   font-size: 14px;
-  color: #6b7280;
+  color: var(--sub);
   margin: 0;
 }
 
-/* Alerts */
 .alert {
   display: flex;
   align-items: center;
@@ -614,7 +583,7 @@ async function demoLogin() {
 .alert-success {
   background: rgba(16, 185, 129, 0.08);
   border: 1px solid rgba(16, 185, 129, 0.2);
-  color: #34d399;
+  color: #059669;
 }
 
 .alert-icon {
@@ -623,7 +592,6 @@ async function demoLogin() {
   flex-shrink: 0;
 }
 
-/* Fields */
 .fields {
   display: flex;
   flex-direction: column;
@@ -645,21 +613,26 @@ async function demoLogin() {
 .field label {
   font-size: 12px;
   font-weight: 500;
-  color: #9ca3af;
+  color: var(--sub);
 }
 
 .field input,
 .pass-wrap input {
   width: 100%;
-  padding: 12px 14px;
+  padding: 12px 38px 12px 14px;
   border-radius: 10px;
-  background: rgba(255, 255, 255, 0.04);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  color: #f0f2f5;
+  background: var(--input, rgba(255, 255, 255, 0.04));
+  border: 1px solid var(--border);
+  color: var(--text);
   font-size: 14px;
   outline: none;
   transition: border-color 0.15s;
   box-sizing: border-box;
+}
+
+.login-page[dir="rtl"] .field input,
+.login-page[dir="rtl"] .pass-wrap input {
+  padding: 12px 14px 12px 38px;
 }
 
 .field input:focus,
@@ -669,7 +642,7 @@ async function demoLogin() {
 
 .field input::placeholder,
 .pass-wrap input::placeholder {
-  color: #374151;
+  color: var(--muted);
 }
 
 .pass-wrap {
@@ -678,33 +651,28 @@ async function demoLogin() {
 
 .pass-toggle {
   position: absolute;
-  right: 12px;
   top: 50%;
   transform: translateY(-50%);
   background: none;
   border: none;
   cursor: pointer;
-  color: #6b7280;
+  color: var(--sub);
   padding: 0;
   display: flex;
   align-items: center;
+  width: 20px;
+  height: 20px;
 }
 
 .pass-toggle:hover {
-  color: #9ca3af;
+  color: var(--text);
 }
 
 .pass-toggle svg {
-  width: 16px;
-  height: 16px;
+  width: 20px;
+  height: 20px;
 }
 
-[dir="rtl"] .pass-toggle {
-  right: auto;
-  left: 12px;
-}
-
-/* Buttons */
 .btn-primary {
   width: 100%;
   padding: 13px;
@@ -731,45 +699,10 @@ async function demoLogin() {
   cursor: not-allowed;
 }
 
-.btn-secondary {
-  width: 100%;
-  padding: 12px;
-  border-radius: 10px;
-  background: transparent;
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  color: #9ca3af;
-  font-size: 13px;
-  cursor: pointer;
-  transition: all 0.15s;
-}
-
-.btn-secondary:hover:not(:disabled) {
-  border-color: rgba(255, 255, 255, 0.15);
-  color: #f0f2f5;
-}
-
-.divider {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-}
-
-.divider span {
-  flex: 1;
-  height: 1px;
-  background: rgba(255, 255, 255, 0.06);
-}
-
-.divider p {
-  font-size: 12px;
-  color: #374151;
-  margin: 0;
-}
-
 .switch-mode {
   text-align: center;
   font-size: 13px;
-  color: #6b7280;
+  color: var(--sub);
   margin: 0;
 }
 
@@ -787,7 +720,6 @@ async function demoLogin() {
   color: #93c5fd;
 }
 
-/* OTP */
 .otp-row {
   display: flex;
   justify-content: center;
@@ -801,9 +733,9 @@ async function demoLogin() {
   font-size: 20px;
   font-weight: 700;
   border-radius: 10px;
-  background: rgba(255, 255, 255, 0.04);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  color: #f0f2f5;
+  background: var(--input, rgba(255, 255, 255, 0.04));
+  border: 1px solid var(--border);
+  color: var(--text);
   outline: none;
   transition: border-color 0.15s;
 }
@@ -812,16 +744,11 @@ async function demoLogin() {
   border-color: rgba(99, 102, 241, 0.6);
 }
 
-/* Spinner */
 .spin {
   width: 16px;
   height: 16px;
   animation: spin 0.8s linear infinite;
   flex-shrink: 0;
-}
-
-.back-btn {
-  display: none;
 }
 
 @keyframes spin {
@@ -830,7 +757,10 @@ async function demoLogin() {
   }
 }
 
-/* Responsive */
+.back-btn {
+  display: none;
+}
+
 @media (max-width: 768px) {
   .login-page {
     grid-template-columns: 1fr;
@@ -844,7 +774,7 @@ async function demoLogin() {
     min-height: 100vh;
     padding: 2rem 1.5rem;
     align-items: flex-start;
-    padding-top: 4rem;
+    padding-top: 4.5rem;
   }
 
   .form-wrap {
@@ -861,24 +791,19 @@ async function demoLogin() {
     gap: 6px;
     position: absolute;
     top: 1.25rem;
-    left: 1.25rem;
+    inset-inline-start: 1.25rem;
     font-size: 13px;
-    color: #6b7280;
+    color: var(--sub);
     text-decoration: none;
-    border: 1px solid rgba(255,255,255,0.08);
+    border: 1px solid var(--border);
     border-radius: 8px;
     padding: 6px 10px;
     transition: all 0.15s;
   }
+
   .back-btn:hover {
-    color: #f0f2f5;
-    border-color: rgba(255,255,255,0.15);
+    color: var(--text);
+    border-color: var(--border-hover, rgba(255, 255, 255, 0.2));
   }
-}
-
-
-[dir="rtl"] .back-btn {
-  left: auto;
-  right: 1.25rem;
 }
 </style>

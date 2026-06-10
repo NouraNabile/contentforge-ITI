@@ -20,8 +20,8 @@
       <div class="flex gap-1 sm:gap-2 mb-6 sm:mb-8 border-b border-theme pb-1 overflow-x-auto">
         <button v-for="tab in tabs" :key="tab.key" @click="activeTab = tab.key"
           class="px-3 sm:px-4 py-2 text-sm font-medium transition-all rounded-t-lg -mb-px whitespace-nowrap" :class="activeTab === tab.key
-              ? 'text-blue-500 border-b-2 border-blue-500 font-semibold'
-              : 'theme-sub hover:theme-text'
+            ? 'text-blue-500 border-b-2 border-blue-500 font-semibold'
+            : 'theme-sub hover:theme-text'
             ">
           {{ t(tab.labelKey) }}
         </button>
@@ -144,8 +144,8 @@
                 <div class="flex flex-wrap gap-2">
                   <button v-for="d in dialects" :key="d.value" @click="toggleDialect(d.value)"
                     class="px-3 py-1.5 rounded-lg text-xs transition-all border shadow-sm active:scale-95" :class="brand.dialects.includes(d.value)
-                        ? 'bg-blue-500/15 text-blue-400 border-blue-500/40 font-medium'
-                        : 'theme-border theme-sub hover:theme-text hover:bg-slate-500/5'
+                      ? 'bg-blue-500/15 text-blue-400 border-blue-500/40 font-medium'
+                      : 'theme-border theme-sub hover:theme-text hover:bg-slate-500/5'
                       ">
                     {{ t(d.labelKey) }}
                   </button>
@@ -272,7 +272,7 @@
                 <div class="flex items-center gap-2 px-3 sm:px-4 py-3 border-b flex-wrap"
                   style="border-color:var(--border)">
                   <span class="text-[11px] px-2 py-0.5 rounded-full font-medium shrink-0"
-                    :class="platformBadge(post.platform)">{{ post.platform }}</span>
+                    :class="platformBadge(post.platform)">{{ t(getPlatformKey(post.platform)) }}</span>
                   <span class="text-[11px] theme-muted shrink-0">{{ post.date || '—' }}</span>
                   <span v-if="post.embedded" class="flex items-center gap-1 text-[10px] text-teal-400 shrink-0">
                     <div class="w-1.5 h-1.5 rounded-full bg-teal-400"></div>
@@ -351,7 +351,7 @@
             <div class="grid grid-cols-3 gap-2 sm:gap-4">
               <div class="text-center">
                 <p class="text-base sm:text-lg font-display font-700 text-white">{{topPosts.filter(p =>
-                  p.embedded).length }}
+                  p.embedded).length}}
                 </p>
                 <p class="text-[10px] theme-muted">{{ t('branding.postsEmbedded') }}</p>
               </div>
@@ -361,7 +361,8 @@
               </div>
               <div class="text-center">
                 <p class="text-base sm:text-lg font-display font-700 text-blue-400">{{topPosts.length ?
-                  Math.round(topPosts.reduce((a, p) => a + (p.stats?.engagementRate || 0), 0) /topPosts.length) : 0 }}%</p>
+                  Math.round(topPosts.reduce((a, p) => a + (p.stats?.engagementRate || 0), 0) / topPosts.length) : 0}}%
+                </p>
                 <p class="text-[10px] theme-muted">{{ t('branding.avgEngagement') }}</p>
               </div>
             </div>
@@ -423,7 +424,7 @@
                     @click="$refs.docInput.click()">
                     <div class="text-3xl mb-2">📎</div>
                     <p class="text-sm theme-sub font-medium">{{ docFile ? docFile.name : t('branding.tpDocDrop') }}</p>
-                    <p class="text-xs theme-muted mt-1">PDF, DOCX, PNG, JPG</p>
+                    <p class="text-xs theme-muted mt-1">{{ t('branding.docFormatsHint') }}</p>
                     <input ref="docInput" type="file" accept=".pdf,.docx,.doc,.png,.jpg,.jpeg,.webp" class="hidden"
                       @change="handleDocFile" />
                   </div>
@@ -441,11 +442,13 @@
                   <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     <div>
                       <label class="text-[11px] theme-muted mb-1 block font-medium">{{ t('branding.tpPlatform')
-                        }}</label>
+                      }}</label>
                       <select v-model="newPost.platform"
                         class="w-full px-3 py-2 rounded-xl theme-input theme-border text-sm theme-text focus:outline-none focus:border-blue-500/40 bg-transparent">
-                        <option v-for="p in ['Instagram', 'Facebook', 'LinkedIn', 'Twitter/X', 'TikTok']" :key="p"
-                          class="bg-slate-800 text-white">{{ p }}</option>
+                        <option v-for="p in platformOptions" :key="p.name" :value="p.name"
+                          class="theme-surface theme-text">
+                          {{ t(p.labelKey) }}
+                        </option>
                       </select>
                     </div>
                     <div>
@@ -468,11 +471,12 @@
                   </div>
                   <div>
                     <label class="text-[11px] theme-muted mb-2 block font-semibold">📊 {{ t('branding.tpStats')
-                      }}</label>
+                    }}</label>
                     <div class="grid grid-cols-2 sm:grid-cols-3 gap-3">
                       <div v-for="stat in ['likes', 'comments', 'shares', 'reach', 'saves']" :key="stat">
-                        <label class="text-[10px] theme-muted capitalize block mb-1 font-medium">{{ t('branding.stat' +
-                          stat.charAt(0).toUpperCase() + stat.slice(1)) }}</label>
+                        <label class="text-[10px] theme-muted capitalize block mb-1 font-medium">
+                          {{ t('branding.stat' + stat.charAt(0).toUpperCase() + stat.slice(1)) }}
+                        </label>
                         <input v-model.number="newPost.stats[stat]" type="number" min="0"
                           class="w-full px-2 py-2 rounded-xl theme-input theme-border text-sm theme-text focus:outline-none focus:border-blue-500/40 text-center" />
                       </div>
@@ -488,7 +492,7 @@
 
                 <p v-if="addError"
                   class="text-xs text-rose-400 bg-rose-500/10 px-3 py-2 rounded-xl border border-rose-500/20">{{
-                  addError }}
+                    addError }}
                 </p>
               </div>
 
@@ -834,6 +838,11 @@ function removePdf() {
 
 function handleLogo(e) {
   console.log(e.target.files[0]);
+}
+
+function getPlatformKey(platformName) {
+  const match = platformOptions.find(p => p.name === platformName || platformName === 'Twitter/X' && p.name === 'X');
+  return match ? match.labelKey : 'branding.platform.instagram';
 }
 </script>
 

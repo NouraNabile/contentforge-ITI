@@ -75,6 +75,11 @@ const router = createRouter({
       ],
     },
     { path: '/contact', component: ContactPage },
+    ,
+    {
+      path: '/payment-success',
+      component: PaymentSuccessPage
+    },
   ],
   scrollBehavior(to) {
     if (to.hash) return { el: to.hash, behavior: "smooth" };

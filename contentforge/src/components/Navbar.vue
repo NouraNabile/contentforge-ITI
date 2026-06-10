@@ -10,22 +10,26 @@
             <path d="M3 8L7 12L13 4" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
           </svg>
         </div>
-        <span class="font-display font-700 text-lg text-white tracking-tight">ContentForge</span>
+        <span class="font-display font-700 text-lg tracking-tight"
+          :class="isDark ? 'text-white' : 'text-slate-900'">ContentForge</span>
       </RouterLink>
 
       <!-- Desktop nav -->
       <div class="hidden md:flex items-center gap-8">
         <a v-for="link in navLinks" :key="link.labelKey" :href="link.href"
-          class="text-sm text-slate-400 hover:text-white transition-colors duration-200">
+          class="text-sm transition-colors duration-200"
+          :class="isDark ? 'text-slate-400 hover:text-white' : 'text-slate-600 hover:text-slate-900'">
           {{ t(link.labelKey) }}
         </a>
       </div>
 
       <!-- Right side -->
-      <div class="flex items-center gap-3">
+      <div class="flex items-center gap-2 sm:gap-3">
+
         <!-- Lang toggle -->
         <button @click="switchLang"
-          class="flex items-center gap-1.5 text-sm text-slate-400 hover:text-white transition-colors px-2 py-1 rounded-lg hover:bg-white/5">
+          class="flex items-center gap-1.5 text-sm transition-colors px-2 py-1 rounded-lg"
+          :class="isDark ? 'text-slate-400 hover:text-white hover:bg-white/5' : 'text-slate-600 hover:text-slate-900 hover:bg-black/5'">
           <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
               d="M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18zm0 0c-4.97 0-9-4.03-9-9m9 9c4.97 0 9-4.03 9-9M3 12h18M12 3c-2.5 2.5-4 5.5-4 9s1.5 6.5 4 9M12 3c2.5 2.5 4 5.5 4 9s-1.5 6.5-4 9"/>
@@ -33,8 +37,25 @@
           <span class="hidden sm:inline">{{ locale === 'en' ? 'عربي' : 'English' }}</span>
         </button>
 
+        <!-- Theme toggle -->
+        <button @click="toggleTheme"
+          class="w-8 h-8 rounded-lg flex items-center justify-center transition-colors"
+          :class="isDark ? 'text-slate-400 hover:text-white hover:bg-white/5' : 'text-slate-600 hover:text-slate-900 hover:bg-black/5'"
+          :title="isDark ? t('layout.switchLight') : t('layout.switchDark')">
+          <svg v-if="isDark" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+              d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364-6.364l-.707.707M6.343 17.657l-.707.707M17.657 17.657l-.707-.707M6.343 6.343l-.707-.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"/>
+          </svg>
+          <svg v-else class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+              d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"/>
+          </svg>
+        </button>
+
         <!-- Desktop-only links -->
-        <RouterLink to="/dashboard" class="hidden md:block text-sm text-slate-400 hover:text-white transition-colors">
+        <RouterLink to="/dashboard"
+          class="hidden md:block text-sm transition-colors"
+          :class="isDark ? 'text-slate-400 hover:text-white' : 'text-slate-600 hover:text-slate-900'">
           {{ t('navbar.previewDashboard') }}
         </RouterLink>
         <a href="#get-started"
@@ -44,12 +65,17 @@
 
         <!-- Hamburger — mobile only -->
         <button @click="menuOpen = !menuOpen"
-          class="md:hidden flex items-center justify-center w-9 h-9 rounded-lg hover:bg-white/5 transition-colors"
-          :aria-label="menuOpen ? 'Close menu' : 'Open menu'">
-          <svg v-if="!menuOpen" class="w-5 h-5 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          class="md:hidden flex items-center justify-center w-9 h-9 rounded-lg transition-colors"
+          :class="isDark ? 'hover:bg-white/5' : 'hover:bg-black/5'"
+          :aria-label="menuOpen ? t('navbar.closeMenu') : t('navbar.openMenu')">
+          <svg v-if="!menuOpen" class="w-5 h-5"
+            :class="isDark ? 'text-slate-400' : 'text-slate-600'"
+            fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/>
           </svg>
-          <svg v-else class="w-5 h-5 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <svg v-else class="w-5 h-5"
+            :class="isDark ? 'text-slate-400' : 'text-slate-600'"
+            fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
           </svg>
         </button>
@@ -59,15 +85,18 @@
     <!-- Mobile menu -->
     <Transition name="menu">
       <div v-if="menuOpen"
-        class="md:hidden bg-forge-950 border-t border-white/10 px-6 py-5 flex flex-col gap-4 shadow-xl shadow-black/40">
+        class="md:hidden border-t px-6 py-5 flex flex-col gap-4 shadow-xl"
+        :class="isDark ? 'bg-forge-950 border-white/10 shadow-black/40' : 'bg-white border-slate-200 shadow-slate-200/60'">
         <a v-for="link in navLinks" :key="link.labelKey" :href="link.href"
           @click="menuOpen = false"
-          class="text-sm text-slate-400 hover:text-white transition-colors py-1">
+          class="text-sm transition-colors py-1"
+          :class="isDark ? 'text-slate-400 hover:text-white' : 'text-slate-600 hover:text-slate-900'">
           {{ t(link.labelKey) }}
         </a>
-        <div class="h-px bg-white/5"></div>
+        <div class="h-px" :class="isDark ? 'bg-white/5' : 'bg-slate-100'"></div>
         <RouterLink to="/dashboard" @click="menuOpen = false"
-          class="text-sm text-slate-400 hover:text-white transition-colors py-1">
+          class="text-sm transition-colors py-1"
+          :class="isDark ? 'text-slate-400 hover:text-white' : 'text-slate-600 hover:text-slate-900'">
           {{ t('navbar.previewDashboard') }}
         </RouterLink>
         <a href="#get-started" @click="menuOpen = false"
@@ -82,16 +111,17 @@
 
 <script setup>
 import { ref, onMounted, onUnmounted } from 'vue'
-import { RouterLink, useRoute } from 'vue-router'
+import { RouterLink } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { useLang } from '../composables/useLang.js'
+import { useTheme } from '../composables/useTheme.js'
 
 const { t } = useI18n()
 const { locale, switchLang } = useLang()
-const route = useRoute()
+const { isDark, toggle: toggleTheme } = useTheme()
 
-const scrolled  = ref(false)
-const menuOpen  = ref(false)
+const scrolled = ref(false)
+const menuOpen = ref(false)
 
 const navLinks = [
   { labelKey: 'navbar.links.features',    href: '#features' },
@@ -102,7 +132,7 @@ const navLinks = [
 
 function handleScroll() {
   scrolled.value = window.scrollY > 40
-  if (menuOpen.value) menuOpen.value = false  // close on scroll
+  if (menuOpen.value) menuOpen.value = false
 }
 
 onMounted(() => window.addEventListener('scroll', handleScroll))
@@ -113,4 +143,3 @@ onUnmounted(() => window.removeEventListener('scroll', handleScroll))
 .menu-enter-active, .menu-leave-active { transition: opacity 0.2s ease, transform 0.2s ease; }
 .menu-enter-from, .menu-leave-to       { opacity: 0; transform: translateY(-6px); }
 </style>
-

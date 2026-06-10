@@ -1,80 +1,51 @@
 <!-- ChatPage.vue -->
 <template>
   <AppLayout>
-    <div class="flex h-full overflow-hidden">
+    <div class="flex h-full overflow-hidden relative">
+
       <!-- Left: Chat -->
       <div class="flex-1 flex flex-col min-w-0">
+
         <!-- Chat header -->
-        <div class="px-6 py-4 border-b theme-glass flex items-center justify-between shrink-0"
+        <div class="px-4 sm:px-6 py-4 border-b theme-glass flex items-center justify-between shrink-0"
           style="border-color: var(--border)">
           <div class="flex items-center gap-3">
             <div
               class="w-8 h-8 rounded-xl bg-gradient-to-br from-blue-500 to-teal-400 flex items-center justify-center text-sm">
               🧠
             </div>
-            <div>
-              <p class="text-sm font-medium theme-text">ContentForge AI</p>
-              <!-- <div class="flex items-center gap-1.5">
-                <div
-                  class="w-1.5 h-1.5 rounded-full animate-pulse"
-                  :class="brandLoaded ? 'bg-green-400' : 'bg-amber-400'"
-                ></div>
-                <p class="text-[10px] theme-muted">
-                  {{
-                    brandLoaded
-                      ? `Gemini 2.5 Flash · ${currentBrand.name} loaded`
-                      : "Gemini 2.5 Flash · No brand loaded"
-                  }}
-                </p>
-              </div> -->
-            </div>
+            <p class="text-sm font-medium theme-text">ContentForge AI</p>
           </div>
           <div class="flex items-center gap-2">
             <button @click="clearChat"
               class="text-xs theme-muted hover:theme-text px-3 py-1.5 rounded-lg theme-card theme-border transition-colors">
               {{ t('chat.clearChat') }}
             </button>
-            <!-- <button
-              @click="showUpload = true"
-              class="text-xs text-blue-400 px-3 py-1.5 rounded-lg bg-blue-600/10 border border-blue-500/20 hover:bg-blue-600/20 transition-colors flex items-center gap-1.5"
-            >
-              <svg
-                class="w-3.5 h-3.5"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-              >
-                <path
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  stroke-width="2"
-                  d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"
-                />
+            <!-- Context toggle — mobile only -->
+            <button @click="contextOpen = !contextOpen"
+              class="lg:hidden text-xs theme-muted hover:theme-text px-3 py-1.5 rounded-lg theme-card theme-border transition-colors flex items-center gap-1.5">
+              <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                  d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
               </svg>
-              Upload Files
-            </button> -->
+            </button>
           </div>
         </div>
 
         <!-- Messages -->
-        <div ref="msgContainer" class="flex-1 overflow-y-auto p-6 space-y-4 scrollbar-thin">
+        <div ref="msgContainer" class="flex-1 overflow-y-auto p-4 sm:p-6 space-y-4 scrollbar-thin">
+
           <!-- Welcome -->
           <div v-if="messages.length === 0" class="flex flex-col items-center justify-center h-full text-center py-10">
             <div
               class="w-14 h-14 rounded-2xl bg-gradient-to-br from-blue-500 to-teal-400 flex items-center justify-center text-2xl mb-4">
               🧠
             </div>
-            <h2 class="font-display text-xl font-600 theme-text mb-2">
-              {{ t('chat.welcomeTitle') }}
-            </h2>
+            <h2 class="font-display text-xl font-600 theme-text mb-2">{{ t('chat.welcomeTitle') }}</h2>
             <p class="text-sm theme-sub max-w-md mb-6">
-              {{
-                brandLoaded
-                  ? t('chat.brandLoaded', { name: currentBrand.name })
-                  : t('chat.noBrand')
-              }}
+              {{ brandLoaded ? t('chat.brandLoaded', { name: currentBrand.name }) : t('chat.noBrand') }}
             </p>
-            <div class="grid grid-cols-2 gap-2 w-full max-w-lg">
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 w-full max-w-lg">
               <button v-for="s in suggestions" :key="s.key" @click="sendSuggestion(t(s.key))"
                 class="text-left px-4 py-3 rounded-xl theme-surface theme-border text-xs theme-sub hover:theme-text hover:border-blue-500/30 transition-all">
                 {{ t(s.key) }}
@@ -85,21 +56,18 @@
           <!-- Message bubbles -->
           <div v-for="msg in messages" :key="msg.id" class="flex gap-3"
             :class="msg.role === 'user' ? 'flex-row-reverse' : ''">
-            <div class="w-7 h-7 rounded-full shrink-0 flex items-center justify-center text-xs font-bold" :class="msg.role === 'user'
-              ? 'bg-gradient-to-br from-blue-500 to-teal-400 text-white'
-              : 'bg-blue-600/15 text-blue-400'
-              ">
-              {{ msg.role === "user" ? userInitial : "🧠" }}
+            <div class="w-7 h-7 rounded-full shrink-0 flex items-center justify-center text-xs font-bold"
+              :class="msg.role === 'user' ? 'bg-gradient-to-br from-blue-500 to-teal-400 text-white' : 'bg-blue-600/15 text-blue-400'">
+              {{ msg.role === 'user' ? userInitial : '🧠' }}
             </div>
-            <div class="max-w-[75%] flex flex-col gap-1" :class="msg.role === 'user' ? 'items-end' : 'items-start'">
+            <div class="max-w-[80%] sm:max-w-[75%] flex flex-col gap-1"
+              :class="msg.role === 'user' ? 'items-end' : 'items-start'">
               <div v-if="msg.file"
                 class="flex items-center gap-2 px-3 py-2 rounded-xl theme-card theme-border text-xs theme-sub mb-1">
-                <span>📎</span> {{ msg.file }}
+                <span>📎</span>{{ msg.file }}
               </div>
-              <div class="px-4 py-3 rounded-2xl text-sm leading-relaxed" :class="msg.role === 'user'
-                ? 'bg-blue-600 text-white rounded-tr-sm'
-                : 'theme-surface theme-border theme-text rounded-tl-sm'
-                ">
+              <div class="px-4 py-3 rounded-2xl text-sm leading-relaxed"
+                :class="msg.role === 'user' ? 'bg-blue-600 text-white rounded-tr-sm' : 'theme-surface theme-border theme-text rounded-tl-sm'">
                 <div v-html="formatMsg(msg.content)"></div>
               </div>
               <div v-if="msg.role === 'ai' && msg.error" class="text-[10px] text-rose-400 px-1">
@@ -111,31 +79,27 @@
 
           <!-- Typing indicator -->
           <div v-if="isTyping" class="flex gap-3">
-            <div class="w-7 h-7 rounded-full bg-blue-600/15 flex items-center justify-center text-xs">
-              🧠
-            </div>
+            <div class="w-7 h-7 rounded-full bg-blue-600/15 flex items-center justify-center text-xs">🧠</div>
             <div class="px-4 py-3 rounded-2xl theme-surface theme-border rounded-tl-sm">
               <div class="flex gap-1 items-center h-4">
-                <div class="w-1.5 h-1.5 rounded-full bg-blue-400 animate-bounce" style="animation-delay: 0ms"></div>
-                <div class="w-1.5 h-1.5 rounded-full bg-blue-400 animate-bounce" style="animation-delay: 150ms"></div>
-                <div class="w-1.5 h-1.5 rounded-full bg-blue-400 animate-bounce" style="animation-delay: 300ms"></div>
+                <div class="w-1.5 h-1.5 rounded-full bg-blue-400 animate-bounce" style="animation-delay:0ms"></div>
+                <div class="w-1.5 h-1.5 rounded-full bg-blue-400 animate-bounce" style="animation-delay:150ms"></div>
+                <div class="w-1.5 h-1.5 rounded-full bg-blue-400 animate-bounce" style="animation-delay:300ms"></div>
               </div>
             </div>
           </div>
         </div>
 
         <!-- Input bar -->
-        <div class="px-6 py-4 border-t shrink-0" style="border-color: var(--border)">
+        <div class="px-4 sm:px-6 py-4 border-t shrink-0" style="border-color: var(--border)">
           <div v-if="attachedFiles.length" class="flex gap-2 flex-wrap mb-3">
             <div v-for="(f, i) in attachedFiles" :key="i"
               class="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-blue-600/10 text-blue-400 text-xs border border-blue-500/20">
               <span>📎</span>{{ f }}
-              <button @click="attachedFiles.splice(i, 1)" class="ml-1 hover:text-blue-200">
-                ×
-              </button>
+              <button @click="attachedFiles.splice(i, 1)" class="ml-1 hover:text-blue-200">×</button>
             </div>
           </div>
-          <div class="flex gap-3 items-end">
+          <div class="flex gap-2 sm:gap-3 items-end">
             <label
               class="w-9 h-9 rounded-xl theme-card theme-border flex items-center justify-center theme-muted hover:theme-text cursor-pointer transition-colors shrink-0">
               <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -157,15 +121,32 @@
               </svg>
             </button>
           </div>
-          <p class="text-[10px] theme-muted mt-2 text-center">
-            {{ t('chat.sendHint') }}
-          </p>
+          <p class="text-[10px] theme-muted mt-2 text-center">{{ t('chat.sendHint') }}</p>
         </div>
       </div>
 
+      <!-- Mobile backdrop -->
+      <Transition name="fade">
+        <div v-if="contextOpen" class="fixed inset-0 z-30 bg-black/50 lg:hidden" @click="contextOpen = false" />
+      </Transition>
+
       <!-- Right: Context panel -->
-      <div class="w-64 border-l shrink-0 overflow-y-auto p-4 space-y-4 scrollbar-thin"
+      <div
+        class="fixed lg:relative right-0 top-0 h-full z-40 lg:z-auto w-72 lg:w-64 border-l shrink-0 overflow-y-auto lg:p-4 p-4 pt-16 space-y-4 scrollbar-thin transition-transform duration-300 theme-sidebar"
+        :class="contextOpen || isLargeScreen ? 'translate-x-0' : 'translate-x-full'"
         style="border-color: var(--border)">
+
+        <!-- Close — mobile only -->
+        <div class="flex items-center justify-between lg:hidden mb-4 pb-3 border-b" style="border-color: var(--border)">
+          <p class="text-xs font-semibold theme-text">{{ t('chat.brandContext') }}</p>
+          <button @click="contextOpen = false"
+            class="w-7 h-7 rounded-lg theme-card theme-border flex items-center justify-center theme-muted hover:theme-text transition-colors">
+            <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+        </div>
+
         <!-- Brand context -->
         <div class="rounded-xl theme-surface theme-border p-4">
           <p class="text-xs font-medium theme-text mb-3">🧠 {{ t('chat.brandContext') }}</p>
@@ -193,7 +174,7 @@
         <div class="rounded-xl theme-surface theme-border p-4">
           <p class="text-xs font-medium theme-text mb-3">⚡ {{ t('chat.quickPrompts') }}</p>
           <div class="space-y-1.5">
-            <button v-for="p in quickPrompts" :key="p.key" @click="sendSuggestion(t(p.key))"
+            <button v-for="p in quickPrompts" :key="p.key" @click="sendSuggestion(t(p.key)); contextOpen = false"
               class="w-full text-left px-3 py-2 rounded-lg theme-card theme-border text-[11px] theme-sub hover:theme-text hover:border-blue-500/20 transition-all">
               {{ t(p.key) }}
             </button>
@@ -204,7 +185,8 @@
         <div class="rounded-xl theme-surface theme-border p-4">
           <p class="text-xs font-medium theme-text mb-3">🕘 {{ t('chat.pastConversations') }}</p>
           <div v-if="pastConversations.length" class="space-y-1.5">
-            <button v-for="conv in pastConversations" :key="conv._id" @click="loadConversation(conv._id)"
+            <button v-for="conv in pastConversations" :key="conv._id"
+              @click="loadConversation(conv._id); contextOpen = false"
               class="w-full text-left px-3 py-2 rounded-lg theme-card theme-border text-[11px] theme-sub hover:theme-text hover:border-blue-500/20 transition-all truncate"
               :class="conv._id === conversationId ? 'border-blue-500/30 text-blue-400' : ''">
               {{ conv.preview }}
@@ -216,56 +198,14 @@
             {{ t('chat.newConversation') }}
           </button>
         </div>
-
-        <!-- Session files -->
-        <!-- <div class="rounded-xl theme-surface theme-border p-4">
-          <p class="text-xs font-medium theme-text mb-3">📎 Session Files</p>
-          <div v-if="sessionFiles.length" class="space-y-2">
-            <div
-              v-for="f in sessionFiles"
-              :key="f.name"
-              class="flex items-center gap-2 p-2 rounded-lg theme-card theme-border"
-            >
-              <span class="text-sm">{{ f.icon }}</span>
-              <div class="flex-1 min-w-0">
-                <p class="text-[11px] theme-text truncate">{{ f.name }}</p>
-                <p class="text-[10px] theme-muted">{{ f.size }}</p>
-              </div>
-            </div>
-          </div>
-          <p v-else class="text-[11px] theme-muted">No files uploaded yet.</p>
-          <label
-            class="mt-3 w-full flex items-center justify-center gap-2 py-2 rounded-lg border border-dashed theme-muted hover:theme-text cursor-pointer transition-colors text-[11px]"
-            style="border-color: var(--border)"
-          >
-            <svg
-              class="w-3.5 h-3.5"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-            >
-              <path
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                stroke-width="2"
-                d="M12 4v16m8-8H4"
-              />
-            </svg>
-            Upload file
-            <input
-              type="file"
-              class="hidden"
-              @change="handleSideUpload"
-              multiple
-            />
-          </label>
-        </div> -->
       </div>
+
     </div>
 
     <!-- Upload modal -->
-    <div v-if="showUpload" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-6">
-      <div class="theme-surface rounded-2xl theme-border max-w-md w-full p-7 theme-shadow">
+    <div v-if="showUpload"
+      class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-end sm:items-center justify-center p-0 sm:p-6">
+      <div class="theme-surface rounded-t-2xl sm:rounded-2xl theme-border max-w-md w-full p-6 sm:p-7 theme-shadow">
         <div class="flex items-center justify-between mb-5">
           <h2 class="font-display text-lg font-600 theme-text">{{ t('chat.uploadModalTitle') }}</h2>
           <button @click="showUpload = false" class="theme-muted hover:theme-text">
@@ -280,48 +220,43 @@
           <div class="text-3xl mb-3">📂</div>
           <p class="text-sm font-medium theme-text mb-1">{{ t('chat.uploadDropHint') }}</p>
           <p class="text-xs theme-muted mb-4">{{ t('chat.uploadFormats') }}</p>
-          <label class="px-4 py-2 rounded-xl bg-blue-600 text-white text-xs font-medium hover:bg-blue-500 cursor-pointer transition-colors">
+          <label
+            class="px-4 py-2 rounded-xl bg-blue-600 text-white text-xs font-medium hover:bg-blue-500 cursor-pointer transition-colors">
             {{ t('chat.browseFiles') }}
             <input type="file" class="hidden" multiple @change="handleModalUpload" />
           </label>
         </div>
         <div v-if="pendingFiles.length" class="space-y-2 mb-4">
-          <div
-            v-for="f in pendingFiles"
-            :key="f"
-            class="flex items-center gap-2 px-3 py-2 rounded-lg theme-card theme-border text-xs theme-sub"
-          >
+          <div v-for="f in pendingFiles" :key="f"
+            class="flex items-center gap-2 px-3 py-2 rounded-lg theme-card theme-border text-xs theme-sub">
             <span>📄</span>{{ f }}
           </div>
         </div>
         <div class="flex gap-3">
-          <button
-            @click="showUpload = false"
-            class="flex-1 py-2.5 rounded-xl theme-card theme-border theme-sub text-sm hover:theme-text transition-colors"
-          >
+          <button @click="showUpload = false"
+            class="flex-1 py-2.5 rounded-xl theme-card theme-border theme-sub text-sm hover:theme-text transition-colors">
             {{ t('common.cancel') }}
           </button>
-          <button
-            @click="confirmUpload"
-            :disabled="!pendingFiles.length"
-            class="flex-1 py-2.5 rounded-xl bg-blue-600 text-white text-sm hover:bg-blue-500 transition-colors disabled:opacity-50"
-          >
+          <button @click="confirmUpload" :disabled="!pendingFiles.length"
+            class="flex-1 py-2.5 rounded-xl bg-blue-600 text-white text-sm hover:bg-blue-500 transition-colors disabled:opacity-50">
             {{ t('chat.uploadAndEmbed') }}
           </button>
         </div>
       </div>
     </div>
+
   </AppLayout>
 </template>
 
 <script setup>
-import { ref, computed, onMounted, nextTick } from "vue";
+import { ref, computed, onMounted, onUnmounted, nextTick } from "vue";
 import AppLayout from "../components/AppLayout.vue";
 import api from "../api/client";
 import { useI18n } from "vue-i18n";
 import brandApi from "../api/brandApi";
 
 const { t } = useI18n();
+
 
 // ── State ─────────────────────────────────────────────────────────────────────
 const input = ref("");
@@ -336,6 +271,8 @@ const currentBrand = ref(null);
 const brandLoaded = ref(false);
 const ragChunks = ref(0);
 const userInitial = ref("U");
+const contextOpen = ref(false);
+const isLargeScreen = ref(window.innerWidth >= 1024);
 
 // ✅ Persist conversationId across page refreshes within the same tab session
 const storedConvId = sessionStorage.getItem("cf_conversationId") || crypto.randomUUID();
@@ -348,14 +285,18 @@ const pastConversations = ref([]);
 // chat history نبعته للـ API عشان Gemini يتذكر المحادثة
 const chatHistory = ref([]);
 
+function onResize() { isLargeScreen.value = window.innerWidth >= 1024 }
+onMounted(() => window.addEventListener('resize', onResize))
+onUnmounted(() => window.removeEventListener('resize', onResize))
+
 // ── Brand context — labelKey instead of hardcoded label ───────────────────────
 const brandContext = computed(() => {
   if (!currentBrand.value) return [];
   return [
-    { labelKey: "chat.brand",    value: currentBrand.value.name,                              color: "theme-text" },
-    { labelKey: "chat.dialect",  value: currentBrand.value.dialects?.[0] || "—",              color: "text-blue-400" },
-    { labelKey: "chat.tone",     value: currentBrand.value.tones?.slice(0, 2).join(", ") || "—", color: "text-teal-400" },
-    { labelKey: "chat.industry", value: currentBrand.value.industry || "—",                   color: "theme-muted" },
+    { labelKey: "chat.brand", value: currentBrand.value.name, color: "theme-text" },
+    { labelKey: "chat.dialect", value: currentBrand.value.dialects?.[0] || "—", color: "text-blue-400" },
+    { labelKey: "chat.tone", value: currentBrand.value.tones?.slice(0, 2).join(", ") || "—", color: "text-teal-400" },
+    { labelKey: "chat.industry", value: currentBrand.value.industry || "—", color: "theme-muted" },
   ];
 });
 
@@ -480,6 +421,8 @@ const quickPrompts = [
 
 onMounted(async () => {
 
+  window.addEventListener('resize', onResize)
+
   let brandId = localStorage.getItem("cf_brandId");
 
   // 🧠 1. LOAD CACHE FIRST (always instant)
@@ -559,7 +502,7 @@ async function sendMessage() {
         const { conversations } = await api.get(`/chat/conversations/${brandId}`);
         pastConversations.value = conversations || [];
         localStorage.setItem("cf_conversations", JSON.stringify(pastConversations.value));
-      } catch {}
+      } catch { }
     }
   } catch (err) {
     messages.value.push({
@@ -591,7 +534,7 @@ async function loadConversation(id) {
     }));
     await nextTick();
     scrollBottom();
-  } catch {}
+  } catch { }
 }
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
@@ -676,3 +619,15 @@ function handleDrop(e) {
 //   showUpload.value = false;
 // }
 </script>
+
+<style scoped>
+.fade-enter-active,
+.fade-leave-active {
+  transition: opacity 0.2s ease;
+}
+
+.fade-enter-from,
+.fade-leave-to {
+  opacity: 0;
+}
+</style>

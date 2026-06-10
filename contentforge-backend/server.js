@@ -83,6 +83,7 @@ app.use("/api/chat", chatRoutes);
 app.use("/api/admin", require("./routes/admin"));
 app.use("/api/stats", require("./routes/stats"));
 app.use("/api/connections", require("./routes/connections"));
+app.use("/api/payment", require("./routes/payment"));
 // Mount poster routes at /api/posters
 app.use("/api/posters", posterRoutes);
 // Serve generated images statically

@@ -1286,9 +1286,63 @@
       "saveFailed": "Something went wrong"
     },
     "trendsPage": {
-    "topArabicTrends": "Top Arabic Trends",
-    "topics": "topics",
-    "noTrends": "No trends data yet"
-  }
+      "topArabicTrends": "Top Arabic Trends",
+      "topics": "topics",
+      "noTrends": "No trends data yet"
+    },
+    "usersPage": {
+      "searchPlaceholder": "Search by name or email…",
+      "allPlans": "All plans",
+      "free": "Free",
+      "pro": "Pro",
+      "enterprise": "Enterprise",
+      "users": "users",
+      "table": {
+        "user": "User",
+        "phone": "Phone",
+        "plan": "Plan",
+        "trialEnds": "Trial Ends",
+        "verified": "Verified",
+        "joined": "Joined",
+        "actions": "Actions"
+      },
+      "loading": "Loading users…",
+      "noUsers": "No users found",
+      "admin": "Admin",
+      "deletionRequested": "Deletion Requested",
+      "block": "Block",
+      "unblock": "Unblock",
+      "cancelWarning": "Cancel Warning",
+      "edit": "Edit",
+      "approveDeletion": "Approve Deletion",
+      "endsIn": "Ends in",
+      "trial": "Trial",
+      "daysShort": "d",
+      "trialExpired": "Trial expired",
+      "prev": "Prev",
+      "next": "Next",
+      "pageOf": "Page {current} of {total}",
+      "editUser": "Edit User",
+      "plan": "Plan",
+      "trialActive": "Trial Active",
+      "yes": "Yes",
+      "no": "No",
+      "trialEndsAt": "Trial Ends At",
+      "emailVerified": "Email Verified",
+      "verified": "Verified",
+      "notVerified": "Not verified",
+      "isAdmin": "Is Admin",
+      "saving": "Saving…",
+      "saveChanges": "Save changes",
+      "cancel": "Cancel",
+      "deleteUser": "Delete User",
+      "deleteConfirm": "Are you sure you want to permanently delete {name}? This cannot be undone.",
+      "deleting": "Deleting…",
+      "yesDelete": "Yes, delete",
+      "issueWarning": "Issue Policy Violation Warning",
+      "warningDesc": "Please provide a reason. The user will receive an email and a 24-hour grace period before final block.",
+      "warningPlaceholder": "e.g., Using abusive language in content generation...",
+      "confirmWarning": "Confirm & Send Alert"
+    }
   }
 }

@@ -1,84 +1,226 @@
 <template>
-  <div class="admin-users">
+  <div class="flex flex-col gap-5">
 
     <!-- Toolbar -->
-    <div class="toolbar">
-      <div class="search-wrap">
-        <svg class="search-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-        <input v-model="search" type="text" placeholder="Search by name or email…" class="search-input" @input="onSearch"/>
+    <div class="flex items-center gap-3 flex-wrap">
+      <!-- Search -->
+      <div class="relative flex-1 min-w-[220px]">
+        <svg class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4" :class="isDark ? 'text-slate-400' : 'text-slate-600'" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+          <circle cx="11" cy="11" r="8"/>
+          <line x1="21" y1="21" x2="16.65" y2="16.65"/>
+        </svg>
+        <input 
+          v-model="search" 
+          type="text" 
+          :placeholder="t('admin.usersPage.searchPlaceholder')" 
+          class="w-full pl-9 pr-3 py-2.5 rounded-xl text-sm border focus:outline-none focus:border-blue-500/40"
+          :class="isDark 
+            ? 'bg-slate-800 border-white/10 text-white placeholder-slate-500' 
+            : 'bg-white border-slate-200 text-slate-900 placeholder-slate-400'"
+          @input="onSearch"
+        />
       </div>
-      <div class="filters">
-        <select v-model="planFilter" @change="fetchUsers(1)" class="filter-select">
-          <option value="">All plans</option>
-          <option value="free">Free</option>
-          <option value="pro">Pro</option>
-          <option value="enterprise">Enterprise</option>
-        </select>
+      
+      <!-- Plan Filter -->
+      <select 
+        v-model="planFilter" 
+        @change="fetchUsers(1)" 
+        class="px-3 py-2.5 rounded-xl text-sm border cursor-pointer focus:outline-none focus:border-blue-500/40"
+        :class="isDark 
+          ? 'bg-slate-800 border-white/10 text-white' 
+          : 'bg-white border-slate-200 text-slate-900'"
+      >
+        <option value="">{{ t('admin.usersPage.allPlans') }}</option>
+        <option value="free">{{ t('admin.usersPage.free') }}</option>
+        <option value="pro">{{ t('admin.usersPage.pro') }}</option>
+        <option value="enterprise">{{ t('admin.usersPage.enterprise') }}</option>
+      </select>
+      
+      <!-- Total Badge -->
+      <div class="text-xs whitespace-nowrap" :class="isDark ? 'text-slate-400' : 'text-slate-600'">
+        {{ total }} {{ t('admin.usersPage.users') }}
       </div>
-      <div class="total-badge">{{ total }} users</div>
     </div>
 
     <!-- Table -->
-    <div class="panel">
-      <div class="table-wrap">
-        <table class="admin-table">
+    <div 
+      class="rounded-2xl border overflow-hidden"
+      :class="isDark ? 'bg-slate-800 border-white/5' : 'bg-white border-slate-200'"
+    >
+      <div class="overflow-x-auto">
+        <table class="w-full border-collapse text-[13px] min-w-[900px]">
           <thead>
-            <tr>
-              <th>User</th>
-              <th>Phone</th>
-              <th>Plan</th>
-              <th>Trial Ends</th>
-              <th>Verified</th>
-              <th>Joined</th>
-              <th>Actions</th>
+            <tr :class="isDark ? 'bg-white/2' : 'bg-slate-50'">
+              <th class="text-start text-[11px] font-medium uppercase tracking-wider py-3 px-4 border-b" :class="isDark ? 'text-slate-400 border-white/5' : 'text-slate-600 border-slate-200'">
+                {{ t('admin.usersPage.table.user') }}
+              </th>
+              <th class="text-start text-[11px] font-medium uppercase tracking-wider py-3 px-4 border-b" :class="isDark ? 'text-slate-400 border-white/5' : 'text-slate-600 border-slate-200'">
+                {{ t('admin.usersPage.table.phone') }}
+              </th>
+              <th class="text-start text-[11px] font-medium uppercase tracking-wider py-3 px-4 border-b" :class="isDark ? 'text-slate-400 border-white/5' : 'text-slate-600 border-slate-200'">
+                {{ t('admin.usersPage.table.plan') }}
+              </th>
+              <th class="text-start text-[11px] font-medium uppercase tracking-wider py-3 px-4 border-b" :class="isDark ? 'text-slate-400 border-white/5' : 'text-slate-600 border-slate-200'">
+                {{ t('admin.usersPage.table.trialEnds') }}
+              </th>
+              <th class="text-start text-[11px] font-medium uppercase tracking-wider py-3 px-4 border-b" :class="isDark ? 'text-slate-400 border-white/5' : 'text-slate-600 border-slate-200'">
+                {{ t('admin.usersPage.table.verified') }}
+              </th>
+              <th class="text-start text-[11px] font-medium uppercase tracking-wider py-3 px-4 border-b" :class="isDark ? 'text-slate-400 border-white/5' : 'text-slate-600 border-slate-200'">
+                {{ t('admin.usersPage.table.joined') }}
+              </th>
+              <th class="text-start text-[11px] font-medium uppercase tracking-wider py-3 px-4 border-b" :class="isDark ? 'text-slate-400 border-white/5' : 'text-slate-600 border-slate-200'">
+                {{ t('admin.usersPage.table.actions') }}
+              </th>
             </tr>
           </thead>
           <tbody>
-            <tr v-if="loading"><td colspan="7" class="empty-row">Loading users…</td></tr>
-            <tr v-else-if="!users.length"><td colspan="7" class="empty-row">No users found</td></tr>
-              <tr v-else v-for="u in users" :key="u._id" :class="{ blocked: u.isBlocked, deleting: u._approving }">              <td>
-                <div class="user-cell">
-                  <div class="user-avatar" :class="{ blocked: u.isBlocked }">{{ u.name?.[0]?.toUpperCase() }}</div>
+            <!-- Loading -->
+            <tr v-if="loading">
+              <td colspan="7" class="text-center py-12" :class="isDark ? 'text-slate-400' : 'text-slate-600'">
+                {{ t('admin.usersPage.loading') }}
+              </td>
+            </tr>
+            
+            <!-- Empty -->
+            <tr v-else-if="!users.length">
+              <td colspan="7" class="text-center py-12" :class="isDark ? 'text-slate-400' : 'text-slate-600'">
+                {{ t('admin.usersPage.noUsers') }}
+              </td>
+            </tr>
+            
+            <!-- Users -->
+            <tr 
+              v-else 
+              v-for="u in users" 
+              :key="u._id" 
+              :class="[
+                u.isBlocked ? 'opacity-50' : '',
+                u._approving ? 'opacity-40 blur-sm transition-all duration-1500 pointer-events-none' : ''
+              ]"
+            >
+              <!-- User -->
+              <td class="py-3 px-4 border-t" :class="isDark ? 'border-white/5' : 'border-slate-200'">
+                <div class="flex items-center gap-2.5">
+                  <div 
+                    class="w-8 h-8 rounded-full shrink-0 flex items-center justify-center text-xs font-semibold text-white"
+                    :class="u.isBlocked 
+                      ? 'bg-slate-700' 
+                      : 'bg-gradient-to-br from-blue-500 to-purple-500'"
+                  >
+                    {{ u.name?.[0]?.toUpperCase() }}
+                  </div>
                   <div>
-                    <p class="user-name">{{ u.name }} <span v-if="u.isAdmin" class="admin-tag">Admin</span></p>
-                    <p class="user-email">{{ u.email }}</p>
-                    <span v-if="u.isAskToDelete" 
-                      style="background:#FCEBEB; color:#E24B4A; font-size:10px; padding:2px 8px; border-radius:20px; display:inline-block; margin-top:4px;">
-                      Deletion Requested
+                    <p class="text-[13px] font-medium flex items-center gap-1.5" :class="isDark ? 'text-white' : 'text-slate-900'">
+                      {{ u.name }}
+                      <span 
+                        v-if="u.isAdmin" 
+                        class="text-[10px] px-1.5 py-0.5 rounded"
+                        :class="isDark ? 'bg-purple-500/15 text-purple-400' : 'bg-purple-100 text-purple-700'"
+                      >
+                        {{ t('admin.usersPage.admin') }}
+                      </span>
+                    </p>
+                    <p class="text-[11px] m-0" :class="isDark ? 'text-slate-400' : 'text-slate-600'">{{ u.email }}</p>
+                    <span 
+                      v-if="u.isAskToDelete" 
+                      class="inline-block mt-1 text-[10px] px-2 py-0.5 rounded-full font-medium"
+                      :class="isDark ? 'bg-rose-500/15 text-rose-400' : 'bg-rose-100 text-rose-700'"
+                    >
+                      {{ t('admin.usersPage.deletionRequested') }}
                     </span>
                   </div>
                 </div>
               </td>
-              <td class="muted">{{ u.phone || '—' }}</td>
-              <td><span class="plan-badge" :class="planClass(u)">{{ planLabel(u) }}</span></td>
-              <td class="muted">{{ u.isTrial ? formatDate(u.trialEndsAt) : '—' }}</td>
-              <td>
-                <span class="verif-dot" :class="u.isVerified ? 'verified' : 'pending'">
+              
+              <!-- Phone -->
+              <td class="py-3 px-4 border-t text-xs" :class="isDark ? 'border-white/5 text-slate-400' : 'border-slate-200 text-slate-600'">
+                {{ u.phone || '—' }}
+              </td>
+              
+              <!-- Plan -->
+              <td class="py-3 px-4 border-t" :class="isDark ? 'border-white/5' : 'border-slate-200'">
+                <span class="text-[11px] px-2 py-0.5 rounded-full font-medium" :class="planClass(u)">
+                  {{ planLabel(u) }}
+                </span>
+              </td>
+              
+              <!-- Trial Ends -->
+              <td class="py-3 px-4 border-t text-xs" :class="isDark ? 'border-white/5 text-slate-400' : 'border-slate-200 text-slate-600'">
+                {{ u.isTrial ? formatDate(u.trialEndsAt) : '—' }}
+              </td>
+              
+              <!-- Verified -->
+              <td class="py-3 px-4 border-t" :class="isDark ? 'border-white/5' : 'border-slate-200'">
+                <span 
+                  class="w-[22px] h-[22px] rounded-full inline-flex items-center justify-center text-[11px] font-bold"
+                  :class="u.isVerified 
+                    ? 'bg-emerald-500/15 text-emerald-400' 
+                    : 'bg-amber-500/15 text-amber-400'"
+                >
                   {{ u.isVerified ? '✓' : '!' }}
                 </span>
               </td>
-              <td class="muted">{{ formatDate(u.createdAt) }}</td>
-              <td >
-                 <div class="action-row">
-  <button 
-    class="act-btn" 
-    :class="u.blockStatus === 'warning' ? 'warning-btn' : u.isBlocked ? 'unblock-btn' : 'block-btn'"
-    @click="handleBlockAction(u)"
-    :disabled="u.isAdmin"
-  >
-    {{ u.blockStatus === 'warning' ? 'Cancel Warning' : u.isBlocked ? 'Unblock' : 'Block' }}
-  </button>
-  <button class="act-btn edit-btn" @click="openEdit(u)">Edit</button>
-  <button class="act-btn delete-btn" @click="confirmDelete(u)" :disabled="u.isAdmin">✕</button>
-  <button v-if="u.isAskToDelete" class="act-btn approve-btn" @click="approveDeletion(u)">
-    Approve Deletion
-  </button>
-</div>
-<br />
-<p v-if="u.blockStatus === 'warning' && u.gracePeriodExpiresAt" class="timer-sub">
-  Ends in: {{ getRemainingTime(u.gracePeriodExpiresAt) }}
-</p>
-               
+              
+              <!-- Joined -->
+              <td class="py-3 px-4 border-t text-xs" :class="isDark ? 'border-white/5 text-slate-400' : 'border-slate-200 text-slate-600'">
+                {{ formatDate(u.createdAt) }}
+              </td>
+              
+              <!-- Actions -->
+              <td class="py-3 px-4 border-t" :class="isDark ? 'border-white/5' : 'border-slate-200'">
+                <div class="flex items-center gap-1.5 flex-wrap">
+                  <button 
+                    class="text-[11px] px-2.5 py-1 rounded-md border font-medium transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+                    :class="[
+                      u.blockStatus === 'warning' 
+                        ? (isDark ? 'border-amber-500/30 text-amber-400 hover:bg-amber-500/10' : 'border-amber-200 text-amber-700 hover:bg-amber-50')
+                        : u.isBlocked 
+                          ? (isDark ? 'border-emerald-500/30 text-emerald-400 hover:bg-emerald-500/10' : 'border-emerald-200 text-emerald-700 hover:bg-emerald-50')
+                          : (isDark ? 'border-rose-500/20 text-rose-400 hover:bg-rose-500/10' : 'border-rose-200 text-rose-700 hover:bg-rose-50')
+                    ]"
+                    @click="handleBlockAction(u)"
+                    :disabled="u.isAdmin"
+                  >
+                    {{ u.blockStatus === 'warning' ? t('admin.usersPage.cancelWarning') : u.isBlocked ? t('admin.usersPage.unblock') : t('admin.usersPage.block') }}
+                  </button>
+                  <button 
+                    class="text-[11px] px-2.5 py-1 rounded-md border font-medium transition-colors"
+                    :class="isDark 
+                      ? 'border-blue-500/20 text-blue-400 hover:bg-blue-500/10' 
+                      : 'border-blue-200 text-blue-700 hover:bg-blue-50'"
+                    @click="openEdit(u)"
+                  >
+                    {{ t('admin.usersPage.edit') }}
+                  </button>
+                  <button 
+                    class="text-[11px] px-2.5 py-1 rounded-md border font-medium transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+                    :class="isDark 
+                      ? 'border-rose-500/20 text-rose-400 hover:bg-rose-500/15' 
+                      : 'border-rose-200 text-rose-700 hover:bg-rose-50'"
+                    @click="confirmDelete(u)" 
+                    :disabled="u.isAdmin"
+                  >
+                    ✕
+                  </button>
+                  <button 
+                    v-if="u.isAskToDelete" 
+                    class="text-[11px] px-2.5 py-1 rounded-md border font-medium transition-colors"
+                    :class="isDark 
+                      ? 'bg-rose-500/10 border-rose-500/20 text-rose-400 hover:bg-rose-500/20' 
+                      : 'bg-rose-50 border-rose-200 text-rose-700 hover:bg-rose-100'"
+                    @click="approveDeletion(u)"
+                  >
+                    {{ t('admin.usersPage.approveDeletion') }}
+                  </button>
+                </div>
+                <p 
+                  v-if="u.blockStatus === 'warning' && u.gracePeriodExpiresAt" 
+                  class="text-[10px] mt-1"
+                  :class="isDark ? 'text-amber-400' : 'text-amber-600'"
+                >
+                  {{ t('admin.usersPage.endsIn') }}: {{ getRemainingTime(u.gracePeriodExpiresAt) }}
+                </p>
               </td>
             </tr>
           </tbody>
@@ -86,130 +228,298 @@
       </div>
 
       <!-- Pagination -->
-      <div class="pagination" v-if="pages > 1">
-        <button class="page-btn" :disabled="page === 1"       @click="fetchUsers(page - 1)">← Prev</button>
-        <span class="page-info">Page {{ page }} of {{ pages }}</span>
-        <button class="page-btn" :disabled="page === pages"   @click="fetchUsers(page + 1)">Next →</button>
+      <div 
+        v-if="pages > 1" 
+        class="flex items-center justify-center gap-4 py-4 border-t"
+        :class="isDark ? 'border-white/5' : 'border-slate-200'"
+      >
+        <button 
+          class="text-sm px-3.5 py-1.5 rounded-lg border transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+          :class="isDark 
+            ? 'border-white/10 text-white hover:bg-white/5' 
+            : 'border-slate-200 text-slate-900 hover:bg-slate-50'"
+          :disabled="page === 1" 
+          @click="fetchUsers(page - 1)"
+        >
+          ← {{ t('admin.usersPage.prev') }}
+        </button>
+        <span class="text-sm" :class="isDark ? 'text-slate-400' : 'text-slate-600'">
+          {{ t('admin.usersPage.pageOf', { current: page, total: pages }) }}
+        </span>
+        <button 
+          class="text-sm px-3.5 py-1.5 rounded-lg border transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+          :class="isDark 
+            ? 'border-white/10 text-white hover:bg-white/5' 
+            : 'border-slate-200 text-slate-900 hover:bg-slate-50'"
+          :disabled="page === pages" 
+          @click="fetchUsers(page + 1)"
+        >
+          {{ t('admin.usersPage.next') }} →
+        </button>
       </div>
     </div>
 
     <!-- Edit Modal -->
-    <div v-if="editUser" class="modal-overlay" @click.self="editUser = null">
-      <div class="modal">
-        <div class="modal-header">
-          <h3>Edit User — {{ editUser.name }}</h3>
-          <button class="modal-close" @click="editUser = null">✕</button>
-        </div>
-        <div class="modal-body">
-          <label class="field-label">Plan</label>
-          <select v-model="editForm.plan" class="filter-select full">
-            <option value="free">Free</option>
-            <option value="pro">Pro</option>
-            <option value="enterprise">Enterprise</option>
-          </select>
+    <Teleport to="body">
+      <Transition name="modal-fade">
+        <div 
+          v-if="editUser" 
+          class="fixed inset-0 z-50 flex items-center justify-center p-4"
+          @click.self="editUser = null"
+        >
+          <div class="absolute inset-0 bg-black/70 backdrop-blur-sm"></div>
+          <div 
+            class="relative w-full max-w-md rounded-2xl p-6 shadow-xl border"
+            :class="isDark ? 'bg-slate-800 border-white/10' : 'bg-white border-slate-200'"
+          >
+            <div class="flex items-center justify-between mb-5">
+              <h3 class="text-lg font-semibold" :class="isDark ? 'text-white' : 'text-slate-900'">
+                {{ t('admin.usersPage.editUser') }} — {{ editUser.name }}
+              </h3>
+              <button 
+                class="w-7 h-7 rounded-lg flex items-center justify-center transition-colors"
+                :class="isDark ? 'text-slate-400 hover:text-white hover:bg-white/5' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'"
+                @click="editUser = null"
+              >
+                ✕
+              </button>
+            </div>
+            
+            <div class="space-y-4">
+              <!-- Plan -->
+              <div>
+                <label class="text-xs font-medium mb-1.5 block" :class="isDark ? 'text-slate-400' : 'text-slate-600'">
+                  {{ t('admin.usersPage.plan') }}
+                </label>
+                <select 
+                  v-model="editForm.plan" 
+                  class="w-full px-3 py-2.5 rounded-xl text-sm border focus:outline-none focus:border-blue-500/40"
+                  :class="isDark 
+                    ? 'bg-slate-900 border-white/10 text-white' 
+                    : 'bg-white border-slate-200 text-slate-900'"
+                >
+                  <option value="free">{{ t('admin.usersPage.free') }}</option>
+                  <option value="pro">{{ t('admin.usersPage.pro') }}</option>
+                  <option value="enterprise">{{ t('admin.usersPage.enterprise') }}</option>
+                </select>
+              </div>
 
-          <label class="field-label">Trial Active</label>
-          <div class="toggle-row">
-            <input type="checkbox" v-model="editForm.isTrial" id="isTrial"/>
-            <label for="isTrial" class="toggle-label">{{ editForm.isTrial ? 'Yes' : 'No' }}</label>
+              <!-- Trial Active -->
+              <div class="flex items-center justify-between">
+                <label class="text-xs font-medium" :class="isDark ? 'text-slate-400' : 'text-slate-600'">
+                  {{ t('admin.usersPage.trialActive') }}
+                </label>
+                <div class="flex items-center gap-2">
+                  <input type="checkbox" v-model="editForm.isTrial" id="isTrial" class="w-4 h-4 rounded"/>
+                  <label for="isTrial" class="text-xs" :class="isDark ? 'text-slate-300' : 'text-slate-700'">
+                    {{ editForm.isTrial ? t('admin.usersPage.yes') : t('admin.usersPage.no') }}
+                  </label>
+                </div>
+              </div>
+
+              <!-- Trial Ends At -->
+              <div v-if="editForm.isTrial">
+                <label class="text-xs font-medium mb-1.5 block" :class="isDark ? 'text-slate-400' : 'text-slate-600'">
+                  {{ t('admin.usersPage.trialEndsAt') }}
+                </label>
+                <input 
+                  type="date" 
+                  v-model="editForm.trialEndsAt" 
+                  class="w-full px-3 py-2.5 rounded-xl text-sm border focus:outline-none focus:border-blue-500/40"
+                  :class="isDark 
+                    ? 'bg-slate-900 border-white/10 text-white' 
+                    : 'bg-white border-slate-200 text-slate-900'"
+                />
+              </div>
+
+              <!-- Email Verified -->
+              <div class="flex items-center justify-between">
+                <label class="text-xs font-medium" :class="isDark ? 'text-slate-400' : 'text-slate-600'">
+                  {{ t('admin.usersPage.emailVerified') }}
+                </label>
+                <div class="flex items-center gap-2">
+                  <input type="checkbox" v-model="editForm.isVerified" id="isVerified" class="w-4 h-4 rounded"/>
+                  <label for="isVerified" class="text-xs" :class="isDark ? 'text-slate-300' : 'text-slate-700'">
+                    {{ editForm.isVerified ? t('admin.usersPage.verified') : t('admin.usersPage.notVerified') }}
+                  </label>
+                </div>
+              </div>
+
+              <!-- Is Admin -->
+              <div class="flex items-center justify-between">
+                <label class="text-xs font-medium" :class="isDark ? 'text-slate-400' : 'text-slate-600'">
+                  {{ t('admin.usersPage.isAdmin') }}
+                </label>
+                <input type="checkbox" v-model="editForm.isAdmin" id="is-admin" class="w-4 h-4 rounded"/>
+              </div>
+            </div>
+
+            <div class="flex gap-3 mt-6">
+              <button 
+                class="flex-1 py-2.5 rounded-xl text-sm font-medium transition-colors"
+                :class="isDark 
+                  ? 'bg-slate-700 text-slate-300 hover:bg-slate-600' 
+                  : 'bg-slate-100 text-slate-700 hover:bg-slate-200'"
+                @click="editUser = null"
+              >
+                {{ t('admin.usersPage.cancel') }}
+              </button>
+              <button 
+                class="flex-1 py-2.5 rounded-xl bg-blue-600 text-white text-sm font-medium hover:bg-blue-500 transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
+                :disabled="saving"
+                @click="saveEdit"
+              >
+                <svg v-if="saving" class="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
+                  <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/>
+                  <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/>
+                </svg>
+                {{ saving ? t('admin.usersPage.saving') : t('admin.usersPage.saveChanges') }}
+              </button>
+            </div>
           </div>
+        </div>
+      </Transition>
+    </Teleport>
 
-          <div v-if="editForm.isTrial">
-            <label class="field-label">Trial Ends At</label>
-            <input type="date" v-model="editForm.trialEndsAt" class="filter-select full"/>
+    <!-- Delete Confirm Modal -->
+    <Teleport to="body">
+      <Transition name="modal-fade">
+        <div 
+          v-if="deleteTarget" 
+          class="fixed inset-0 z-50 flex items-center justify-center p-4"
+          @click.self="deleteTarget = null"
+        >
+          <div class="absolute inset-0 bg-black/70 backdrop-blur-sm"></div>
+          <div 
+            class="relative w-full max-w-sm rounded-2xl p-6 shadow-xl border"
+            :class="isDark ? 'bg-slate-800 border-white/10' : 'bg-white border-slate-200'"
+          >
+            <div class="flex items-center justify-between mb-4">
+              <h3 class="text-lg font-semibold" :class="isDark ? 'text-white' : 'text-slate-900'">
+                {{ t('admin.usersPage.deleteUser') }}
+              </h3>
+              <button 
+                class="w-7 h-7 rounded-lg flex items-center justify-center transition-colors"
+                :class="isDark ? 'text-slate-400 hover:text-white hover:bg-white/5' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'"
+                @click="deleteTarget = null"
+              >
+                ✕
+              </button>
+            </div>
+            
+            <p class="text-sm mb-6 leading-relaxed" :class="isDark ? 'text-slate-400' : 'text-slate-600'">
+              {{ t('admin.usersPage.deleteConfirm', { name: deleteTarget.name }) }}
+            </p>
+
+            <div class="flex gap-3">
+              <button 
+                class="flex-1 py-2.5 rounded-xl text-sm font-medium transition-colors"
+                :class="isDark 
+                  ? 'bg-slate-700 text-slate-300 hover:bg-slate-600' 
+                  : 'bg-slate-100 text-slate-700 hover:bg-slate-200'"
+                @click="deleteTarget = null"
+              >
+                {{ t('admin.usersPage.cancel') }}
+              </button>
+              <button 
+                class="flex-1 py-2.5 rounded-xl bg-rose-600 text-white text-sm font-medium hover:bg-rose-500 transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
+                :disabled="saving"
+                @click="doDelete"
+              >
+                <svg v-if="saving" class="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
+                  <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/>
+                  <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/>
+                </svg>
+                {{ saving ? t('admin.usersPage.deleting') : t('admin.usersPage.yesDelete') }}
+              </button>
+            </div>
           </div>
+        </div>
+      </Transition>
+    </Teleport>
 
-          <label class="field-label">Email Verified</label>
-          <div class="toggle-row">
-            <input type="checkbox" v-model="editForm.isVerified" id="isVerified"/>
-            <label for="isVerified" class="toggle-label">{{ editForm.isVerified ? 'Verified' : 'Not verified' }}</label>
+    <!-- Block Warning Modal -->
+    <Teleport to="body">
+      <Transition name="modal-fade">
+        <div 
+          v-if="showReasonModal" 
+          class="fixed inset-0 z-50 flex items-center justify-center p-4"
+          @click.self="closeModal"
+        >
+          <div class="absolute inset-0 bg-black/70 backdrop-blur-sm"></div>
+          <div 
+            class="relative w-full max-w-md rounded-2xl p-6 shadow-xl border"
+            :class="isDark ? 'bg-slate-800 border-white/10' : 'bg-white border-slate-200'"
+          >
+            <h3 class="text-lg font-semibold mb-2" :class="isDark ? 'text-white' : 'text-slate-900'">
+              {{ t('admin.usersPage.issueWarning') }}
+            </h3>
+            <p class="text-sm mb-6 leading-relaxed" :class="isDark ? 'text-slate-400' : 'text-slate-600'">
+              {{ t('admin.usersPage.warningDesc') }}
+            </p>
+            
+            <textarea 
+              v-model="blockReason" 
+              :placeholder="t('admin.usersPage.warningPlaceholder')"
+              rows="3"
+              class="w-full rounded-xl px-4 py-3 text-sm border resize-none focus:outline-none focus:border-blue-500/40 mb-4"
+              :class="isDark 
+                ? 'bg-slate-900 border-white/10 text-white placeholder-slate-500' 
+                : 'bg-white border-slate-200 text-slate-900 placeholder-slate-400'"
+            ></textarea>
+            
+            <div class="flex gap-3">
+              <button 
+                class="flex-1 py-2.5 rounded-xl text-sm font-medium transition-colors"
+                :class="isDark 
+                  ? 'bg-slate-700 text-slate-300 hover:bg-slate-600' 
+                  : 'bg-slate-100 text-slate-700 hover:bg-slate-200'"
+                @click="closeModal"
+              >
+                {{ t('admin.usersPage.cancel') }}
+              </button>
+              <button 
+                class="flex-1 py-2.5 rounded-xl bg-blue-600 text-white text-sm font-medium hover:bg-blue-500 transition-colors disabled:opacity-50"
+                :disabled="!blockReason.trim()" 
+                @click="submitBlockWarning"
+              >
+                {{ t('admin.usersPage.confirmWarning') }}
+              </button>
+            </div>
           </div>
-          <!-- Is Admin -->
-          <div class="form-group flex items-center gap-2" style="margin-bottom: 1.5rem; display: flex; align-items: center; gap: 0.5rem; color: #fff;">
-          <input 
-            type="checkbox" 
-            id="is-admin" 
-            v-model="editForm.isAdmin" 
-            class="custom-checkbox"
-          />
-          <label for="is-admin" class="checkbox-label">Is Admin</label>
         </div>
-        </div>
-        <div class="modal-footer">
-          <button class="act-btn edit-btn" @click="saveEdit" :disabled="saving">
-            {{ saving ? 'Saving…' : 'Save changes' }}
-          </button>
-          <button class="act-btn cancel" @click="editUser = null">Cancel</button>
-        </div>
-      </div>
-    </div>
+      </Transition>
+    </Teleport>
 
-    <!-- Delete Confirm -->
-    <div v-if="deleteTarget" class="modal-overlay" @click.self="deleteTarget = null">
-      <div class="modal modal-sm">
-        <div class="modal-header">
-          <h3>Delete User</h3>
-          <button class="modal-close" @click="deleteTarget = null">✕</button>
-        </div>
-        <div class="modal-body">
-          <p style="color:var(--sub,#6b7280); font-size:14px;">
-            Are you sure you want to permanently delete <strong style="color:var(--text,#f0f2f5)">{{ deleteTarget.name }}</strong>? This cannot be undone.
-          </p>
-        </div>
-        <div class="modal-footer">
-          <button class="act-btn delete-btn" @click="doDelete" :disabled="saving">
-            {{ saving ? 'Deleting…' : 'Yes, delete' }}
-          </button>
-          <button class="act-btn" @click="deleteTarget = null">Cancel</button>
-        </div>
-      </div>
-    </div>
-<!-- //////////////////////////////////////////// Block Warning Modal -->
- 
-    <div v-if="showReasonModal" class="modal-overlay" @click.self="closeModal">
-  <div class="modal-content">
-    <h3>Issue Policy Violation Warning</h3>
-    <p>Please provide a reason. The user will receive an email and a 24-hour grace period before final block.</p>
-    
-    <textarea 
-      v-model="blockReason" 
-      placeholder="e.g., Using abusive language in content generation..."
-      rows="3"
-    ></textarea>
-    
-    <div class="modal-actions">
-      <button class="cancel-modal-btn" @click="closeModal">Cancel</button>
-      <button class="confirm-modal-btn" :disabled="!blockReason.trim()" @click="submitBlockWarning">
-        Confirm & Send Alert
-      </button>
-    </div>
   </div>
-</div>
-  </div>
-  
 </template>
 
 <script setup>
 import { ref, onMounted } from 'vue'
+import { useI18n } from 'vue-i18n'
+import { useTheme } from '../../composables/useTheme.js'
 import adminApi from '../../api/adminApi'
 
-const users        = ref([])
-const loading      = ref(true)
-const total        = ref(0)
-const page         = ref(1)
-const pages        = ref(1)
-const search       = ref('')
-const planFilter   = ref('')
-const editUser     = ref(null)
-const editForm     = ref({})
+const { t } = useI18n()
+const { isDark } = useTheme()
+
+const users = ref([])
+const loading = ref(true)
+const total = ref(0)
+const page = ref(1)
+const pages = ref(1)
+const search = ref('')
+const planFilter = ref('')
+const editUser = ref(null)
+const editForm = ref({})
 const deleteTarget = ref(null)
-const saving       = ref(false)
-// const Admin       = ref(false)
-let searchTimer
+const saving = ref(false)
 
 const showReasonModal = ref(false)
 const blockReason = ref('')
 const selectedUser = ref(null)
+
+let searchTimer
 
 function onSearch() {
   clearTimeout(searchTimer)
@@ -218,11 +528,10 @@ function onSearch() {
 
 async function fetchUsers(p = 1) {
   loading.value = true
-  page.value    = p
+  page.value = p
   try {
     const res = await adminApi.getUsers({ page: p, limit: 20, search: search.value, plan: planFilter.value })
     
-    // 🌟 التعديل هنا: هنفلتر الـ users اللي جايين ونشيل منهم أي حد الـ isDeleted بتاعه بـ true
     const fetchedUsers = (res.users || []).filter(u => u.isDeleted !== true)
     
     users.value = fetchedUsers.map(u => {
@@ -235,37 +544,25 @@ async function fetchUsers(p = 1) {
       return u
     })
 
-    // تعديل الـ total عشان يعكس العدد الحقيقي بعد الفلترة في الـ UI
-    total.value   = fetchedUsers.length
-    pages.value   = res.pages  || 1
+    total.value = fetchedUsers.length
+    pages.value = res.pages || 1
   } finally {
     loading.value = false
   }
 }
 
-// async function toggleBlock(u) {
-//   const res   = await adminApi.blockUser(u._id)
-//   u.isBlocked = res.isBlocked
-// }
-
-
-// 2. عند الضغط على Confirm داخل الـ Modal (حفظ التحذير وإرساله للـ DB)
 async function submitBlockWarning() {
   if (!blockReason.value.trim() || !selectedUser.value) return
 
   const userToUpdate = selectedUser.value
   
   try {
-    // 🌟 بننادي السيرفر عشان يِقفل الحساب في الـ DB حقيقي وتِسمع في قاعدة البيانات
     const res = await adminApi.blockUser(userToUpdate._id, blockReason.value.trim())
     
-    // بنحدث البيانات في الفرونت إند عشان تاخد شكل التحذير الأصفر والعداد
-    userToUpdate.isBlocked = res.isBlocked // هتبقى true في الـ DB وهتسمع فوراً
+    userToUpdate.isBlocked = res.isBlocked
     userToUpdate.blockStatus = 'warning'
-    // userToUpdate.is = // اغير ال active بتاعه من غير م ياثر علي otp
     userToUpdate.gracePeriodExpiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString()
     
-    // 💾 بنحفظ حالة الـ warning في المتصفح عشان لما تعملي Refresh تفتكر إن الـ true دي عبارة عن warning
     localStorage.setItem(`user_status_${userToUpdate._id}`, JSON.stringify({
       blockStatus: 'warning',
       gracePeriodExpiresAt: userToUpdate.gracePeriodExpiresAt
@@ -281,32 +578,28 @@ async function submitBlockWarning() {
 
 async function executeToggleBlock(u) {
   try {
-    // 🌟 لو عليه warning أو متبلك وعايزين نلغيه، بنفهم الفرونت إند يصفر الحالة فوراً
     const res = await adminApi.blockUser(u._id)
     
     if (u.blockStatus === 'warning') {
-      // لو كان تحذير وألغيناه، المتسخدم يرجع نشط تماماً والـ isBlocked تفضل false
       u.isBlocked = false
       u.blockStatus = null
     } else {
-      // لو كان بلوك حقيقي وفكناه أو العكس
       u.isBlocked = res.isBlocked
       u.blockStatus = null
     }
     
-    // بنشيلها من ذاكرة المتصفح عشان تثبت بعد الريفريش
     localStorage.removeItem(`user_status_${u._id}`)
   } catch (error) {
     console.error("Error toggling block:", error)
   }
 }
 
-// 4. دالة إغلاق المودال
 function closeModal() {
   showReasonModal.value = false
   selectedUser.value = null
   blockReason.value = ''
 }
+
 function handleBlockAction(u) {
   selectedUser.value = u
   if (u.isBlocked || u.blockStatus === 'warning') {
@@ -317,7 +610,6 @@ function handleBlockAction(u) {
   }
 }
 
-// دالة حساب الوقت المتبقي عشان العداد ميطلعش خطأ
 function getRemainingTime(expiry) {
   if (!expiry) return '24h'
   const diff = new Date(expiry) - Date.now()
@@ -330,11 +622,11 @@ function getRemainingTime(expiry) {
 function openEdit(u) {
   editUser.value = u
   editForm.value = {
-    plan:        u.plan || 'free',
-    isTrial:     !!u.isTrial,
+    plan: u.plan || 'free',
+    isTrial: !!u.isTrial,
     trialEndsAt: u.trialEndsAt ? u.trialEndsAt.slice(0, 10) : '',
-    isVerified:  !!u.isVerified,
-    isAdmin:     !!u.isAdmin,
+    isVerified: !!u.isVerified,
+    isAdmin: !!u.isAdmin,
   }
 }
 
@@ -342,13 +634,12 @@ async function saveEdit() {
   saving.value = true
   try {
     const updated = await adminApi.updateUser(editUser.value._id, {
-      plan:        editForm.value.plan,
-      isTrial:     editForm.value.isTrial,
+      plan: editForm.value.plan,
+      isTrial: editForm.value.isTrial,
       trialEndsAt: editForm.value.trialEndsAt ? new Date(editForm.value.trialEndsAt) : null,
-      isVerified:  editForm.value.isVerified,
-      isAdmin:     editForm.value.isAdmin,
+      isVerified: editForm.value.isVerified,
+      isAdmin: editForm.value.isAdmin,
     })
-    console.log("البيانات الراجعة من السيرفر بعد التعديل:", updated)
     const idx = users.value.findIndex(u => u._id === editUser.value._id)
     if (idx !== -1) users.value[idx] = { ...users.value[idx], ...updated.user }
     editUser.value = null
@@ -357,14 +648,16 @@ async function saveEdit() {
   }
 }
 
-function confirmDelete(u) { deleteTarget.value = u }
+function confirmDelete(u) { 
+  deleteTarget.value = u 
+}
 
 async function doDelete() {
   saving.value = true
   try {
     await adminApi.deleteUser(deleteTarget.value._id)
-    users.value    = users.value.filter(u => u._id !== deleteTarget.value._id)
-    total.value   -= 1
+    users.value = users.value.filter(u => u._id !== deleteTarget.value._id)
+    total.value -= 1
     deleteTarget.value = null
   } finally {
     saving.value = false
@@ -374,19 +667,27 @@ async function doDelete() {
 function planLabel(u) {
   if (u.isTrial) {
     const days = Math.ceil((new Date(u.trialEndsAt) - Date.now()) / 86400000)
-    return days > 0 ? `Trial (${days}d)` : 'Trial expired'
+    return days > 0 ? `${t('admin.usersPage.trial')} (${days}${t('admin.usersPage.daysShort')})` : t('admin.usersPage.trialExpired')
   }
   return u.plan || 'free'
 }
+
 function planClass(u) {
-  if (u.isTrial) return new Date(u.trialEndsAt) > Date.now() ? 'trial' : 'expired'
-  if (u.plan === 'pro') return 'pro'
-  if (u.plan === 'enterprise') return 'enterprise'
-  return 'free'
+  if (u.isTrial) {
+    const isExpired = new Date(u.trialEndsAt) <= Date.now()
+    return isExpired 
+      ? (isDark.value ? 'bg-rose-500/15 text-rose-400' : 'bg-rose-100 text-rose-700')
+      : (isDark.value ? 'bg-amber-500/15 text-amber-400' : 'bg-amber-100 text-amber-700')
+  }
+  if (u.plan === 'pro') return isDark.value ? 'bg-blue-500/15 text-blue-400' : 'bg-blue-100 text-blue-700'
+  if (u.plan === 'enterprise') return isDark.value ? 'bg-purple-500/15 text-purple-400' : 'bg-purple-100 text-purple-700'
+  return isDark.value ? 'bg-slate-500/15 text-slate-400' : 'bg-slate-100 text-slate-700'
 }
+
 function formatDate(d) {
   return d ? new Date(d).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: '2-digit' }) : '—'
 }
+
 async function approveDeletion(u) {
   try {
     const idx = users.value.findIndex(x => x._id === u._id)
@@ -394,10 +695,8 @@ async function approveDeletion(u) {
       users.value[idx] = { ...users.value[idx], _approving: true }
     }
     
-    // اضربي السيرفر
     await adminApi.approveDeletion(u._id)
     
-    // استني لفة الـ أنيميشن وبعدها حدثي اللستة بالكامل من السيرفر النظيف
     setTimeout(async () => {
       await fetchUsers(page.value)
     }, 1500)
@@ -408,223 +707,18 @@ async function approveDeletion(u) {
     if (idx !== -1) users.value[idx]._approving = false
   }
 }
+
 onMounted(() => fetchUsers())
 </script>
 
 <style scoped>
-.admin-users { display: flex; flex-direction: column; gap: 1.25rem; }
-
-.toolbar { display: flex; align-items: center; gap: 1rem; flex-wrap: wrap; }
-.search-wrap { position: relative; flex: 1; min-width: 220px; }
-.search-icon { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: var(--sub, #6b7280); }
-.search-input {
-  width: 100%; padding: 9px 12px 9px 36px; border-radius: 10px;
-  background: var(--surface, #13151c); border: 1px solid var(--border, rgba(255,255,255,0.08));
-  color: var(--text, #f0f2f5); font-size: 13px; outline: none;
-}
-.search-input:focus { border-color: rgba(59,130,246,0.4); }
-.filter-select {
-  padding: 9px 12px; border-radius: 10px;
-  background: var(--surface, #13151c); border: 1px solid var(--border, rgba(255,255,255,0.08));
-  color: var(--text, #f0f2f5); font-size: 13px; outline: none; cursor: pointer;
-}
-.filter-select.full { width: 100%; margin-bottom: 1rem; }
-.total-badge { font-size: 12px; color: var(--sub, #6b7280); white-space: nowrap; }
-
-.panel {
-  background: var(--surface, #13151c);
-  border: 1px solid var(--border, rgba(255,255,255,0.06));
-  border-radius: 14px; overflow: hidden;
-}
-.table-wrap { overflow-x: auto; }
-.admin-table { width: 100%; border-collapse: collapse; font-size: 13px; }
-.admin-table th {
-  text-align: left; font-size: 11px; color: var(--sub, #6b7280); font-weight: 500;
-  padding: 12px 14px; text-transform: uppercase; letter-spacing: 0.05em;
-  border-bottom: 1px solid var(--border, rgba(255,255,255,0.06));
-  background: rgba(255,255,255,0.02);
-}
-.admin-table td { padding: 11px 14px; border-bottom: 1px solid var(--border, rgba(255,255,255,0.04)); color: var(--text, #f0f2f5); }
-.admin-table tr:last-child td { border-bottom: none; }
-.admin-table tr.blocked { opacity: 0.5; }
-.empty-row { text-align: center; color: var(--sub, #6b7280); padding: 3rem !important; }
-.muted { color: var(--sub, #6b7280) !important; font-size: 12px; }
-
-.user-cell  { display: flex; align-items: center; gap: 10px; }
-.user-avatar {
-  width: 32px; height: 32px; border-radius: 50%; flex-shrink: 0;
-  background: linear-gradient(135deg, #3b82f6, #8b5cf6);
-  display: flex; align-items: center; justify-content: center;
-  font-size: 12px; font-weight: 600; color: white;
-}
-.user-avatar.blocked { background: #374151; }
-.user-name  { font-size: 13px; font-weight: 500; color: var(--text, #f0f2f5); margin: 0; display: flex; align-items: center; gap: 6px; }
-.user-email { font-size: 11px; color: var(--sub, #6b7280); margin: 0; }
-.admin-tag  { font-size: 10px; background: rgba(139,92,246,0.15); color: #a78bfa; border-radius: 4px; padding: 1px 5px; }
-
-.plan-badge { font-size: 11px; padding: 2px 8px; border-radius: 20px; font-weight: 500; }
-.plan-badge.trial      { background: rgba(245,158,11,0.12); color: #fbbf24; }
-.plan-badge.expired    { background: rgba(239,68,68,0.12);  color: #f87171; }
-.plan-badge.free       { background: rgba(107,114,128,0.12); color: #9ca3af; }
-.plan-badge.pro        { background: rgba(59,130,246,0.12);  color: #60a5fa; }
-.plan-badge.enterprise { background: rgba(139,92,246,0.12);  color: #a78bfa; }
-
-.verif-dot { width: 22px; height: 22px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 700; }
-.verif-dot.verified { background: rgba(16,185,129,0.15); color: #34d399; }
-.verif-dot.pending  { background: rgba(245,158,11,0.15);  color: #fbbf24; }
-
-.action-row { display: flex; align-items: center; gap: 6px; }
-.act-btn    { font-size: 11px; padding: 4px 10px; border-radius: 6px; cursor: pointer; border: 1px solid; font-weight: 500; transition: all 0.15s; background: transparent; }
-.act-btn:disabled { opacity: 0.3; cursor: not-allowed; }
-.block-btn  { border-color: rgba(239,68,68,0.2); color: #f87171; }
-.block-btn:hover:not(:disabled) { background: rgba(239,68,68,0.1); }
-.edit-btn   { border-color: rgba(59,130,246,0.2); color: #60a5fa; }
-.edit-btn:hover { background: rgba(59,130,246,0.1); }
-.delete-btn { border-color: rgba(239,68,68,0.2); color: #f87171; }
-.delete-btn:hover:not(:disabled) { background: rgba(239,68,68,0.15); }
-
-.pagination { display: flex; align-items: center; justify-content: center; gap: 1rem; padding: 1rem; border-top: 1px solid var(--border, rgba(255,255,255,0.06)); }
-.page-btn   { font-size: 13px; padding: 6px 14px; border-radius: 8px; border: 1px solid var(--border, rgba(255,255,255,0.08)); background: transparent; color: var(--text, #f0f2f5); cursor: pointer; }
-.page-btn:disabled { opacity: 0.3; cursor: not-allowed; }
-.page-info  { font-size: 13px; color: var(--sub, #6b7280); }
-
-/* Modal */
-/* خلفية الشاشة المعتمة التي تغطي الصفحة بالكامل */
-.modal-overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100vw;
-  height: 100vh;
-  background: rgba(0, 0, 0, 0.75); /* درجة عتمة ممتازة لتركيز الانتباه */
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 9999; /* رقم عالي جداً ليظهر فوق كل عناصر الجدول والـ Sidebar */
-  backdrop-filter: blur(4px); /* تأثير ضبابي خفيف للخلفية ليعطي مظهر مودرن */
+.modal-fade-enter-active,
+.modal-fade-leave-active {
+  transition: opacity 0.2s ease;
 }
 
-/* صندوق الرسالة الأبيض/المظلم في المنتصف */
-.modal-content {
-  background: #13151c; /* نفس لون الـ surface الداكن في لوحة التحكم */
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  padding: 1.75rem;
-  border-radius: 14px;
-  width: 440px;
-  max-width: 90%;
-  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.5), 0 10px 10px -5px rgba(0, 0, 0, 0.4);
-}
-
-/* العنوان الرئيسي داخل الرسالة */
-.modal-content h3 {
-  font-size: 16px;
-  font-weight: 600;
-  color: #f0f2f5;
-  margin-top: 0;
-  margin-bottom: 8px;
-}
-
-/* النص الوصفي */
-.modal-content p {
-  font-size: 13px;
-  color: #6b7280; /* لون رمادي خفيف للمساعدة */
-  line-height: 1.5;
-  margin-bottom: 1rem;
-}
-
-/* صندوق الكتابة (السبب) */
-.modal-content textarea {
-  width: 100%;
-  background: rgba(255, 255, 255, 0.03);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  color: #f0f2f5;
-  padding: 12px;
-  border-radius: 8px;
-  margin: 12px 0;
-  resize: none; /* لمنع المستخدم من تخريب أبعاد الصندوق */
-  font-size: 13px;
-  font-family: inherit;
-  outline: none;
-}
-
-.modal-content textarea:focus {
-  border-color: #3b82f6; /* يتحول للأزرق عند الكتابة */
-}
-
-/* الحاوية السفلية للأزرار */
-.modal-actions {
-  display: flex;
-  justify-content: flex-end;
-  gap: 10px;
-  margin-top: 1rem;
-}
-
-/* التصميم الأساسي لأزرار المودال */
-.cancel-modal-btn, .confirm-modal-btn {
-  padding: 6px 14px;
-  border-radius: 6px;
-  font-size: 12px;
-  cursor: pointer;
-  border: none;
-  font-weight: 500;
-  transition: background 0.2s ease;
-}
-
-/* زر الإلغاء */
-.cancel-modal-btn {
-  background: rgba(255, 255, 255, 0.06);
-  color: #cbd5e1;
-}
-
-.cancel-modal-btn:hover {
-  background: rgba(255, 255, 255, 0.1);
-}
-
-/* زر التأكيد وإرسال التنبيه */
-.confirm-modal-btn {
-  background: #3b82f6;
-  color: #ffffff;
-}
-
-.confirm-modal-btn:hover:not(:disabled) {
-  background: #2563eb;
-}
-
-/* حالة زر التأكيد عندما يكون معطلاً (حتى يكتب المستخدم السبب) */
-.confirm-modal-btn:disabled {
-  opacity: 0.4;
-  cursor: not-allowed;
-}
-.action-row { display: flex; align-items: center; gap: 6px; }
-.act-btn    { font-size: 11px; padding: 4px 10px; border-radius: 6px; cursor: pointer; border: 1px solid; font-weight: 500; transition: all 0.15s; background: transparent; }
-.act-btn:disabled { opacity: 0.3; cursor: not-allowed; }
-
-/* لون زر الـ Block العادي (أحمر خفيف) */
-.block-btn  { border-color: rgba(239,68,68,0.2); color: #f87171; }
-.block-btn:hover:not(:disabled) { background: rgba(239,68,68,0.1); }
-
-/* لون زر إلغاء التحذير (أصفر) */
-.warning-btn { border-color: rgba(245,158,11,0.3); color: #fbbf24; }
-.warning-btn:hover:not(:disabled) { background: rgba(245,158,11,0.1); }
-
-/* لون زر فك الحظر (أخضر) */
-.unblock-btn { border-color: rgba(16,185,129,0.3); color: #34d399; }
-.unblock-btn:hover:not(:disabled) { background: rgba(16,185,129,0.1); }
-
-/* زر التعديل (أزرق) */
-.edit-btn   { border-color: rgba(59,130,246,0.2); color: #60a5fa; }
-.edit-btn:hover { background: rgba(59,130,246,0.1); }
-
-/* زر الحذف (أحمر) */
-.delete-btn { border-color: rgba(239,68,68,0.2); color: #f87171; }
-.delete-btn:hover:not(:disabled) { background: rgba(239,68,68,0.15); }
-
-.timer-sub { font-size: 10px; color: #fbbf24; margin: 4px 0 0 2px; }
-.approve-btn { background: rgba(239,68,68,0.1); border-color: rgba(239,68,68,0.2); color: #f87171; }
-.deleting {
-  opacity: 0.4;
-  filter: blur(2px);
-  transition: all 1.5s ease;
-  pointer-events: none;
+.modal-fade-enter-from,
+.modal-fade-leave-to {
+  opacity: 0;
 }
 </style>

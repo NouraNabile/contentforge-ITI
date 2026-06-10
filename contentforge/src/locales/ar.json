@@ -1278,9 +1278,63 @@
       "saveFailed": "حدث خطأ ما"
     },
     "trendsPage": {
-    "topArabicTrends": "أهم الاتجاهات العربية",
-    "topics": "مواضيع",
-    "noTrends": "لا توجد بيانات اتجاهات بعد"
-  }
+      "topArabicTrends": "أهم الاتجاهات العربية",
+      "topics": "مواضيع",
+      "noTrends": "لا توجد بيانات اتجاهات بعد"
+    },
+    "usersPage": {
+      "searchPlaceholder": "البحث بالاسم أو البريد الإلكتروني…",
+      "allPlans": "جميع الخطط",
+      "free": "مجاني",
+      "pro": "احترافي",
+      "enterprise": "مؤسسات",
+      "users": "مستخدم",
+      "table": {
+        "user": "المستخدم",
+        "phone": "الهاتف",
+        "plan": "الخطة",
+        "trialEnds": "تنتهي التجربة",
+        "verified": "موثق",
+        "joined": "انضم",
+        "actions": "إجراءات"
+      },
+      "loading": "جاري تحميل المستخدمين…",
+      "noUsers": "لم يتم العثور على مستخدمين",
+      "admin": "مدير",
+      "deletionRequested": "طلب الحذف",
+      "block": "حظر",
+      "unblock": "إلغاء الحظر",
+      "cancelWarning": "إلغاء التحذير",
+      "edit": "تعديل",
+      "approveDeletion": "الموافقة على الحذف",
+      "endsIn": "ينتهي خلال",
+      "trial": "تجربة",
+      "daysShort": "يوم",
+      "trialExpired": "انتهت التجربة",
+      "prev": "السابق",
+      "next": "التالي",
+      "pageOf": "صفحة {current} من {total}",
+      "editUser": "تعديل المستخدم",
+      "plan": "الخطة",
+      "trialActive": "التجربة نشطة",
+      "yes": "نعم",
+      "no": "لا",
+      "trialEndsAt": "تنتهي التجربة في",
+      "emailVerified": "البريد الإلكتروني موثق",
+      "verified": "موثق",
+      "notVerified": "غير موثق",
+      "isAdmin": "مدير النظام",
+      "saving": "جاري الحفظ…",
+      "saveChanges": "حفظ التغييرات",
+      "cancel": "إلغاء",
+      "deleteUser": "حذف المستخدم",
+      "deleteConfirm": "هل أنت متأكد من أنك تريد حذف {name} نهائياً؟ لا يمكن التراجع عن هذا الإجراء.",
+      "deleting": "جاري الحذف…",
+      "yesDelete": "نعم، احذف",
+      "issueWarning": "إصدار تحذير مخالفة سياسة",
+      "warningDesc": "يرجى تقديم السبب. سيتلقى المستخدم بريداً إلكترونياً وفترة سماح 24 ساعة قبل الحظر النهائي.",
+      "warningPlaceholder": "مثال: استخدام لغة مسيئة في توليد المحتوى...",
+      "confirmWarning": "تأكيد وإرسال تنبيه"
+    }
   }
 }

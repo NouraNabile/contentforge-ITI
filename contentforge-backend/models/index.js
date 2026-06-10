@@ -259,5 +259,17 @@ const connectionSchema = new mongoose.Schema({
 
 const Connection = mongoose.model('Connection', connectionSchema)
 
-module.exports = { User, Brand, Post, Calendar, Trend, ChatMessage, OriginalCalendar, TopPost, PlatformSettings, ContactMessage }
+// ── Notification ──────────────────────────────────────────────────────────────
+const notificationSchema = new mongoose.Schema({
+  user:    { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
+  title:   { type: String, required: true },
+  message: { type: String, required: true },
+  type:    { type: String, enum: ['scheduled_today', 'scheduled_tomorrow', 'info'], default: 'info' },
+  read:    { type: Boolean, default: false },
+  postId:  { type: mongoose.Schema.Types.ObjectId, ref: 'Post' },
+}, { timestamps: true })
+
+const Notification = mongoose.model('Notification', notificationSchema)
+
+module.exports = { User, Brand, Post, Calendar, Trend, ChatMessage, OriginalCalendar, TopPost, PlatformSettings, ContactMessage , Connection, Notification }
 

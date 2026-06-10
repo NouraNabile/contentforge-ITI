@@ -574,7 +574,7 @@ const toast = ref(null);
 const filters = [
   { value: "All", labelKey: "posts.filterAll" },
   { value: "Draft", labelKey: "posts.filterDraft" },
-  { value: "Pending", labelKey: "posts.filterPending" },
+  // { value: "Pending", labelKey: "posts.filterPending" },
   { value: "Approved", labelKey: "posts.filterApproved" },
   { value: "Scheduled", labelKey: "posts.filterScheduled" },
   { value: "Published", labelKey: "posts.filterPublished" },
@@ -590,7 +590,7 @@ const platformOptions = [
 
 const statusOptions = [
   { value: "Draft", labelKey: "posts.status.Draft" },
-  { value: "Pending", labelKey: "posts.status.Pending" },
+  // { value: "Pending", labelKey: "posts.status.Pending" },
   { value: "Approved", labelKey: "posts.status.Approved" },
   { value: "Scheduled", labelKey: "posts.status.Scheduled" },
 ];
@@ -622,7 +622,7 @@ function normalizeStatus(s) {
   if (!s) return "Draft";
   const map = {
     draft: "Draft",
-    pending_review: "Pending",
+    // pending_review: "Pending",
     approved: "Approved",
     scheduled: "Scheduled",
     published: "Published",
@@ -685,7 +685,7 @@ async function approvePost(id) {
     await postsApi.updatePost(id, { status: "approved" });
     showToast(t("posts.toastApproved"), "success");
   } catch {
-    p.status = "Pending";
+    // p.status = "Pending";
     showToast(t("posts.toastError"), "error");
   }
 }
@@ -804,7 +804,7 @@ function statusClass(s) {
   return (
     {
       Draft: "bg-slate-500/15 text-slate-400",
-      Pending: "bg-amber-500/15 text-amber-400",
+      // Pending: "bg-amber-500/15 text-amber-400",
       Approved: "bg-green-500/15 text-green-400",
       Scheduled: "bg-blue-500/15 text-blue-400",
       Published: "bg-teal-500/15 text-teal-400",

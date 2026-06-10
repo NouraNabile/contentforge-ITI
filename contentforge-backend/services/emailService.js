@@ -182,8 +182,82 @@ async function sendContactReplyEmail(email, name, originalMessage, replyText) {
     `,
   })
 }
+
+// Send email to remind user of scheduled posts for the day
+async function sendScheduledPostReminderEmail(email, name, posts) {
+  const postList = posts.map(p => `
+    <tr>
+      <td style="padding:8px 12px; border-bottom:1px solid #e2e8f0;">${p.platform}</td>
+      <td style="padding:8px 12px; border-bottom:1px solid #e2e8f0;">${p.copyAR || p.copyEN || 'No content'}</td>
+    </tr>
+  `).join('')
+
+  await transporter.sendMail({
+    from: process.env.EMAIL_USER,
+    to: email,
+    subject: '📅 تذكير: لديك منشورات مجدولة اليوم — ContentForge',
+    html: `
+      <div style="direction:rtl; text-align:right; font-family:sans-serif; max-width:600px; margin:0 auto; padding:20px; border:1px solid #e1e8ed; border-radius:10px;">
+        <h2 style="color:#3b82f6;">📅 تذكير بمنشورات اليوم</h2>
+        <p>مرحباً ${name}،</p>
+        <p>لديك <strong>${posts.length}</strong> منشور مجدول اليوم على ContentForge. لا تنسَ نشرها!</p>
+        <table style="width:100%; border-collapse:collapse; margin:16px 0; text-align:right;">
+          <thead>
+            <tr style="background:#f7fafc;">
+              <th style="padding:8px 12px; border-bottom:2px solid #e2e8f0;">المنصة</th>
+              <th style="padding:8px 12px; border-bottom:2px solid #e2e8f0;">المحتوى</th>
+            </tr>
+          </thead>
+          <tbody>${postList}</tbody>
+        </table>
+        <a href="${process.env.CLIENT_URL}/dashboard" 
+          style="display:inline-block; margin-top:8px; padding:10px 20px; background:#3b82f6; color:white; border-radius:8px; text-decoration:none; font-weight:bold;">
+          افتح التقويم
+        </a>
+        <p style="font-size:12px; color:#718096; margin-top:20px;">ContentForge — منصة إدارة المحتوى الذكية</p>
+      </div>
+    `,
+  })
+}
+
+async function sendScheduledPostTomorrowEmail(email, name, posts) {
+  const postList = posts.map(p => `
+    <tr>
+      <td style="padding:8px 12px; border-bottom:1px solid #e2e8f0;">${p.platform}</td>
+      <td style="padding:8px 12px; border-bottom:1px solid #e2e8f0;">${p.copyAR || p.copyEN || 'No content'}</td>
+    </tr>
+  `).join('')
+
+  await transporter.sendMail({
+    from: process.env.EMAIL_USER,
+    to: email,
+    subject: '⏰ تذكير: لديك منشورات مجدولة غداً — ContentForge',
+    html: `
+      <div style="direction:rtl; text-align:right; font-family:sans-serif; max-width:600px; margin:0 auto; padding:20px; border:1px solid #e1e8ed; border-radius:10px;">
+        <h2 style="color:#f59e0b;">⏰ تذكير بمنشورات الغد</h2>
+        <p>مرحباً ${name}،</p>
+        <p>لديك <strong>${posts.length}</strong> منشور مجدول <strong>غداً</strong> على ContentForge. استعد لنشرها!</p>
+        <table style="width:100%; border-collapse:collapse; margin:16px 0; text-align:right;">
+          <thead>
+            <tr style="background:#f7fafc;">
+              <th style="padding:8px 12px; border-bottom:2px solid #e2e8f0;">المنصة</th>
+              <th style="padding:8px 12px; border-bottom:2px solid #e2e8f0;">المحتوى</th>
+            </tr>
+          </thead>
+          <tbody>${postList}</tbody>
+        </table>
+        <a href="${process.env.CLIENT_URL}/dashboard"
+          style="display:inline-block; margin-top:8px; padding:10px 20px; background:#f59e0b; color:white; border-radius:8px; text-decoration:none; font-weight:bold;">
+          افتح التقويم
+        </a>
+        <p style="font-size:12px; color:#718096; margin-top:20px;">ContentForge — منصة إدارة المحتوى الذكية</p>
+      </div>
+    `,
+  })
+}
+
 module.exports = {
-   sendVerificationEmail,
+  sendVerificationEmail,
   sendPolicyWarningEmail,
   sendDeletionRequestEmail,
   sendTrialUpdateEmail,
@@ -191,4 +265,6 @@ module.exports = {
   sendContactNotificationEmail,   // ✅
   sendContactAutoReply,           // ✅
   sendContactReplyEmail, 
+  sendScheduledPostTomorrowEmail, // ✅
+  sendScheduledPostReminderEmail, // ✅
 };

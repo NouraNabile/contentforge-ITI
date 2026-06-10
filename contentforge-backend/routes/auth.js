@@ -173,9 +173,67 @@ router.get('/notifications', protect, async (req, res) => {
       read: false,
     })
   }
+   // ── Fetch DB notifications ─────────────────────────
+  try {
+    const { Notification } = require('../models')
+    const dbNotifs = await Notification.find({ user: req.user._id })
+      .sort({ createdAt: -1 })
+      .limit(50)
 
-  res.json({ notifications: notifs })
+    dbNotifs.forEach(n => {
+      notifs.push({
+        id: n._id.toString(),
+        type: n.type,
+        title: n.title,
+        message: n.message,
+        time: n.createdAt,
+        read: n.read,
+      })
+    })
+  } catch (err) {
+    console.error('Error fetching notifications:', err)
+  }
+  
+ res.json({ notifications: notifs })
 })
+
+// PATCH /api/auth/notifications/:id/read
+router.patch('/notifications/:id/read', protect, async (req, res) => {
+  try {
+    const { Notification } = require('../models')
+    
+    // Handle dynamic warning (not in DB)
+    if (req.params.id.startsWith('warning-')) {
+      return res.json({ success: true, message: 'Warning marked as read (client-side only)' })
+    }
+
+    await Notification.findOneAndUpdate(
+      { _id: req.params.id, user: req.user._id },
+      { read: true }
+    )
+    res.json({ success: true })
+  } catch (err) {
+    console.error('MARK READ ERROR:', err)
+    res.status(500).json({ message: err.message })
+  }
+})
+
+// PATCH /api/auth/notifications/read-all
+router.patch('/notifications/read-all', protect, async (req, res) => {
+  try {
+    const { Notification } = require('../models')
+    
+    await Notification.updateMany(
+      { user: req.user._id, read: false },
+      { read: true }
+    )
+    res.json({ success: true })
+  } catch (err) {
+    console.error('MARK ALL READ ERROR:', err)
+    res.status(500).json({ message: err.message })
+  }
+})
+
 // مثال سريع لـ Route الموافقة على الحذف (خاص بالأدمن فقط)
 router.post('/deletion-request', protect, async (req, res) => {
   try {
@@ -259,4 +317,32 @@ router.put('/change-password', protect, async (req, res) => {
     res.status(500).json({ message: err.message })
   }
 })
+
+// TEST ONLY — remove before production
+router.post('/test-notification', protect, async (req, res) => {
+  const { Notification } = require('../models')
+  await Notification.create({
+    user:    req.user._id,
+    title:   '📅 منشورات مجدولة اليوم',
+    message: 'لديك 3 منشورات مجدولة اليوم. لا تنسَ نشرها!',
+    type:    'scheduled_today',
+  })
+  await Notification.create({
+    user:    req.user._id,
+    title:   '⏰ منشورات مجدولة غداً',
+    message: 'لديك 2 منشور مجدول غداً. استعد لنشرها!',
+    type:    'scheduled_tomorrow',
+  })
+  res.json({ message: 'Test notifications created ✅' })
+})
+
+/** Write this in the bowser console to test the notifications
+ fetch('http://localhost:3000/api/auth/test-notification', {
+  method: 'POST',
+  headers: { 
+    'Authorization': 'Bearer ' + localStorage.getItem('cf_token'),
+    'Content-Type': 'application/json'
+  }
+}).then(r => r.json()).then(console.log)
+ */
 module.exports = router

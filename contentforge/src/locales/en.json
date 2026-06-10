@@ -11,7 +11,8 @@
       "chat": "AI Chat",
       "connections": "Connections",
       "payment": "Billing",
-      "poster": "Poster Generation"
+      "poster": "Poster Generation",
+      "profile": "Profile"
     },
     "pageTitle": {
       "dashboard": "Calendar",
@@ -278,7 +279,9 @@
     "back": "Back",
     "next": "Next",
     "search": "Search",
-    "noResults": "No results found"
+    "noResults": "No results found",
+    "saving": "Saving...",
+    "updating": "Updating..."
   },
   "connections": {
     "title": "Connections",
@@ -701,7 +704,7 @@
       },
       "imageGen": {
         "title": "AI Image Generation",
-        "description": "Create ad visuals and social graphics from a text prompt alongside every written post. DALL-E 3 integration per post card."
+        "description": "Create ad visuals and social graphics from a text prompt alongside every written post. Black-Forest-Labs integration per post card."
       },
       "abCritic": {
         "title": "A/B Critic Agent",
@@ -720,7 +723,7 @@
         "description": "Built-in approval state machine: Draft → Approved → Scheduled → Published. Full team collaboration ready."
       }
     }
-},
+  },
   "pricing": {
     "eyebrow": "Pricing",
     "heading": "Simple pricing for",
@@ -785,7 +788,7 @@
     },
     "closeMenu": "Close menu",
     "openMenu": "Open menu"
-},
+  },
   "howItWorks": {
     "eyebrow": "How It Works",
     "heading": "From brand setup",
@@ -1291,5 +1294,28 @@
     "publishBtn": "Publish Post",
     "successMessage": "Posted successfully! ID: {id}",
     "errorMessage": "Failed to publish"
+  },
+  "profile": {
+    "title": "My Profile",
+    "subtitle": "Manage your account information and security settings.",
+    "activeAccount": "Active Account",
+    "accountInfo": "Account Information",
+    "accountInfoDesc": "Update your personal details and email address.",
+    "fullName": "Full Name",
+    "emailAddress": "Email Address",
+    "emailReadonly": "Your email address is used for login and cannot be changed here.",
+    "saveChanges": "Save Changes",
+    "changePassword": "Change Password",
+    "changePasswordDesc": "Ensure your account is using a long, random password to stay secure.",
+    "currentPassword": "Current Password",
+    "newPassword": "New Password",
+    "confirmPassword": "Confirm New Password",
+    "updatePassword": "Update Password",
+    "updateSuccess": "Profile updated successfully!",
+    "updateFailed": "Failed to update profile. Please try again.",
+    "passwordMismatch": "New passwords do not match.",
+    "passwordTooShort": "Password must be at least 6 characters long.",
+    "passwordSuccess": "Password changed successfully!",
+    "passwordFailed": "Failed to change password. Please check your current password."
   }
 }

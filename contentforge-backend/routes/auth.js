@@ -1,8 +1,8 @@
 // backend/routes/auth.js
 const express = require('express')
-const router  = express.Router()
-const jwt     = require('jsonwebtoken')
-const { User ,DeletionRequest} = require('../models')
+const router = express.Router()
+const jwt = require('jsonwebtoken')
+const { User, DeletionRequest } = require('../models')
 const protect = require('../middleware/auth')
 const { sendVerificationEmail } = require("../services/emailService");
 const { sendDeletionRequestEmail } = require('../services/emailService')
@@ -19,7 +19,7 @@ router.post('/register', async (req, res) => {
 
     // جيب الـ settings من DB
     const settings = await PlatformSettings.findOne() || {}
-    const blockByPhone     = settings.blockByPhone     ?? true
+    const blockByPhone = settings.blockByPhone ?? true
     const otpExpiryMinutes = settings.otpExpiryMinutes ?? 10
 
     if (await User.findOne({ email }))
@@ -30,7 +30,7 @@ router.post('/register', async (req, res) => {
       return res.status(400).json({ message: 'This phone has already been used for a trial.' })
 
     const verificationCode = Math.floor(100000 + Math.random() * 900000).toString()
-    const trialDays  = settings.trialDays ?? 14
+    const trialDays = settings.trialDays ?? 14
     const trialEndsAt = new Date(Date.now() + trialDays * 24 * 60 * 60 * 1000)
 
     const user = await User.create({
@@ -93,7 +93,7 @@ router.post('/login', async (req, res) => {
     return res.status(403).json({ message: 'Please verify your email first' });
 
   if (user.isBlocked)
-  return res.status(403).json({ message: 'Your account has been blocked. Please contact support.' });
+    return res.status(403).json({ message: 'Your account has been blocked. Please contact support.' });
 
   user.lastLoginAt = new Date()   // ← add this
   await user.save()
@@ -159,7 +159,7 @@ router.post('/demo', async (req, res) => {
 router.get('/notifications', protect, async (req, res) => {
   const user = await User.findById(req.user._id)
     .select('blockStatus restrictionReason gracePeriodExpiresAt')
-  
+
   const notifs = []
 
   if (user.blockStatus === 'warning') {
@@ -185,7 +185,7 @@ router.post('/deletion-request', protect, async (req, res) => {
     if (user.isAskToDelete)
       return res.status(400).json({ message: 'Request already submitted' })
 
-    user.isAskToDelete  = true
+    user.isAskToDelete = true
     user.deletionReason = req.body.reason || null
     await user.save()
 
@@ -220,6 +220,42 @@ router.post('/resend-otp', async (req, res) => {
 
     res.json({ message: 'New OTP sent successfully' })
   } catch (err) {
+    res.status(500).json({ message: err.message })
+  }
+})
+
+// PUT /api/auth/change-password
+router.put('/change-password', protect, async (req, res) => {
+  try {
+    const { currentPassword, newPassword } = req.body
+
+    if (!currentPassword || !newPassword) {
+      return res.status(400).json({ message: 'All fields required' })
+    }
+
+    if (newPassword.length < 6) {
+      return res.status(400).json({ message: 'Password must be at least 6 characters' })
+    }
+
+    const user = await User.findById(req.user._id)
+
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' })
+    }
+
+    // Verify current password
+    const isMatch = await user.matchPassword(currentPassword)
+    if (!isMatch) {
+      return res.status(401).json({ message: 'Current password is incorrect' })
+    }
+
+    // Update password
+    user.password = newPassword
+    await user.save()
+
+    res.json({ message: 'Password changed successfully' })
+  } catch (err) {
+    console.error('CHANGE PASSWORD ERROR:', err)
     res.status(500).json({ message: err.message })
   }
 })

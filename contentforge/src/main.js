@@ -18,6 +18,7 @@ import PaymentPage from "./views/PaymentPage.vue";
 import PaymentSuccessPage from "./views/PaymentSuccessPage.vue";
 import PaymentCancelPage from "./views/PaymentCancelPage.vue";
 import ContactPage from './views/ContactPage.vue'
+import Profile from './views/Profile.vue'
 
 import AdminLayout from './views/admin/AdminLayout.vue'
 import AdminDashboard from './views/admin/AdminDashboard.vue'
@@ -79,6 +80,12 @@ const router = createRouter({
     {
       path: '/payment-success',
       component: PaymentSuccessPage
+    },
+    {
+      path: '/profile',
+      name: 'Profile',
+      component: Profile,
+      meta: { requiresAuth: true }
     }
   ],
   scrollBehavior(to) {

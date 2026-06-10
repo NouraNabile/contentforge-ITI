@@ -101,27 +101,6 @@
         :class="sidebarOpen ? 'translate-x-0' : locale === 'ar' ? 'translate-x-full md:translate-x-0' : '-translate-x-full md:translate-x-0'"
         style="height: calc(100vh - 57px); border-color: var(--border)" v-show="sidebarOpen || isDesktop">
 
-        <!-- Brand chip -->
-        <div class="mb-5 px-2">
-          <p class="text-[10px] theme-muted uppercase tracking-wider mb-2 font-medium">
-            {{ t('layout.activeBrand') }}
-          </p>
-          <div class="flex items-center gap-2.5 p-2.5 rounded-xl border cursor-pointer transition-colors"
-            style="background: rgba(59,130,246,0.08); border-color: rgba(59,130,246,0.25)">
-            <div
-              class="w-7 h-7 rounded-lg bg-gradient-to-br from-blue-500 to-teal-400 flex items-center justify-center text-xs font-bold text-white shrink-0">
-              A
-            </div>
-            <div class="flex-1 min-w-0">
-              <p class="text-xs font-medium theme-text truncate">{{ authStore.userName }}</p>
-              <p class="text-[10px] theme-muted">{{ authStore.userPlan }}</p>
-            </div>
-            <svg class="w-3 h-3 theme-muted shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
-            </svg>
-          </div>
-        </div>
-
         <!-- Nav items -->
         <nav class="space-y-0.5 flex-1">
           <RouterLink v-for="item in navItems" :key="item.path" :to="item.path" @click="sidebarOpen = false"
@@ -359,6 +338,7 @@ const pageTitle = computed(() => {
     '/chat': t('layout.nav.chat'),
     '/connections': t('layout.nav.connections'),
     '/payment': t('layout.nav.payment'),
+    '/profile': t('layout.nav.profile'), // <--- ADD THIS
   }
   return map[route.path] || t('layout.nav.calendar')
 })
@@ -394,14 +374,16 @@ onMounted(() => {
 watch(() => calendarStore.posts, fetchStats, { deep: true })
 watch(() => authStore.user?._id, fetchStats)
 
+
 const navItems = computed(() => [
   { label: t('layout.nav.calendar'), path: '/dashboard', badgeKey: 'calendars', icon: 'M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z' },
   { label: t('layout.nav.drafts'), path: '/drafts', badgeKey: 'drafts', icon: 'M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z' },
   { label: t('layout.nav.branding'), path: '/branding', badgeKey: null, icon: 'M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10' },
   { label: t('layout.nav.chat'), path: '/chat', badgeKey: null, icon: 'M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z' },
   { label: t('layout.nav.connections'), path: '/connections', badgeKey: null, icon: 'M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1' },
-   { label: t('layout.nav.poster'),      path: '/poster',      badgeKey: null,        icon: 'M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z' },
+  { label: t('layout.nav.poster'), path: '/poster', badgeKey: null, icon: 'M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z' },
   { label: t('layout.nav.payment'), path: '/payment', badgeKey: null, icon: 'M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z' },
+  { label: t('layout.nav.profile'), path: '/profile', badgeKey: null, icon: 'M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z' }
 ])
 
 // Delete Account

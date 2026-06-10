@@ -10,6 +10,7 @@
       "branding": "Brand Vault",
       "chat": "AI Chat",
       "connections": "Connections",
+      "poster": "Poster Generator",
       "payment": "Billing"
     },
     "pageTitle": {
@@ -18,6 +19,7 @@
       "branding": "Brand Vault",
       "chat": "AI Chat",
       "connections": "Connections",
+      "poster": "Poster Generator",
       "payment": "Billing & Plans"
     },
     "stats": {

@@ -138,6 +138,80 @@
                 ✓ {{ p }}
               </span>
             </div>
+            <!-- Quick Post -->
+            <div
+              v-if="platform.connected"
+              class="pt-3 border-t space-y-2"
+              style="border-color: var(--border)"
+            >
+              <p
+                class="text-[10px] font-medium theme-muted uppercase tracking-wider"
+              >
+                ⚡ Quick Post
+              </p>
+              <textarea
+                v-model="getQuickPost(platform.name).message"
+                rows="2"
+                :placeholder="`Write something to post on ${platform.name}...`"
+                class="w-full theme-input rounded-xl px-3 py-2 text-sm theme-text border focus:outline-none focus:border-blue-500/40 resize-none transition-colors"
+                style="border-color: var(--border)"
+              />
+              <input
+                v-if="platform.name === 'Instagram'"
+                v-model="getQuickPost(platform.name).imageUrl"
+                type="url"
+                placeholder="Image URL (required for Instagram)"
+                class="w-full theme-input rounded-xl px-3 py-2 text-sm theme-text border focus:outline-none focus:border-blue-500/40 transition-colors"
+                style="border-color: var(--border)"
+              />
+              <div class="flex items-center justify-between gap-2">
+                <p
+                  v-if="getQuickPost(platform.name).result"
+                  class="text-xs"
+                  :class="
+                    getQuickPost(platform.name).result.success
+                      ? 'text-green-400'
+                      : 'text-rose-400'
+                  "
+                >
+                  {{ getQuickPost(platform.name).result.text }}
+                </p>
+                <button
+                  @click="doQuickPublish(platform.name)"
+                  :disabled="
+                    getQuickPost(platform.name).publishing ||
+                    !getQuickPost(platform.name).message.trim()
+                  "
+                  class="ml-auto px-4 py-1.5 rounded-lg bg-blue-600 text-white text-xs font-medium hover:bg-blue-500 transition-colors disabled:opacity-50 flex items-center gap-1.5 shrink-0"
+                >
+                  <svg
+                    v-if="getQuickPost(platform.name).publishing"
+                    class="w-3 h-3 animate-spin"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                  >
+                    <circle
+                      class="opacity-25"
+                      cx="12"
+                      cy="12"
+                      r="10"
+                      stroke="currentColor"
+                      stroke-width="4"
+                    />
+                    <path
+                      class="opacity-75"
+                      fill="currentColor"
+                      d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"
+                    />
+                  </svg>
+                  {{
+                    getQuickPost(platform.name).publishing
+                      ? "Posting..."
+                      : "🚀 Post Now"
+                  }}
+                </button>
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -272,6 +346,7 @@
 import { ref, computed, onMounted, onUnmounted } from "vue";
 import AppLayout from "../components/AppLayout.vue";
 import api from "../api/client";
+import postsApi from "../api/postsApi";
 import { useRoute } from "vue-router";
 import { useToast } from "vue-toastification";
 
@@ -292,6 +367,9 @@ const activePlatform = ref(null);
 const formData = ref({});
 const isSubmitting = ref(false);
 const authUrl = ref("");
+
+// ── Quick Post state ──────────────────────────────────────────────────────────
+const quickPost = ref({}); // { Facebook: { message, imageUrl, publishing, result } }
 
 const currentFields = computed(() =>
   activePlatform.value ? (platformFields[activePlatform.value.name] ?? []) : [],
@@ -509,6 +587,49 @@ async function fetchPlatformStats() {
     } catch (err) {
       console.log(`[Stats] ${platform}: not connected or error`, err.message);
     }
+  }
+}
+
+// ── Quick Post ────────────────────────────────────────────────────────────────
+function getQuickPost(platformName) {
+  if (!quickPost.value[platformName]) {
+    quickPost.value[platformName] = {
+      message: "",
+      imageUrl: "",
+      publishing: false,
+      result: null,
+    };
+  }
+  return quickPost.value[platformName];
+}
+
+async function doQuickPublish(platformName) {
+  const qp = getQuickPost(platformName);
+  if (!qp.message.trim()) return;
+  qp.publishing = true;
+  qp.result = null;
+  try {
+    const brandId = localStorage.getItem("cf_brandId"); // ← get brandId
+    await postsApi.quickPublish(
+      platformName,
+      qp.message,
+      qp.imageUrl || null,
+      brandId,
+    );
+    qp.result = { success: true, text: "✅ Posted successfully!" };
+    qp.message = "";
+    qp.imageUrl = "";
+    await fetchPlatformStats();
+  } catch (err) {
+    qp.result = {
+      success: false,
+      text: "❌ " + (err.message || "Failed to publish"),
+    };
+  } finally {
+    qp.publishing = false;
+    setTimeout(() => {
+      if (qp.result) qp.result = null;
+    }, 3000);
   }
 }
 

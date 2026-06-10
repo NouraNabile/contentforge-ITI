@@ -48,7 +48,7 @@ const postsApi = {
   async getAllPosts(brandId) {
     return await api.get(`/posts/all/${brandId}`);
   },
-  
+
   // ── Get all drafts for a brand ──────────────────────────────────────────────
   // GET /api/posts/drafts/:brandId
   async getDrafts(brandId) {
@@ -63,8 +63,9 @@ const postsApi = {
 
   // ── Publish a post immediately to social platform ───────────────────────────
   // POST /api/posts/:id/publish
-  async publishPost(postId) {
-    return await api.post(`/posts/${postId}/publish`);
+  async publishPost(postId, platform) {
+    const p = platform.toLowerCase();
+    return await api.post(`/posts/${postId}/publish/${p}`);
   },
 
   // ── Swap post date (drag-and-drop) ──────────────────────────────────────────
@@ -80,6 +81,17 @@ const postsApi = {
   // Returns: { imageUrl, imagePrompt }
   async generateImage(postId) {
     return await api.post(`/posts/${postId}/generate-image`);
+  },
+
+  // ── Quick publish directly (no calendar post needed) ────────────────────────
+  // POST /api/posts/quick-publish
+  async quickPublish(platform, message, imageUrl = null, brandId = null) {
+    return await api.post("/posts/quick-publish", {
+      platform,
+      message,
+      imageUrl,
+      brandId,
+    });
   },
 };
 

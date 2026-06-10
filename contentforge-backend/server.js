@@ -14,7 +14,7 @@ const cron = require('node-cron');
 const { User,PlatformSettings } = require('./models');const posterRoutes = require("./routes/posterRouter");
 
 const app = express()
-const { sendTrialExpiryWarningEmail } = require('./services/emailService')
+const { sendTrialExpiryWarningEmail, sendScheduledPostReminderEmail } = require('./services/emailService')
 
 // بيشتغل كل يوم الساعة 9 الصبح
 cron.schedule('0 9 * * *', async () => {
@@ -41,6 +41,50 @@ cron.schedule('0 9 * * *', async () => {
     console.log(`[Cron] Sent expiry warning to ${users.length} users`)
   } catch (err) {
     console.error('[Cron] Error:', err.message)
+  }
+})
+
+// ── Scheduled Post Reminder — runs every day at 8:00 AM ──────────────────────
+cron.schedule('0 8 * * *', async () => {
+  try {
+    const { Post, Calendar, User } = require('./models')
+    const today = new Date()
+    const startOfDay = new Date(today.setHours(0, 0, 0, 0))
+    const endOfDay   = new Date(today.setHours(23, 59, 59, 999))
+
+    // Find all posts scheduled for today that are not yet published
+    const todaysPosts = await Post.find({
+      status: 'scheduled',
+      scheduledAt: { $gte: startOfDay, $lte: endOfDay }
+    }).populate({
+      path: 'calendar',
+      populate: { path: 'user', model: 'User' }
+    })
+
+    if (!todaysPosts.length) {
+      console.log('[Cron] No scheduled posts for today')
+      return
+    }
+
+    // Group posts by user
+    const byUser = {}
+    for (const post of todaysPosts) {
+      const user = post.calendar?.user
+      if (!user) continue
+      const uid = user._id.toString()
+      if (!byUser[uid]) byUser[uid] = { user, posts: [] }
+      byUser[uid].posts.push(post)
+    }
+
+    // Send one email per user with all their posts for today
+    for (const { user, posts } of Object.values(byUser)) {
+      sendScheduledPostReminderEmail(user.email, user.name, posts)
+        .then(() => console.log(`[Cron] Reminder sent to ${user.email} — ${posts.length} posts`))
+        .catch(err => console.error(`[Cron] Email failed for ${user.email}:`, err.message))
+    }
+
+  } catch (err) {
+    console.error('[Cron] Scheduled post reminder error:', err.message)
   }
 })
 // ── Connect to MongoDB Atlas ──────────────────────────────────────────────────

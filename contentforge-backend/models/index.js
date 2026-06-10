@@ -132,7 +132,7 @@ const postSchema = new mongoose.Schema({
   },
   status: {
     type:    String,
-    enum:    ['draft','pending_review','approved','scheduled','published'],
+    enum:    ['draft','approved','scheduled','published'],
     default: 'draft',
   },
   metaPostId: { type: String },  // ← Meta's post ID after publishing

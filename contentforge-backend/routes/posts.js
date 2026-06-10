@@ -27,7 +27,7 @@ router.get("/stats/facebook", protect, async (req, res) => {
 
     const { data } = await axios.get(`${BASE_URL}/${conn.pageId}`, {
       params: {
-        fields: "name,fan_count,feed.limit(1).summary(true)",
+        fields: "name,fan_count,published_posts.limit(1).summary(true)",
         access_token: conn.accessToken,
       },
     });
@@ -37,7 +37,7 @@ router.get("/stats/facebook", protect, async (req, res) => {
     res.json({
       pageName: data.name,
       followers: data.fan_count,
-      totalPosts: data.feed?.summary?.total_count ?? 0,
+      totalPosts: data.published_posts?.summary?.total_count ?? 0,
     });
   } catch (err) {
     console.error("[Facebook Stats] error:", err.response?.data || err.message);
@@ -417,6 +417,114 @@ router.stack.forEach((layer) => {
   if (layer.route) {
     const methods = Object.keys(layer.route.methods).join(",").toUpperCase();
     console.log(`  ${methods} ${layer.route.path}`);
+  }
+});
+
+// POST /api/posts/quick-publish — publish directly without a calendar post
+router.post("/quick-publish", protect, async (req, res) => {
+  console.log("[Quick Publish] req.body:", req.body); // ← add this
+
+  const { platform, message, imageUrl, brandId } = req.body;
+  if (!platform || !message)
+    return res
+      .status(400)
+      .json({ message: "platform and message are required" });
+
+  if (!brandId)
+    return res
+      .status(400)
+      .json({ message: "No brand found. Please set up your brand first." });
+
+  try {
+    const today = new Date().toISOString().split("T")[0];
+    const post = await Post.create({
+      brand: brandId, // now guaranteed to exist
+      platform,
+      copyAR: message,
+      copyEN: message,
+      hashtags: [],
+      date: today,
+      status: "draft",
+      imageUrl: imageUrl || null,
+    });
+
+    // 2. Publish to Facebook
+    if (platform.toLowerCase() === "facebook") {
+      const conn = await getConnection(req.user._id, "Facebook");
+      if (!conn)
+        return res.status(400).json({ message: "Facebook not connected" });
+
+      const { data } = await axios.post(
+        `${BASE_URL}/${conn.pageId}/feed`,
+        null,
+        {
+          params: { message, access_token: conn.accessToken },
+        },
+      );
+
+      // 3. Update post status to published
+      post.status = "published";
+      post.publishedAt = new Date();
+      post.metaPostId = data.id;
+      await post.save();
+
+      return res.json({
+        success: true,
+        postId: data.id,
+        platform: "Facebook",
+        savedPost: post,
+      });
+    }
+
+    // 2. Publish to Instagram
+    if (platform.toLowerCase() === "instagram") {
+      const conn = await getConnection(req.user._id, "Instagram");
+      if (!conn)
+        return res.status(400).json({ message: "Instagram not connected" });
+      if (!imageUrl)
+        return res
+          .status(400)
+          .json({ message: "Instagram requires an image URL" });
+
+      const { data: container } = await axios.post(
+        `${BASE_URL}/${conn.igId}/media`,
+        null,
+        {
+          params: {
+            image_url: imageUrl,
+            caption: message,
+            access_token: conn.accessToken,
+          },
+        },
+      );
+      const { data: published } = await axios.post(
+        `${BASE_URL}/${conn.igId}/media_publish`,
+        null,
+        {
+          params: { creation_id: container.id, access_token: conn.accessToken },
+        },
+      );
+
+      // 3. Update post status to published
+      post.status = "published";
+      post.publishedAt = new Date();
+      post.metaPostId = published.id;
+      await post.save();
+
+      return res.json({
+        success: true,
+        postId: published.id,
+        platform: "Instagram",
+        savedPost: post,
+      });
+    }
+
+    res.status(400).json({ message: "Unsupported platform" });
+  } catch (err) {
+    console.error("[Quick Publish]", err.response?.data || err.message);
+    res.status(500).json({
+      message: err.response?.data?.error?.message || "Failed to publish",
+    });
   }
 });
 

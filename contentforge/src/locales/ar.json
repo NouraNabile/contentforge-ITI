@@ -10,7 +10,8 @@
       "branding": "خزينة العلامة",
       "chat": "المحادثة الذكية",
       "connections": "الاتصالات",
-      "payment": "الفواتير"
+      "payment": "الفواتير",
+      "poster": "إنشاء الملصقات الإعلانية"
     },
     "pageTitle": {
       "dashboard": "التقويم",
@@ -77,8 +78,8 @@
     "errorFillAll": "يرجى ملء جميع الحقول",
     "errorInvalidCode": "الكود غير صحيح أو منتهي الصلاحية",
     "guest": "زائر",
-    "wrongMail" : "الرجاء إدخال بريد إلكتروني صحيح!",
-    "confirmPassword" : "تأكيد كلمة المرور",
+    "wrongMail": "الرجاء إدخال بريد إلكتروني صحيح!",
+    "confirmPassword": "تأكيد كلمة المرور",
     "plan": {
       "free": "مجاني",
       "pro": "احترافي",
@@ -290,15 +291,52 @@
       "read": "قراءة",
       "insights": "الإحصاءات"
     },
-    "field": {
+    "activePlatforms": "المنصات النشطة",
+    "statusConnected": "متصل",
+    "statusDisconnected": "غير متصل",
+    "connectBtn": "ربط",
+    "disconnectBtn": "إلغاء الربط",
+    "liveStats": "الإحصائيات المباشرة",
+    "followers": "المتابعون",
+    "posts": "المنشورات",
+    "following": "المتابَعون",
+    "inDevelopment": "ميزة الربط قيد التطوير حالياً",
+    "comingSoonBadge": "قريباً",
+    "connectingStatus": "جاري الاتصال...",
+    "connectCheckBtn": "ربط الحساب ✓",
+    "permissions": {
+      "readposts": "قراءة المنشورات",
+      "read": "قراءة",
+      "publish": "النشر",
+      "analytics": "التحليلات",
+      "insights": "الرؤى والبيانات"
+    },
+    "fields": {
       "profileUrl": "رابط الملف الشخصي",
       "profileUrlPlaceholder": "https://linkedin.com/in/...",
+      "email":  "البريد الإلكتروني",
+      "emailPlaceholder": "you@email.com",
       "username": "اسم المستخدم",
       "usernamePlaceholder": "@yourhandle",
-      "email": "البريد الإلكتروني",
-      "emailPlaceholder": "you{'@'}email.com",
       "channelName": "اسم القناة",
-      "channelNamePlaceholder": "اسم قناتك"
+      "channelNamePlaceholder" : "اسم قناتك"
+    },
+    "integrationInDev": "التكامل قيد التطوير",
+    "platforms": {
+      "instagram": "إنستغرام",
+      "facebook": "فيسبوك",
+      "twitter": "تويتر/X",
+      "linkedin": "لينكد إن",
+      "tiktok": "تيك توك",
+      "youtube": "يوتيوب"
+    },
+    "toast":
+    {
+      "connected" : "تم ربط {name} بنجاح!",
+      "disconnected" : "تم إلغاء ربط {name}.",
+      "error" : "فشل {action} {name}",
+      "submitError" : "فشل الاتصال. حاول مجدداً."
+
     }
   },
   "dashboard": {

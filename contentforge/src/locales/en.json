@@ -10,8 +10,8 @@
       "branding": "Brand Vault",
       "chat": "AI Chat",
       "connections": "Connections",
-      "poster": "Poster Generator",
-      "payment": "Billing"
+      "payment": "Billing",
+      "poster": "Poster Generation"
     },
     "pageTitle": {
       "dashboard": "Calendar",
@@ -19,7 +19,6 @@
       "branding": "Brand Vault",
       "chat": "AI Chat",
       "connections": "Connections",
-      "poster": "Poster Generator",
       "payment": "Billing & Plans"
     },
     "stats": {
@@ -310,16 +309,51 @@
       "read": "Read",
       "insights": "Insights"
     },
-    "field": {
-      "profileUrl": "Profile URL",
-      "profileUrlPlaceholder": "https://linkedin.com/in/...",
-      "username": "Username",
-      "usernamePlaceholder": "@yourhandle",
-      "email": "Email",
-      "emailPlaceholder": "you{'@'}email.com",
-      "channelName": "Channel Name",
-      "channelNamePlaceholder": "Your Channel"
+    "activePlatforms": "Active Platforms",
+    "statusConnected": "Connected",
+    "statusDisconnected": "Disconnected",
+    "connectBtn": "Connect",
+    "disconnectBtn": "Disconnect",
+    "liveStats": "Live Stats",
+    "followers": "Followers",
+    "posts": "Posts",
+    "following": "Following",
+    "inDevelopment": "Integration in development",
+    "comingSoonBadge": "Coming Soon",
+    "connectingStatus": "Connecting...",
+    "connectCheckBtn": "Connect ✓",
+    "permissions": {
+      "readposts": "Read posts",
+      "read": "Read",
+      "publish": "Publish",
+      "analytics": "Analytics",
+      "insights": "Insights"
+    },
+    "fields": {
+      "profileUrl": { "label": "Profile URL", "placeholder": "https://linkedin.com/in/..." },
+      "email": { "label": "Email", "placeholder": "you@email.com" },
+      "username": { "label": "Username", "placeholder": "@yourhandle" },
+      "channelName": { "label": "Channel Name", "placeholder": "Your Channel" }
+    },
+    "integrationInDev ": "Integration in development",
+    "platforms": {
+      "instagram": "Instagram",
+      "facebook": "Facebook",
+      "twitter": "Twitter/X",
+      "linkedin": "LinkedIn",
+      "tiktok": "TikTok",
+      "youtube": "YouTube"
+    },
+    "toast":
+    {
+      "connected" : "{name} connected successfully!",
+      "disconnected" : "{name} disconnected.",
+      "error" : "Failed to {action} {name}",
+      "submitError" : "Failed to connect. Please try again."
+
     }
+
+    
   },
   "dashboard": {
     "aiImageGenerator": "AI Image Generator",

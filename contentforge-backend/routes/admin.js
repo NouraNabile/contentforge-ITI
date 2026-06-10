@@ -8,59 +8,48 @@ const { PlatformSettings } = require('../models')
 // ── GET /api/admin/stats ──────────────────────────────────────────────────────
 router.get('/stats', adminOnly, async (req, res) => {
   try {
-    const now       = new Date()
-    const last24h   = new Date(now - 24 * 60 * 60 * 1000)
-    const lastWeek  = new Date(now - 7  * 24 * 60 * 60 * 1000)
-    const prevWeek  = new Date(now - 14 * 24 * 60 * 60 * 1000)
+    const now      = new Date()
+    const last24h  = new Date(now - 24 * 60 * 60 * 1000)
+    const lastWeek = new Date(now - 7  * 24 * 60 * 60 * 1000)
+    const prevWeek = new Date(now - 14 * 24 * 60 * 60 * 1000)
 
-    // 1. الفلتر الصافي للمستخدم النشط (مش ممسوح كدا وكدا، مش محظور، ومعندهوش warning)
-    const activeUserFilter = { 
-  // isDeleted: { $ne: true },     // مش ممسوح كدا وكدا
-  // isBlocked: { $ne: true },     // مش محظور نهائي
-  isVerified: true,             // مأكد الإيميل
-  // blockStatus: { $ne: 'warning' }, // مش واخد تحذير (عشان بنعده لوحده)
-  
-  // 🌟 التعديل السحري: استبعاد أي حد طالب الحذف من قائمة النشطين
-  // isAskToDelete: { $ne: true }  
-}
+    const totalUsers      = await User.countDocuments()
+    const blockedCount    = await User.countDocuments({ isBlocked: true })
+    const warnedCount     = await User.countDocuments({ isDeleted: { $ne: true }, isBlocked: { $ne: true }, blockStatus: 'warning' })
+    const isAskToDeleteCount = await User.countDocuments({ isAskToDelete: true, isDeleted: { $ne: true } })
+    const deletedCount    = await User.countDocuments({ isDeleted: true })
+    const adminCount      = await User.countDocuments({ isAdmin: true })
+    const activeCount     = await User.countDocuments({
+      isVerified: true,
+      isBlocked: false,
+      isDeleted: { $ne: true },
+      isAdmin: { $ne: true },
+      isAskToDelete: { $ne: true },
+      blockStatus: { $ne: 'warning' }
+    })
 
-    // 2. حساب الأرقام بأسماء صريحة لمنع لخبطة الـ v-for والترتيب
-    const totalUsers           = await User.countDocuments(); // 14
-    const blockedCount         = await User.countDocuments({ isBlocked: true }); // 0
-    
-    // 🌟 خانة الـ Deleted هتقرأ الحسابات اللي اتمسحت فعلياً كدا وكدا
-    const deletedCount         = await User.countDocuments({ isDeleted: true }); 
-    
-    // خانة الـ Warned الصافية
-    const warnedCount          = await User.countDocuments({ isDeleted: { $ne: true }, isBlocked: { $ne: true }, blockStatus: 'warning' }); 
-    const isAskToDeleteCount    = await User.countDocuments({ isAskToDelete: true });
-    const activeCount          = await User.countDocuments(activeUserFilter); 
-    const adminCount           = await User.countDocuments({ isAdmin: true }); 
-    
-    const activeTrialUsers     = await User.countDocuments({ ...activeUserFilter, isTrial: true, trialEndsAt: { $gt: now } });
-    const pendingVerifications = await User.countDocuments({ isDeleted: { $ne: true }, isBlocked: { $ne: true }, isVerified: false });
-
-    const newUsersThisWeek     = await User.countDocuments({ ...activeUserFilter, createdAt: { $gte: lastWeek } });
-    const newUsersPrevWeek     = await User.countDocuments({ ...activeUserFilter, createdAt: { $gte: prevWeek, $lt: lastWeek } });
+    const activeTrialUsers     = await User.countDocuments({ isTrial: true, trialEndsAt: { $gt: now }, isBlocked: false, isDeleted: { $ne: true } })
+    const pendingVerifications = await User.countDocuments({ isVerified: false, isDeleted: { $ne: true } })
+    const newUsersThisWeek     = await User.countDocuments({ createdAt: { $gte: lastWeek }, isDeleted: { $ne: true } })
+    const newUsersPrevWeek     = await User.countDocuments({ createdAt: { $gte: prevWeek, $lt: lastWeek }, isDeleted: { $ne: true } })
 
     const registrationGrowth = newUsersPrevWeek > 0
       ? Math.round(((newUsersThisWeek - newUsersPrevWeek) / newUsersPrevWeek) * 100)
       : newUsersThisWeek > 0 ? 100 : 0
 
-    // 3. الـ Response النهائي المبعوث بالأسماء الصريحة لتطابق الـ Vue
     res.json({
       totalUsers,
-      newUsers24h: await User.countDocuments({ ...activeUserFilter, createdAt: { $gte: last24h } }),
+      newUsers24h: await User.countDocuments({ createdAt: { $gte: last24h }, isDeleted: { $ne: true } }),
       pendingVerifications,
       activeTrialUsers,
       newPostsLast24h: await Post?.countDocuments({ createdAt: { $gte: last24h } }).catch(() => 0),
       newUsersThisWeek,
       registrationGrowth,
-      warnedCount,   // مبعوتة صريحة
+      warnedCount,
       isAskToDeleteCount,
-      activeCount,   // مبعوتة صريحة
-      blockedCount,  // مبعوتة صريحة
-      deletedCount,  // مبعوتة صريحة
+      activeCount,
+      blockedCount,
+      deletedCount,
       adminCount,
       serverUptime: Math.floor(process.uptime()),
     })
@@ -70,7 +59,6 @@ router.get('/stats', adminOnly, async (req, res) => {
     res.status(500).json({ message: 'Server error', error: err.message })
   }
 })
-
 // ── GET routes/admin.js ──────────────────────────────────────────────────────
 // جيب الـ settings الحالية
 router.get('/settings', adminOnly, async (req, res) => {

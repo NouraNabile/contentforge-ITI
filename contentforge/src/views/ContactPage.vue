@@ -9,6 +9,17 @@
 
       <div class="max-w-lg mx-auto">
 
+        <!-- Back button -->
+        <button
+          @click="goBack"
+          class="inline-flex items-center gap-2 text-sm theme-sub hover:theme-text transition-colors my-6 px-3 py-1.5 rounded-lg hover:bg-blue-500/5"
+        >
+          <svg class="w-4 h-4" :class="locale === 'ar' ? 'rotate-180' : ''" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+          </svg>
+          {{ t('common.back') }}
+        </button>
+
         <!-- Header -->
         <div class="text-center mb-10">
           <h1 class="font-display text-3xl sm:text-4xl font-700 theme-text mb-3">
@@ -139,6 +150,7 @@
 
 <script setup>
 import { ref } from 'vue'
+import { useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { useLang } from '../composables/useLang.js'
 import Navbar from '../components/Navbar.vue'
@@ -146,6 +158,7 @@ import Footer from '../components/Footer.vue'
 
 const { t } = useI18n()
 const { locale } = useLang()
+const router = useRouter()
 
 const submitted   = ref(false)
 const loading     = ref(false)
@@ -161,6 +174,14 @@ const subjectOptions = [
   { value: 'partnership', labelKey: 'contact.subject.partnership' },
   { value: 'other',       labelKey: 'contact.subject.other' },
 ]
+
+function goBack() {
+  if (window.history.length > 1) {
+    router.back()
+  } else {
+    router.push('/')
+  }
+}
 
 function validate() {
   errors.value = {
@@ -198,3 +219,4 @@ function resetForm() {
   errors.value = { name: false, email: false, subject: false, message: false }
 }
 </script>
+

@@ -787,7 +787,9 @@
       "howItWorks": "How it Works",
       "competitors": "Competitors",
       "pricing": "Pricing",
-      "contact": "Contact Us"
+      "contact": "Contact Us",
+      "language": "Language",
+    "theme": "Theme"
     },
     "closeMenu": "Close menu",
     "openMenu": "Open menu"
@@ -1185,7 +1187,19 @@
     "deleteBrandDesc": "Are you sure you want to delete {name}? This action cannot be undone and all associated content will be lost.",
     "deleting": "Deleting...",
     "confirmDelete": "Yes, delete",
-    "deleteBrandFailed": "Failed to delete brand"
+    "deleteBrandFailed": "Failed to delete brand",
+    "dangerZone": "Danger Zone",
+    "dangerZoneDesc": "Irreversible and destructive actions",
+    "deleteAccount": "Delete Account",
+    "deleteAccountDesc": "Permanently delete your account and all associated data",
+    "deleteAccountTitle": "Delete Account",
+    "deleteAccountWarning": "This action cannot be undone. All your data, brands, and calendars will be permanently deleted.",
+    "deleteReason": "Reason for deletion (optional)",
+    "deleteReasonPlaceholder": "Help us improve by telling us why you're leaving...",
+    "deleteSuccess": "Deletion request submitted successfully. You will receive a confirmation email.",
+    "deleteFailed": "Failed to submit deletion request",
+    "currentPasswordRequired": "Please enter your current password",
+  "currentPasswordIncorrect": "Current password is incorrect"
   },
   "admin": {
     "administrator": "Administrator",

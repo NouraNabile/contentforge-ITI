@@ -313,42 +313,41 @@ router.post("/resend-otp", async (req, res) => {
 });
 
 // PUT /api/auth/change-password
-router.put("/change-password", protect, async (req, res) => {
+router.put('/change-password', protect, async (req, res) => {
   try {
-    const { currentPassword, newPassword } = req.body;
+    const { currentPassword, newPassword } = req.body
 
     if (!currentPassword || !newPassword) {
-      return res.status(400).json({ message: "All fields required" });
+      return res.status(400).json({ message: 'All fields required' })
     }
 
     if (newPassword.length < 6) {
-      return res
-        .status(400)
-        .json({ message: "Password must be at least 6 characters" });
+      return res.status(400).json({ message: 'Password must be at least 6 characters' })
     }
 
-    const user = await User.findById(req.user._id);
+    const user = await User.findById(req.user._id)
 
     if (!user) {
-      return res.status(404).json({ message: "User not found" });
+      return res.status(404).json({ message: 'User not found' })
     }
 
     // Verify current password
-    const isMatch = await user.matchPassword(currentPassword);
+    const isMatch = await user.matchPassword(currentPassword)
     if (!isMatch) {
-      return res.status(401).json({ message: "Current password is incorrect" });
+      // 👇 Changed from 401 to 400
+      return res.status(400).json({ message: 'Current password is incorrect' })
     }
 
     // Update password
-    user.password = newPassword;
-    await user.save();
+    user.password = newPassword
+    await user.save()
 
-    res.json({ message: "Password changed successfully" });
+    res.json({ message: 'Password changed successfully' })
   } catch (err) {
-    console.error("CHANGE PASSWORD ERROR:", err);
-    res.status(500).json({ message: err.message });
+    console.error('CHANGE PASSWORD ERROR:', err)
+    res.status(500).json({ message: err.message })
   }
-});
+})
 
 // TEST ONLY — remove before production
 router.post("/test-notification", protect, async (req, res) => {

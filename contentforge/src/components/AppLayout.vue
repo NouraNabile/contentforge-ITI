@@ -1,53 +1,58 @@
 <template>
   <div class="min-h-screen theme-bg flex flex-col" :dir="locale === 'ar' ? 'rtl' : 'ltr'">
 
-    <!-- TOP NAVBAR -->
-    <header class="theme-glass border-b sticky top-0 z-50 px-3 sm:px-4 py-3 flex items-center justify-between"
-      style="border-color: var(--border)">
-
-      <div class="flex items-center gap-2 sm:gap-3 min-w-0">
-        <!-- Hamburger — mobile only -->
-        <button @click="sidebarOpen = !sidebarOpen"
-          class="md:hidden w-8 h-8 rounded-lg theme-card theme-border flex items-center justify-center theme-sub hover:theme-text transition-colors shrink-0">
-          <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+    <!-- Mobile Header (Minimal - only hamburger and logo) -->
+    <header class="md:hidden sticky top-0 z-30 h-[57px] px-3 flex items-center theme-glass border-b" style="border-color: var(--border)">
+      <button @click="sidebarOpen = !sidebarOpen"
+        class="w-8 h-8 rounded-lg theme-card theme-border flex items-center justify-center theme-sub hover:theme-text transition-colors shrink-0">
+        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+        </svg>
+      </button>
+      <RouterLink to="/" class="flex items-center gap-2 ms-3">
+        <div class="w-7 h-7 rounded-lg bg-gradient-to-br from-blue-500 to-teal-400 flex items-center justify-center shrink-0">
+          <svg width="13" height="13" viewBox="0 0 16 16" fill="none">
+            <path d="M3 8L7 12L13 4" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
           </svg>
-        </button>
+        </div>
+        <span class="font-display font-700 text-base theme-text">ContentForge</span>
+      </RouterLink>
+    </header>
 
+    <!-- Desktop Navbar -->
+    <header class="hidden md:flex theme-glass border-b sticky top-0 z-30 h-[57px] px-4 items-center justify-between" style="border-color: var(--border)">
+      <div class="flex items-center gap-3 min-w-0">
         <RouterLink to="/" class="flex items-center gap-2 shrink-0">
-          <div
-            class="w-7 h-7 rounded-lg bg-gradient-to-br from-blue-500 to-teal-400 flex items-center justify-center shrink-0">
+          <div class="w-7 h-7 rounded-lg bg-gradient-to-br from-blue-500 to-teal-400 flex items-center justify-center shrink-0">
             <svg width="13" height="13" viewBox="0 0 16 16" fill="none">
               <path d="M3 8L7 12L13 4" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
             </svg>
           </div>
           <span class="font-display font-700 text-base theme-text">ContentForge</span>
         </RouterLink>
-        <span style="color: var(--border)" class="hidden md:block shrink-0">|</span>
-        <span class="hidden md:block text-sm theme-sub truncate">{{ pageTitle }}</span>
+        <span style="color: var(--border)" class="shrink-0">|</span>
+        <span class="text-sm theme-sub truncate">{{ pageTitle }}</span>
       </div>
 
-      <div class="flex items-center gap-1.5 sm:gap-2 shrink-0">
-
-        <!-- Contact us — hidden on very small screens -->
+      <div class="flex items-center gap-2 shrink-0">
+        <!-- Contact us -->
         <RouterLink to="/contact"
-          class="hidden sm:flex text-xs theme-sub px-2 sm:px-3 py-1.5 rounded-lg theme-card theme-border hover:theme-text transition-colors items-center gap-1.5">
+          class="text-xs theme-sub px-3 py-1.5 rounded-lg theme-card theme-border hover:theme-text transition-colors flex items-center gap-1.5">
           <svg class="w-3.5 h-3.5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
               d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
           </svg>
-          <span class="hidden md:inline">{{ t('layout.contactUs') }}</span>
+          {{ t('layout.contactUs') }}
         </RouterLink>
 
         <!-- Language switcher -->
         <button @click="switchLang"
-          class="text-xs theme-sub px-2 sm:px-3 py-1.5 rounded-lg theme-card theme-border hover:theme-text transition-colors flex items-center gap-1 sm:gap-1.5">
+          class="text-xs theme-sub px-3 py-1.5 rounded-lg theme-card theme-border hover:theme-text transition-colors flex items-center gap-1.5">
           <svg class="w-3.5 h-3.5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
               d="M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18zm0 0c-4.97 0-9-4.03-9-9m9 9c4.97 0 9-4.03 9-9M3 12h18M12 3c-2.5 2.5-4 5.5-4 9s1.5 6.5 4 9M12 3c2.5 2.5 4 5.5 4 9s-1.5 6.5-4 9" />
           </svg>
-          <span class="hidden sm:inline">{{ locale === 'en' ? 'عربي' : 'English' }}</span>
-          <span class="sm:hidden">{{ locale === 'en' ? 'ع' : 'EN' }}</span>
+          {{ locale === 'en' ? 'عربي' : 'English' }}
         </button>
 
         <!-- Light/Dark toggle -->
@@ -64,25 +69,51 @@
           </svg>
         </button>
 
-        <!-- Notifications bell -->
+        <!-- Avatar with dropdown -->
         <div class="relative">
-          <button @click="showNotifs = !showNotifs"
-            class="w-8 h-8 rounded-xl theme-card theme-border flex items-center justify-center theme-sub hover:theme-text transition-colors relative shrink-0">
-            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
-            </svg>
-            <span v-if="unreadCount > 0"
-              class="absolute -top-1 -end-1 w-4 h-4 bg-rose-500 text-white text-[9px] font-bold rounded-full flex items-center justify-center">
-              {{ unreadCount }}
-            </span>
+          <button @click="showAvatarMenu = !showAvatarMenu"
+            class="w-8 h-8 rounded-full bg-gradient-to-br from-blue-500 to-teal-400 flex items-center justify-center text-xs font-bold text-white shrink-0 hover:ring-2 hover:ring-blue-500/30 transition-all">
+            {{ authStore.userInitial }}
           </button>
-        </div>
 
-        <!-- Avatar -->
-        <div
-          class="w-8 h-8 rounded-full bg-gradient-to-br from-blue-500 to-teal-400 flex items-center justify-center text-xs font-bold text-white shrink-0">
-          {{ authStore.userInitial }}
+          <!-- Dropdown menu -->
+          <Transition name="dropdown-fade">
+            <div v-if="showAvatarMenu"
+              class="absolute top-full mt-2 w-56 rounded-xl theme-surface theme-border shadow-xl overflow-hidden z-50"
+              :class="locale === 'ar' ? 'left-0' : 'right-0'" style="border: 1px solid var(--border)">
+
+              <!-- User info header -->
+              <div class="px-4 py-3 border-b" style="border-color: var(--border)">
+                <p class="text-sm font-medium theme-text truncate">{{ authStore.userName }}</p>
+                <p class="text-[11px] theme-sub truncate mt-0.5">{{ authStore.user?.email }}</p>
+              </div>
+
+              <!-- Menu items -->
+              <div class="py-1.5">
+                <RouterLink to="/profile" @click="showAvatarMenu = false"
+                  class="flex items-center gap-2.5 px-4 py-2.5 text-xs theme-sub hover:theme-text hover:bg-blue-500/5 transition-colors">
+                  <svg class="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+                      d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                  </svg>
+                  {{ t('layout.nav.profile') }}
+                </RouterLink>
+              </div>
+
+              <!-- Divider -->
+              <div class="border-t" style="border-color: var(--border)"></div>
+
+              <!-- Logout -->
+              <button @click="authStore.logout()"
+                class="flex items-center gap-2.5 px-4 py-2.5 text-xs theme-sub hover:text-rose-400 hover:bg-rose-500/5 transition-colors w-full text-start">
+                <svg class="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+                    d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                </svg>
+                {{ t('layout.logout') }}
+              </button>
+            </div>
+          </Transition>
         </div>
       </div>
     </header>
@@ -103,7 +134,7 @@
 
         <!-- Nav items -->
         <nav class="space-y-0.5 flex-1">
-          <RouterLink v-for="item in navItems" :key="item.path" :to="item.path" @click="sidebarOpen = false"
+          <RouterLink v-for="item in visibleNavItems" :key="item.path" :to="item.path" @click="sidebarOpen = false"
             class="flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-xs transition-all group" :class="[
               $route.path === item.path
                 ? 'bg-blue-600/15 text-blue-400 border border-blue-500/20'
@@ -137,12 +168,13 @@
           </div>
         </div>
 
-        <!-- Bottom actions: Contact, Delete, Logout -->
-        <div class="flex flex-col gap-1 px-1 pb-2 mt-3">
-
-          <!-- Contact us — visible in sidebar on mobile where navbar link is hidden -->
+        <!-- Mobile only extra items -->
+        <div class="flex flex-col gap-1 px-1 pb-2 mt-3 md:hidden">
+          <div class="border-t my-2" style="border-color: var(--border)"></div>
+          
+          <!-- Contact us -->
           <RouterLink to="/contact" @click="sidebarOpen = false"
-            class="flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-xs theme-sub hover:theme-text transition-colors w-full sm:hidden">
+            class="flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-xs theme-sub hover:theme-text transition-colors w-full">
             <svg class="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
                 d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
@@ -150,19 +182,33 @@
             {{ t('layout.contactUs') }}
           </RouterLink>
 
-          <!-- Delete Account -->
-          <button @click="showDeleteModal = true"
-            class="flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-xs theme-sub hover:text-rose-400 transition-colors w-full">
+          <!-- Localization toggle -->
+          <button @click="switchLang"
+            class="flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-xs theme-sub hover:theme-text transition-colors w-full text-start">
             <svg class="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
-                d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                d="M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18zm0 0c-4.97 0-9-4.03-9-9m9 9c4.97 0 9-4.03 9-9M3 12h18M12 3c-2.5 2.5-4 5.5-4 9s1.5 6.5 4 9M12 3c2.5 2.5 4 5.5 4 9s-1.5 6.5-4 9" />
             </svg>
-            {{ t('layout.deleteAccount') }}
+            {{ locale === 'en' ? 'عربي' : 'English' }}
           </button>
 
-          <!-- Logout -->
+          <!-- Theme toggle -->
+          <button @click="toggleTheme"
+            class="flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-xs theme-sub hover:theme-text transition-colors w-full text-start">
+            <svg v-if="isDark" class="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+                d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364-6.364l-.707.707M6.343 17.657l-.707.707M17.657 17.657l-.707-.707M6.343 6.343l-.707-.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" />
+            </svg>
+            <svg v-else class="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+                d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
+            </svg>
+            {{ isDark ? t('layout.switchLight') : t('layout.switchDark') }}
+          </button>
+
+          <!-- Log out -->
           <button @click="authStore.logout()"
-            class="flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-xs theme-sub hover:text-rose-400 transition-colors w-full">
+            class="flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-xs theme-sub hover:text-rose-400 transition-colors w-full text-start">
             <svg class="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
                 d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
@@ -178,9 +224,6 @@
         <slot />
       </main>
     </div>
-
-    <!-- Notification backdrop -->
-    <div v-if="showNotifs" class="fixed inset-0 z-40" @click="showNotifs = false"></div>
 
     <!-- Delete Account Modal -->
     <Teleport to="body">
@@ -249,48 +292,6 @@
       </Transition>
     </Teleport>
 
-    <Teleport to="body">
-      <Transition :name="locale === 'ar' ? 'slide-notif-rtl' : 'slide-notif-ltr'">
-        <!-- Changed variable from showNotifications to showNotifs -->
-        <div v-if="showNotifs"
-          class="fixed top-0 bottom-0 z-50 w-80 theme-surface border-s shadow-2xl flex flex-col"
-          :class="locale === 'ar' ? 'left-0 border-r' : 'right-0 border-l'"
-          style="border-color: var(--border)">
-          
-          <!-- Panel Header -->
-          <div class="p-4 border-b flex items-center justify-between" style="border-color: var(--border)">
-            <h2 class="font-display font-600 theme-text text-sm">
-              {{ t('layout.notifications.title') }}
-            </h2>
-            <button @click="showNotifs = false"
-              class="w-7 h-7 rounded-lg hover:theme-card flex items-center justify-center theme-sub hover:theme-text transition-colors">
-              <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-              </svg>
-            </button>
-          </div>
-
-          <!-- Panel Content List Wrapper -->
-          <div class="flex-1 overflow-y-auto p-4 space-y-3">
-            <template v-if="notifications.length > 0">
-              <!-- Replaced removeNotification with markRead to match your script setup -->
-              <div v-for="n in notifications" :key="n.id" @click="markRead(n.id)"
-                class="p-3 rounded-xl border theme-card transition-colors relative group cursor-pointer"
-                :class="n.read ? 'opacity-50' : 'hover:bg-blue-500/5'"
-                style="border-color: var(--border)">
-                <p class="text-xs theme-text leading-relaxed pr-6">{{ n.message || n.text }}</p>
-                <span class="text-[10px] theme-muted block mt-1.5">{{ n.time }}</span>
-              </div>
-            </template>
-            <div v-else class="h-full flex flex-col items-center justify-center text-center pb-12">
-              <span class="text-xs theme-muted">{{ t('layout.notifications.empty') }}</span>
-            </div>
-          </div>
-
-        </div>
-      </Transition>
-    </Teleport>
-
   </div>
 </template>
 
@@ -299,7 +300,6 @@ import { ref, computed, onMounted, onUnmounted, watch } from 'vue'
 import { RouterLink, useRoute } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { useTheme } from '../composables/useTheme.js'
-import { useNotifications } from '../composables/useNotifications.js'
 import { useLang } from '../composables/useLang.js'
 import { useAuthStore } from '../stores/authStore'
 import api from '../api/client'
@@ -309,18 +309,23 @@ const route = useRoute()
 const authStore = useAuthStore()
 const calendarStore = useCalendarStore()
 const { isDark, toggle: toggleTheme } = useTheme()
-const { notifications, unreadCount, markRead, markAllRead } = useNotifications()
 const { locale, switchLang } = useLang()
 const { t } = useI18n()
 
-const showNotifs = ref(false)
 const sidebarOpen = ref(false)
+const showAvatarMenu = ref(false)
 const statsLoading = ref(false)
 
-watch(() => route.path, () => { sidebarOpen.value = false })
+watch(() => route.path, () => {
+  sidebarOpen.value = false
+  showAvatarMenu.value = false
+})
 
 const isDesktop = ref(window.innerWidth >= 768)
-function onResize() { isDesktop.value = window.innerWidth >= 768 }
+function onResize() {
+  isDesktop.value = window.innerWidth >= 768
+  if (!isDesktop.value) showAvatarMenu.value = false
+}
 onMounted(() => window.addEventListener('resize', onResize))
 onUnmounted(() => window.removeEventListener('resize', onResize))
 
@@ -338,7 +343,7 @@ const pageTitle = computed(() => {
     '/chat': t('layout.nav.chat'),
     '/connections': t('layout.nav.connections'),
     '/payment': t('layout.nav.payment'),
-    '/profile': t('layout.nav.profile'), // <--- ADD THIS
+    '/profile': t('layout.nav.profile'),
   }
   return map[route.path] || t('layout.nav.calendar')
 })
@@ -374,7 +379,6 @@ onMounted(() => {
 watch(() => calendarStore.posts, fetchStats, { deep: true })
 watch(() => authStore.user?._id, fetchStats)
 
-
 const navItems = computed(() => [
   { label: t('layout.nav.calendar'), path: '/dashboard', badgeKey: 'calendars', icon: 'M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z' },
   { label: t('layout.nav.drafts'), path: '/drafts', badgeKey: 'drafts', icon: 'M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z' },
@@ -386,7 +390,13 @@ const navItems = computed(() => [
   { label: t('layout.nav.profile'), path: '/profile', badgeKey: null, icon: 'M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z' }
 ])
 
-// Delete Account
+const visibleNavItems = computed(() => {
+  if (isDesktop.value) {
+    return navItems.value.filter(item => item.path !== '/profile')
+  }
+  return navItems.value
+})
+
 const showDeleteModal = ref(false)
 const deleteReason = ref('')
 const deleteLoading = ref(false)
@@ -433,23 +443,14 @@ async function submitDeletion() {
   transform: translateX(-100%);
 }
 
-/* English Layout: Panel slides from right edge toward the left */
-.slide-notif-ltr-enter-active, 
-.slide-notif-ltr-leave-active { 
-  transition: transform 0.25s ease; 
-}
-.slide-notif-ltr-enter-from, 
-.slide-notif-ltr-leave-to { 
-  transform: translateX(100%); 
+.dropdown-fade-enter-active,
+.dropdown-fade-leave-active {
+  transition: opacity 0.15s ease, transform 0.15s ease;
 }
 
-/* Arabic Layout: Panel slides from left edge toward the right */
-.slide-notif-rtl-enter-active, 
-.slide-notif-rtl-leave-active { 
-  transition: transform 0.25s ease; 
-}
-.slide-notif-rtl-enter-from, 
-.slide-notif-rtl-leave-to { 
-  transform: translateX(-100%); 
+.dropdown-fade-enter-from,
+.dropdown-fade-leave-to {
+  opacity: 0;
+  transform: translateY(-4px);
 }
 </style>

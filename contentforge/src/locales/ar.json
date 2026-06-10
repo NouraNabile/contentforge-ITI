@@ -31,7 +31,7 @@
     "notifications": {
       "title": "الإشعارات",
       "markAllRead": "تحديد الكل كمقروء",
-      "empty" : "لا توجد اشعارات"
+      "empty": "لا توجد اشعارات"
     },
     "contactUs": "تواصل معنا",
     "deleteAccount": "حذف الحساب",
@@ -778,7 +778,9 @@
       "howItWorks": "كيف يعمل",
       "competitors": "المقارنة",
       "pricing": "الأسعار",
-      "contact": "تواصل معنا"
+      "contact": "تواصل معنا",
+      "language": "اللغة",
+      "theme": "المظهر"
     },
     "closeMenu": "إغلاق القائمة",
     "openMenu": "فتح القائمة"
@@ -1177,7 +1179,19 @@
     "deleteBrandDesc": "هل أنت متأكد من حذف {name}؟ لا يمكن التراجع عن هذا الإجراء وسيتم فقدان جميع المحتويات المرتبطة.",
     "deleting": "جاري الحذف...",
     "confirmDelete": "نعم، احذف",
-    "deleteBrandFailed": "فشل في حذف العلامة التجارية"
+    "deleteBrandFailed": "فشل في حذف العلامة التجارية",
+    "dangerZone": "منطقة الخطر",
+    "dangerZoneDesc": "إجراءات لا رجعة فيها ومدمرة",
+    "deleteAccount": "حذف الحساب",
+    "deleteAccountDesc": "حذف حسابك وجميع البيانات المرتبطة به نهائياً",
+    "deleteAccountTitle": "حذف الحساب",
+    "deleteAccountWarning": "لا يمكن التراجع عن هذا الإجراء. سيتم حذف جميع بياناتك وعلاماتك التجارية والتقويمات نهائياً.",
+    "deleteReason": "سبب الحذف (اختياري)",
+    "deleteReasonPlaceholder": "ساعدنا في التحسن من خلال إخبارنا بسبب المغادرة...",
+    "deleteSuccess": "تم إرسال طلب الحذف بنجاح. ستتلقى بريداً إلكترونياً للتأكيد.",
+    "deleteFailed": "فشل في إرسال طلب الحذف",
+    "currentPasswordRequired": "يرجى إدخال كلمة المرور الحالية",
+    "currentPasswordIncorrect": "كلمة المرور الحالية غير صحيحة"
   },
   "admin": {
     "administrator": "مدير النظام",

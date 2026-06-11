@@ -336,15 +336,29 @@ function regenerate() {
   generatePoster();
 }
 
-function downloadPoster() {
+async function downloadPoster() {
   if (!generatedImageUrl.value) return;
-  const link = document.createElement("a");
-  link.href = generatedImageUrl.value;
-  link.download = `contentforge-poster-${Date.now()}.png`;
-  link.target = "_blank";
-  document.body.appendChild(link);
-  link.click();
-  document.body.removeChild(link);
+  
+  try {
+    // تحميل الصورة كـ Blob
+    const response = await fetch(generatedImageUrl.value);
+    const blob = await response.blob();
+    
+    // إنشاء رابط مؤقت للتحميل
+    const url = window.URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = `contentforge-poster-${Date.now()}.png`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    
+    // تنظيف الـ URL المؤقت
+    window.URL.revokeObjectURL(url);
+  } catch (err) {
+    console.error("[PosterGenerator] Download failed:", err);
+    error.value = "فشل في تحميل الصورة. حاول مرة أخرى.";
+  }
 }
 
 function onImageLoad() {

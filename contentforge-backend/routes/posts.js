@@ -2,7 +2,7 @@
 const express = require("express");
 const router = express.Router();
 const protect = require("../middleware/auth");
-const { Post, Brand, Calendar  } = require("../models");
+const { Post, Brand, Calendar } = require("../models");
 const { generateVariantB } = require("../services/geminiService");
 const { uploadBase64Image } = require("../utils/uploadToCloudinary");
 const { Connection } = require("../models");
@@ -422,7 +422,7 @@ router.post("/:id/publish/facebook", protect, async (req, res) => {
       return res.status(400).json({ message: "Facebook not connected" });
 
     // 3. Build the post content (use English or Arabic based on your needs)
-    const message = post.copyEN || post.copyAR || "";
+    const message = post.copyAR || post.copyEN || "";
     const hashtags = post.hashtags ? post.hashtags.join(" ") : "";
     const fullMessage = message + (hashtags ? "\n\n" + hashtags : "");
 
@@ -436,8 +436,7 @@ router.post("/:id/publish/facebook", protect, async (req, res) => {
     const params = {
       access_token: conn.accessToken, // ← never-expiring page token from DB
       message: fullMessage,
-        ...(imageUrl && { link: imageUrl }),
-
+      ...(imageUrl && { link: imageUrl }),
     };
 
     const { data } = await axios.post(`${BASE_URL}/${conn.pageId}/feed`, null, {
@@ -470,114 +469,6 @@ router.stack.forEach((layer) => {
   if (layer.route) {
     const methods = Object.keys(layer.route.methods).join(",").toUpperCase();
     console.log(`  ${methods} ${layer.route.path}`);
-  }
-});
-
-// POST /api/posts/quick-publish — publish directly without a calendar post
-router.post("/quick-publish", protect, async (req, res) => {
-  console.log("[Quick Publish] req.body:", req.body); // ← add this
-
-  const { platform, message, imageUrl, brandId } = req.body;
-  if (!platform || !message)
-    return res
-      .status(400)
-      .json({ message: "platform and message are required" });
-
-  if (!brandId)
-    return res
-      .status(400)
-      .json({ message: "No brand found. Please set up your brand first." });
-
-  try {
-    const today = new Date().toISOString().split("T")[0];
-    const post = await Post.create({
-      brand: brandId, // now guaranteed to exist
-      platform,
-      copyAR: message,
-      copyEN: message,
-      hashtags: [],
-      date: today,
-      status: "draft",
-      imageUrl: imageUrl || null,
-    });
-
-    // 2. Publish to Facebook
-    if (platform.toLowerCase() === "facebook") {
-      const conn = await getConnection(req.user._id, "Facebook");
-      if (!conn)
-        return res.status(400).json({ message: "Facebook not connected" });
-
-      const { data } = await axios.post(
-        `${BASE_URL}/${conn.pageId}/feed`,
-        null,
-        {
-          params: { message, access_token: conn.accessToken },
-        },
-      );
-
-      // 3. Update post status to published
-      post.status = "published";
-      post.publishedAt = new Date();
-      post.metaPostId = data.id;
-      await post.save();
-
-      return res.json({
-        success: true,
-        postId: data.id,
-        platform: "Facebook",
-        savedPost: post,
-      });
-    }
-
-    // 2. Publish to Instagram
-    if (platform.toLowerCase() === "instagram") {
-      const conn = await getConnection(req.user._id, "Instagram");
-      if (!conn)
-        return res.status(400).json({ message: "Instagram not connected" });
-      if (!imageUrl)
-        return res
-          .status(400)
-          .json({ message: "Instagram requires an image URL" });
-
-      const { data: container } = await axios.post(
-        `${BASE_URL}/${conn.igId}/media`,
-        null,
-        {
-          params: {
-            image_url: imageUrl,
-            caption: message,
-            access_token: conn.accessToken,
-          },
-        },
-      );
-      const { data: published } = await axios.post(
-        `${BASE_URL}/${conn.igId}/media_publish`,
-        null,
-        {
-          params: { creation_id: container.id, access_token: conn.accessToken },
-        },
-      );
-
-      // 3. Update post status to published
-      post.status = "published";
-      post.publishedAt = new Date();
-      post.metaPostId = published.id;
-      await post.save();
-
-      return res.json({
-        success: true,
-        postId: published.id,
-        platform: "Instagram",
-        savedPost: post,
-      });
-    }
-
-    res.status(400).json({ message: "Unsupported platform" });
-  } catch (err) {
-    console.error("[Quick Publish]", err.response?.data || err.message);
-    res.status(500).json({
-      message: err.response?.data?.error?.message || "Failed to publish",
-    });
   }
 });
 

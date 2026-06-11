@@ -2243,16 +2243,52 @@ async function publishPost() {
   await doPublish(postId, platform)
 }
 
+// async function doPublish(postId, platform) {
+//   publishing.value = true
+//   publishMsg.value = ''
+//   const today = new Date().toISOString().split('T')[0]  // ← add this
+//   try {
+//     await postsApi.publishPost(postId, platform)
+//     await postsApi.updateDate(postId, today)
+//     store.posts = store.posts.map(p =>
+//       p._id === postId || p.id === postId
+//         ? { ...p, status: 'published', date: today }  // ← also add date: today here
+//         : p
+//     )
+//     selectedPost.value.status = 'published'
+//     selectedPost.value.date = today
+//     publishMsg.value = '✅ Published successfully!'
+//     setTimeout(() => {
+//       publishMsg.value = ''
+//       selectedPost.value = null
+//     }, 1500)
+//   } catch (err) {
+//     publishMsg.value = '❌ ' + (err.message || 'Failed to publish')
+//     setTimeout(() => publishMsg.value = '', 4000)
+//   } finally {
+//     publishing.value = false
+//   }
+// }
+
+// In DashboardPreview.vue — update doPublish()
+
 async function doPublish(postId, platform) {
   publishing.value = true
   publishMsg.value = ''
-  const today = new Date().toISOString().split('T')[0]  // ← add this
+  const today = new Date().toISOString().split('T')[0]
   try {
+    // ── WORKAROUND: Set copy = copyAR before publishing ──
+    const arabicText = selectedPost.value?.copyAR
+    if (arabicText) {
+      await postsApi.updatePost(postId, { copy: arabicText })
+    }
+    
     await postsApi.publishPost(postId, platform)
     await postsApi.updateDate(postId, today)
+    
     store.posts = store.posts.map(p =>
       p._id === postId || p.id === postId
-        ? { ...p, status: 'published', date: today }  // ← also add date: today here
+        ? { ...p, status: 'published', date: today }
         : p
     )
     selectedPost.value.status = 'published'

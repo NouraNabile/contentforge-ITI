@@ -916,47 +916,6 @@
             </div>
 
             <!-- Modal Footer -->
-            <!-- <div
-              class="flex items-center justify-between gap-3 px-4 sm:px-6 py-3 sm:py-4 border-t shrink-0"
-              style="border-color: var(--border)"
-            >
-              <button
-                @click="selectedPost = null"
-                class="px-4 sm:px-5 py-2.5 rounded-xl theme-card theme-border theme-sub text-sm hover:theme-text transition-colors"
-              >
-                {{ t("common.cancel") || "Cancel" }}
-              </button>
-              <button
-                @click="savePost"
-                :disabled="saving"
-                class="px-5 sm:px-6 py-2.5 rounded-xl bg-blue-600 text-white text-sm font-medium hover:bg-blue-500 transition-colors disabled:opacity-50 flex items-center gap-2"
-              >
-                <svg
-                  v-if="saving"
-                  class="w-4 h-4 animate-spin"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                >
-                  <circle
-                    class="opacity-25"
-                    cx="12"
-                    cy="12"
-                    r="10"
-                    stroke="currentColor"
-                    stroke-width="4"
-                  />
-                  <path
-                    class="opacity-75"
-                    fill="currentColor"
-                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"
-                  />
-                </svg>
-                {{
-                  saving ? t("dashboard.saving") : t("dashboard.saveChanges")
-                }}
-              </button>
-            </div> -->
-            <!-- Modal Footer -->
             <div
               class="flex flex-col gap-2 px-4 sm:px-6 py-3 sm:py-4 border-t shrink-0"
               style="border-color: var(--border)"
@@ -1419,7 +1378,21 @@
               style="border-color: var(--border)"
             ></textarea>
           </div>
-
+ <!-- Arabic Copy -->
+          <div>
+            <label class="text-xs theme-sub mb-1.5 block"
+              >{{ t("dashboard.arabic") }}
+              <span class="text-rose-400">*</span></label
+            >
+            <textarea
+              v-model="newPost.copyAR"
+              rows="3"
+              dir="rtl"
+              :placeholder="t('dashboard.briefPlaceholder')"
+              class="w-full theme-input rounded-xl p-3 text-sm theme-text border focus:outline-none focus:border-blue-500/40 resize-none text-right"
+              style="border-color: var(--border)"
+            ></textarea>
+          </div>
           <!-- Hashtags -->
           <div>
             <label class="text-xs theme-sub mb-1.5 block">{{
@@ -2145,81 +2118,52 @@ function buildWeeks(posts) {
   return weeks;
 }
 
-// function statusToClass(status) {
-//   if (!status) return "bg-slate-500/5 border-slate-500/20 text-slate-400";
-
-//   switch (status.toLowerCase()) {
-//     case "approved":
-//       return "bg-green-500/10 border-green-500/20 text-green-400";
-
-//     case "scheduled":
-//       // المجدول: أزرق سيان ناصع
-//       return "bg-cyan-500/10 border-cyan-500/20 text-cyan-400";
-
-//     case "published":
-//       // المنشور: تم التغيير إلى البنفسجي المضيء ليكون واضحاً ومختلفاً عن المجدول
-//       return "bg-indigo-500/15 border-indigo-500/25 text-indigo-300";
-
-//     case "pending":
-//       // الانتظار: تم التغيير إلى البرتقالي/الذهبي الواضح ليفترق عن الرمادي
-//       return "bg-amber-500/10 border-amber-500/20 text-amber-400";
-
-//     case "draft":
-//     default:
-//       // المسودة: رمادي فضي واضح
-//       return "bg-slate-500/5 border-slate-500/20 text-slate-300";
-//   }
-// }
-
-
 function statusToClass(status) {
-  if (!status) return "bg-slate-100 border-slate-300 text-slate-500";
+  if (!status) return "bg-slate-500/5 border-slate-500/20 text-slate-400";
 
   switch (status.toLowerCase()) {
     case "approved":
-      return "bg-green-100 border-green-300 text-green-700";
+      return "bg-green-500/10 border-green-500/20 text-green-400";
+
     case "scheduled":
-      return "bg-cyan-100 border-cyan-300 text-cyan-700";
+      // المجدول: أزرق سيان ناصع
+      return "bg-cyan-500/10 border-cyan-500/20 text-cyan-400";
+
     case "published":
-      return "bg-indigo-100 border-indigo-300 text-indigo-700";
+      // المنشور: تم التغيير إلى البنفسجي المضيء ليكون واضحاً ومختلفاً عن المجدول
+      return "bg-indigo-500/15 border-indigo-500/25 text-indigo-300";
+
     case "pending":
-      return "bg-amber-100 border-amber-300 text-amber-700";
+      // الانتظار: تم التغيير إلى البرتقالي/الذهبي الواضح ليفترق عن الرمادي
+      return "bg-amber-500/10 border-amber-500/20 text-amber-400";
+
     case "draft":
     default:
-      return "bg-slate-100 border-slate-300 text-slate-500";
+      // المسودة: رمادي فضي واضح
+      return "bg-slate-500/5 border-slate-500/20 text-slate-300";
   }
 }
 
+
+
 // 3. تحديث تأثير الـ Hover المتناسق مع الألوان الجديدة
-// function getHoverStatusClass(status) {
-//   if (!status) return "";
-
-//   switch (status.toLowerCase()) {
-//     case "approved":
-//       return "hover:bg-green-500/20 hover:border-green-500/60 hover:shadow-green-500/10";
-//     case "scheduled":
-//       return "hover:bg-cyan-500/20 hover:border-cyan-500/60 hover:shadow-cyan-500/10";
-//     case "published":
-//       // هوفر ناصع جداً للمنشور
-//       return "hover:bg-indigo-500/25 hover:border-indigo-400/70 hover:shadow-indigo-500/15 hover:brightness-110";
-//     case "pending":
-//       // هوفر دافئ ومضيء للانتظار
-//       return "hover:bg-amber-500/20 hover:border-amber-400/60 hover:shadow-amber-500/10";
-//     case "draft":
-//     default:
-//       return "hover:bg-slate-500/20 hover:border-slate-400/60 hover:shadow-slate-400/10 hover:brightness-125";
-//   }
-// }
-
 function getHoverStatusClass(status) {
   if (!status) return "";
+
   switch (status.toLowerCase()) {
-    case "approved":  return "hover:bg-green-200 hover:border-green-400";
-    case "scheduled": return "hover:bg-cyan-200 hover:border-cyan-400";
-    case "published": return "hover:bg-indigo-200 hover:border-indigo-400";
-    case "pending":   return "hover:bg-amber-200 hover:border-amber-400";
+    case "approved":
+      return "hover:bg-green-500/20 hover:border-green-500/60 hover:shadow-green-500/10";
+    case "scheduled":
+      return "hover:bg-cyan-500/20 hover:border-cyan-500/60 hover:shadow-cyan-500/10";
+    case "published":
+      // هوفر ناصع جداً للمنشور
+      return "hover:bg-indigo-500/25 hover:border-indigo-400/70 hover:shadow-indigo-500/15 hover:brightness-110";
+    case "pending":
+      // هوفر دافئ ومضيء للانتظار
+      return "hover:bg-amber-500/20 hover:border-amber-400/60 hover:shadow-amber-500/10";
     case "draft":
-    default:          return "hover:bg-slate-200 hover:border-slate-400";
+    default:
+      return "hover:bg-slate-500/20 hover:border-slate-400/60 hover:shadow-slate-400/10 hover:brightness-125";
   }
 }
 

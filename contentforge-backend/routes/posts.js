@@ -2,9 +2,9 @@
 const express = require("express");
 const router = express.Router();
 const protect = require("../middleware/auth");
-const { Post, Brand } = require("../models");
+const { Post, Brand, Calendar  } = require("../models");
 const { generateVariantB } = require("../services/geminiService");
-
+const { uploadBase64Image } = require("../utils/uploadToCloudinary");
 const { Connection } = require("../models");
 const axios = require("axios");
 
@@ -19,32 +19,7 @@ async function getConnection(userId, platform) {
     connected: true,
   });
 }
-// router.get("/stats/facebook", protect, async (req, res) => {
-//   try {
-//     const conn = await getConnection(req.user._id, "Facebook");
-//     if (!conn)
-//       return res.status(400).json({ message: "Facebook not connected" });
 
-//     const { data } = await axios.get(`${BASE_URL}/${conn.pageId}`, {
-//       params: {
-//         fields: "name,fan_count,published_posts.limit(1).summary(true)",
-//         access_token: conn.accessToken,
-//       },
-//     });
-
-//     console.log("[Facebook Stats] raw:", JSON.stringify(data));
-
-//     res.json({
-//       pageName: data.name,
-//       followers: data.fan_count,
-//       totalPosts: data.published_posts?.summary?.total_count ?? 0,
-//     });
-//   } catch (err) {
-//     console.error("[Facebook Stats] error:", err.response?.data || err.message);
-//     res.status(500).json({ message: "Failed to fetch Facebook stats" });
-//   }
-// });
-// NEW
 router.get("/stats/facebook", protect, async (req, res) => {
   try {
     const conn = await getConnection(req.user._id, "Facebook");
@@ -107,7 +82,6 @@ router.get("/stats/instagram", protect, async (req, res) => {
       },
     });
 
-    // NEW
     const igInsightsRes = await axios.get(`${BASE_URL}/${conn.igId}/insights`, {
       params: {
         metric: "reach",
@@ -389,13 +363,20 @@ router.post("/:id/publish/instagram", protect, async (req, res) => {
       (post.copyEN || post.copyAR || "") +
       (post.hashtags?.length ? "\n\n" + post.hashtags.join(" ") : "");
 
+    // Upload to Cloudinary if image is base64
+    let imageUrl = post.imageUrl;
+    if (imageUrl?.startsWith("data:image")) {
+      imageUrl = await uploadBase64Image(imageUrl);
+      post.imageUrl = imageUrl;
+    }
+
     // Step 1: Create container
-    const { data: container } = await axios.post(
+    const { data: igContainer } = await axios.post(
       `${BASE_URL}/${conn.igId}/media`,
       null,
       {
         params: {
-          image_url: post.imageUrl,
+          image_url: imageUrl,
           caption,
           access_token: conn.accessToken,
         },
@@ -403,18 +384,20 @@ router.post("/:id/publish/instagram", protect, async (req, res) => {
     );
 
     // Step 2: Publish
-    const { data: published } = await axios.post(
+    const { data: igPublished } = await axios.post(
       `${BASE_URL}/${conn.igId}/media_publish`,
       null,
-      { params: { creation_id: container.id, access_token: conn.accessToken } },
+      {
+        params: { creation_id: igContainer.id, access_token: conn.accessToken },
+      },
     );
 
     post.status = "published";
     post.publishedAt = new Date();
-    post.metaPostId = published.id;
+    post.metaPostId = igPublished.id;
     await post.save();
 
-    res.json({ success: true, postId: published.id, platform: "Instagram" });
+    res.json({ success: true, postId: igPublished.id, platform: "Instagram" });
   } catch (err) {
     console.error(
       "[Instagram Publish] Error:",
@@ -443,10 +426,18 @@ router.post("/:id/publish/facebook", protect, async (req, res) => {
     const hashtags = post.hashtags ? post.hashtags.join(" ") : "";
     const fullMessage = message + (hashtags ? "\n\n" + hashtags : "");
 
+    // Upload to Cloudinary if image is base64
+    let imageUrl = post.imageUrl;
+    if (imageUrl?.startsWith("data:image")) {
+      imageUrl = await uploadBase64Image(imageUrl);
+      post.imageUrl = imageUrl;
+    }
     // 4. Call Meta Graph API
     const params = {
       access_token: conn.accessToken, // ← never-expiring page token from DB
       message: fullMessage,
+        ...(imageUrl && { link: imageUrl }),
+
     };
 
     const { data } = await axios.post(`${BASE_URL}/${conn.pageId}/feed`, null, {
@@ -626,8 +617,8 @@ router.post("/", protect, async (req, res) => {
       copyEN: copyEN || "",
       hashtags: hashtags || [],
       status: status || "draft",
-      date: dateStr, 
-      scheduledAt: dateObj, 
+      date: dateStr,
+      scheduledAt: dateObj,
     });
 
     await newPost.save();
@@ -636,16 +627,20 @@ router.post("/", protect, async (req, res) => {
     if (calendar) {
       await Calendar.findByIdAndUpdate(
         calendar,
-        { $push: { posts: newPost._id } } // عمل Push لمعرف البوست داخل الكالندر
+        { $push: { posts: newPost._id } }, // عمل Push لمعرف البوست داخل الكالندر
       );
-      console.log(`[Calendar] Linked post ${newPost._id} to calendar ${calendar}`);
+      console.log(
+        `[Calendar] Linked post ${newPost._id} to calendar ${calendar}`,
+      );
     }
 
     console.log(`[Posts] Created new post successfully: ${newPost._id}`);
     res.status(201).json(newPost);
   } catch (err) {
     console.error("[Posts Create] Error:", err.message);
-    res.status(500).json({ message: "Server error creating post: " + err.message });
+    res
+      .status(500)
+      .json({ message: "Server error creating post: " + err.message });
   }
 });
 

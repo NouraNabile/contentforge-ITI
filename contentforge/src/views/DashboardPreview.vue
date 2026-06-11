@@ -1821,50 +1821,81 @@ function buildWeeks(posts) {
   return weeks;
 }
 
+// function statusToClass(status) {
+//   if (!status) return "bg-slate-500/5 border-slate-500/20 text-slate-400";
+
+//   switch (status.toLowerCase()) {
+//     case "approved":
+//       return "bg-green-500/10 border-green-500/20 text-green-400";
+
+//     case "scheduled":
+//       // المجدول: أزرق سيان ناصع
+//       return "bg-cyan-500/10 border-cyan-500/20 text-cyan-400";
+
+//     case "published":
+//       // المنشور: تم التغيير إلى البنفسجي المضيء ليكون واضحاً ومختلفاً عن المجدول
+//       return "bg-indigo-500/15 border-indigo-500/25 text-indigo-300";
+
+//     case "pending":
+//       // الانتظار: تم التغيير إلى البرتقالي/الذهبي الواضح ليفترق عن الرمادي
+//       return "bg-amber-500/10 border-amber-500/20 text-amber-400";
+
+//     case "draft":
+//     default:
+//       // المسودة: رمادي فضي واضح
+//       return "bg-slate-500/5 border-slate-500/20 text-slate-300";
+//   }
+// }
+
+
 function statusToClass(status) {
-  if (!status) return "bg-slate-500/5 border-slate-500/20 text-slate-400";
+  if (!status) return "bg-slate-100 border-slate-300 text-slate-500";
 
   switch (status.toLowerCase()) {
     case "approved":
-      return "bg-green-500/10 border-green-500/20 text-green-400";
-
+      return "bg-green-100 border-green-300 text-green-700";
     case "scheduled":
-      // المجدول: أزرق سيان ناصع
-      return "bg-cyan-500/10 border-cyan-500/20 text-cyan-400";
-
+      return "bg-cyan-100 border-cyan-300 text-cyan-700";
     case "published":
-      // المنشور: تم التغيير إلى البنفسجي المضيء ليكون واضحاً ومختلفاً عن المجدول
-      return "bg-indigo-500/15 border-indigo-500/25 text-indigo-300";
-
+      return "bg-indigo-100 border-indigo-300 text-indigo-700";
     case "pending":
-      // الانتظار: تم التغيير إلى البرتقالي/الذهبي الواضح ليفترق عن الرمادي
-      return "bg-amber-500/10 border-amber-500/20 text-amber-400";
-
+      return "bg-amber-100 border-amber-300 text-amber-700";
     case "draft":
     default:
-      // المسودة: رمادي فضي واضح
-      return "bg-slate-500/5 border-slate-500/20 text-slate-300";
+      return "bg-slate-100 border-slate-300 text-slate-500";
   }
 }
 
 // 3. تحديث تأثير الـ Hover المتناسق مع الألوان الجديدة
+// function getHoverStatusClass(status) {
+//   if (!status) return "";
+
+//   switch (status.toLowerCase()) {
+//     case "approved":
+//       return "hover:bg-green-500/20 hover:border-green-500/60 hover:shadow-green-500/10";
+//     case "scheduled":
+//       return "hover:bg-cyan-500/20 hover:border-cyan-500/60 hover:shadow-cyan-500/10";
+//     case "published":
+//       // هوفر ناصع جداً للمنشور
+//       return "hover:bg-indigo-500/25 hover:border-indigo-400/70 hover:shadow-indigo-500/15 hover:brightness-110";
+//     case "pending":
+//       // هوفر دافئ ومضيء للانتظار
+//       return "hover:bg-amber-500/20 hover:border-amber-400/60 hover:shadow-amber-500/10";
+//     case "draft":
+//     default:
+//       return "hover:bg-slate-500/20 hover:border-slate-400/60 hover:shadow-slate-400/10 hover:brightness-125";
+//   }
+// }
+
 function getHoverStatusClass(status) {
   if (!status) return "";
-
   switch (status.toLowerCase()) {
-    case "approved":
-      return "hover:bg-green-500/20 hover:border-green-500/60 hover:shadow-green-500/10";
-    case "scheduled":
-      return "hover:bg-cyan-500/20 hover:border-cyan-500/60 hover:shadow-cyan-500/10";
-    case "published":
-      // هوفر ناصع جداً للمنشور
-      return "hover:bg-indigo-500/25 hover:border-indigo-400/70 hover:shadow-indigo-500/15 hover:brightness-110";
-    case "pending":
-      // هوفر دافئ ومضيء للانتظار
-      return "hover:bg-amber-500/20 hover:border-amber-400/60 hover:shadow-amber-500/10";
+    case "approved":  return "hover:bg-green-200 hover:border-green-400";
+    case "scheduled": return "hover:bg-cyan-200 hover:border-cyan-400";
+    case "published": return "hover:bg-indigo-200 hover:border-indigo-400";
+    case "pending":   return "hover:bg-amber-200 hover:border-amber-400";
     case "draft":
-    default:
-      return "hover:bg-slate-500/20 hover:border-slate-400/60 hover:shadow-slate-400/10 hover:brightness-125";
+    default:          return "hover:bg-slate-200 hover:border-slate-400";
   }
 }
 

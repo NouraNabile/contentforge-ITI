@@ -1,158 +1,173 @@
 <template>
   <AppLayout>
     <div class="p-4 sm:p-7 max-w-4xl mx-auto">
-
       <!-- Header -->
       <div class="mb-8">
-        <h1 class="font-display text-2xl font-700 theme-text">{{ t('connections.title') }}</h1>
-        <p class="text-sm theme-sub mt-1">{{ t('connections.subtitle') }}</p>
+        <h1 class="font-display text-2xl font-700 theme-text">
+          {{ t("connections.title") }}
+        </h1>
+        <p class="text-sm theme-sub mt-1">{{ t("connections.subtitle") }}</p>
       </div>
 
       <!-- ACTIVE PLATFORMS -->
       <div class="mb-8">
-        <h2 class="text-xs font-semibold theme-muted uppercase tracking-wider mb-3">
-          {{ t('connections.activePlatforms') }}
+        <h2
+          class="text-xs font-semibold theme-muted uppercase tracking-wider mb-3"
+        >
+          {{ t("connections.activePlatforms") }}
         </h2>
         <div class="grid md:grid-cols-2 gap-4">
-          <div v-for="platform in activePlatforms" :key="platform.name"
-            class="rounded-2xl theme-surface theme-border p-5 flex flex-col gap-4">
+          <div
+            v-for="platform in activePlatforms"
+            :key="platform.name"
+            class="rounded-2xl theme-surface theme-border p-5 flex flex-col gap-4"
+          >
             <div class="flex items-center justify-between">
               <div class="flex items-center gap-3">
-                <div class="w-10 h-10 rounded-xl flex items-center justify-center"
-                  :class="[platform.iconBg, platform.iconColor]">
+                <div
+                  class="w-10 h-10 rounded-xl flex items-center justify-center"
+                  :class="[platform.iconBg, platform.iconColor]"
+                >
                   <div class="w-5 h-5" v-html="platform.icon"></div>
                 </div>
                 <div>
-                  <p class="font-medium theme-text text-sm">{{ t(platform.nameKey) }}</p>
-                  <p class="text-[11px] theme-muted">{{ platform.handle || t('connections.notConnected') }}</p>
+                  <p class="font-medium theme-text text-sm">
+                    {{ t(platform.nameKey) }}
+                  </p>
+                  <p class="text-[11px] theme-muted">
+                    {{ platform.handle || t("connections.notConnected") }}
+                  </p>
                 </div>
               </div>
               <div class="flex items-center gap-2">
                 <div class="flex items-center gap-1.5">
-                  <div class="w-1.5 h-1.5 rounded-full"
-                    :class="platform.connected ? 'bg-green-400' : 'bg-slate-600'"></div>
-                  <span class="text-[11px]"
-                    :class="platform.connected ? 'text-green-400' : 'theme-muted'">
-                    {{ platform.connected ? t('connections.connected') : t('connections.disconnected') }}
+                  <div
+                    class="w-1.5 h-1.5 rounded-full"
+                    :class="
+                      platform.connected ? 'bg-green-400' : 'bg-slate-600'
+                    "
+                  ></div>
+                  <span
+                    class="text-[11px]"
+                    :class="
+                      platform.connected ? 'text-green-400' : 'theme-muted'
+                    "
+                  >
+                    {{
+                      platform.connected
+                        ? t("connections.connected")
+                        : t("connections.disconnected")
+                    }}
                   </span>
                 </div>
-                <button @click="togglePlatform(platform)" :disabled="platform.loading"
+                <button
+                  @click="togglePlatform(platform)"
+                  :disabled="platform.loading"
                   class="px-3 py-1.5 rounded-lg text-xs font-medium transition-all disabled:opacity-50"
-                  :class="platform.connected
-                    ? 'bg-rose-600/10 text-rose-400 border border-rose-500/20 hover:bg-rose-600/20'
-                    : 'bg-blue-600 text-white hover:bg-blue-500'">
+                  :class="
+                    platform.connected
+                      ? 'bg-rose-600/10 text-rose-400 border border-rose-500/20 hover:bg-rose-600/20'
+                      : 'bg-blue-600 text-white hover:bg-blue-500'
+                  "
+                >
                   <span v-if="platform.loading">...</span>
-                  <span v-else>{{ platform.connected ? t('connections.disconnect') : t('connections.connect') }}</span>
+                  <span v-else>{{
+                    platform.connected
+                      ? t("connections.disconnect")
+                      : t("connections.connect")
+                  }}</span>
                 </button>
               </div>
             </div>
 
             <!-- Live stats -->
-            <div v-if="platform.connected" class="mt-2 pt-3 border-t" style="border-color: var(--border)">
-              <p class="text-[10px] theme-muted mb-2">{{ t('connections.liveStats') }}</p>
-              <div class="grid gap-2 text-center"
-                :class="platformStats[platform.name]?.following !== undefined ? 'grid-cols-3' : 'grid-cols-2'">
+            <div
+              v-if="platform.connected"
+              class="mt-2 pt-3 border-t"
+              style="border-color: var(--border)"
+            >
+              <p class="text-[10px] theme-muted mb-2">
+                {{ t("connections.liveStats") }}
+              </p>
+              <div
+                class="grid gap-2 text-center"
+                :class="statsGridCols(platform.name)"
+              >
                 <div>
                   <p class="text-sm font-semibold theme-text">
-                    {{ platformStats[platform.name]?.followers?.toLocaleString() ?? '—' }}
+                    {{
+                      platformStats[
+                        platform.name
+                      ]?.followers?.toLocaleString() ?? "—"
+                    }}
                   </p>
-                  <p class="text-[10px] theme-muted">{{ t('connections.followers') }}</p>
+                  <p class="text-[10px] theme-muted">
+                    {{ t("connections.followers") }}
+                  </p>
                 </div>
                 <div>
                   <p class="text-sm font-semibold theme-text">
-                    {{ platformStats[platform.name]?.totalPosts?.toLocaleString() ?? '—' }}
+                    {{
+                      platformStats[
+                        platform.name
+                      ]?.totalPosts?.toLocaleString() ?? "—"
+                    }}
                   </p>
-                  <p class="text-[10px] theme-muted">{{ t('connections.posts') }}</p>
+                  <p class="text-[10px] theme-muted">
+                    {{ t("connections.posts") }}
+                  </p>
                 </div>
-                <div v-if="platformStats[platform.name]?.following !== undefined">
+                <div
+                  v-if="platformStats[platform.name]?.following !== undefined"
+                >
                   <p class="text-sm font-semibold theme-text">
-                    {{ platformStats[platform.name]?.following?.toLocaleString() ?? '—' }}
+                    {{
+                      platformStats[
+                        platform.name
+                      ]?.following?.toLocaleString() ?? "—"
+                    }}
                   </p>
-                  <p class="text-[10px] theme-muted">{{ t('connections.following') }}</p>
+                  <p class="text-[10px] theme-muted">
+                    {{ t("connections.following") }}
+                  </p>
+                </div>
+                <div v-if="platformStats[platform.name]?.likes !== undefined">
+                  <p class="text-sm font-semibold theme-text">
+                    {{
+                      platformStats[platform.name]?.likes?.toLocaleString() ??
+                      "—"
+                    }}
+                  </p>
+                  <p class="text-[10px] theme-muted">
+                    {{ t("connections.stat.likes") }}
+                  </p>
+                </div>
+                <div v-if="platformStats[platform.name]?.reach !== undefined">
+                  <p class="text-sm font-semibold theme-text">
+                    {{
+                      platformStats[platform.name]?.reach?.toLocaleString() ??
+                      "—"
+                    }}
+                  </p>
+                  <p class="text-[10px] theme-muted">
+                    {{ t("connections.stat.reach") }}
+                  </p>
                 </div>
               </div>
             </div>
 
             <!-- Permissions -->
-            <div v-if="platform.connected && platform.permissions?.length" class="flex flex-wrap gap-1.5">
-              <span v-for="p in platform.permissionKeys" :key="p"
-                class="text-[10px] px-2 py-0.5 rounded-full bg-green-500/10 text-green-400 border border-green-500/15">
+            <div
+              v-if="platform.connected && platform.permissions?.length"
+              class="flex flex-wrap gap-1.5"
+            >
+              <span
+                v-for="p in platform.permissionKeys"
+                :key="p"
+                class="text-[10px] px-2 py-0.5 rounded-full bg-green-500/10 text-green-400 border border-green-500/15"
+              >
                 ✓ {{ t(p) }}
               </span>
-            </div>
-            <!-- Quick Post -->
-            <div
-              v-if="platform.connected"
-              class="pt-3 border-t space-y-2"
-              style="border-color: var(--border)"
-            >
-              <p
-                class="text-[10px] font-medium theme-muted uppercase tracking-wider"
-              >
-                ⚡ Quick Post
-              </p>
-              <textarea
-                v-model="getQuickPost(platform.name).message"
-                rows="2"
-                :placeholder="`Write something to post on ${platform.name}...`"
-                class="w-full theme-input rounded-xl px-3 py-2 text-sm theme-text border focus:outline-none focus:border-blue-500/40 resize-none transition-colors"
-                style="border-color: var(--border)"
-              />
-              <input
-                v-if="platform.name === 'Instagram'"
-                v-model="getQuickPost(platform.name).imageUrl"
-                type="url"
-                placeholder="Image URL (required for Instagram)"
-                class="w-full theme-input rounded-xl px-3 py-2 text-sm theme-text border focus:outline-none focus:border-blue-500/40 transition-colors"
-                style="border-color: var(--border)"
-              />
-              <div class="flex items-center justify-between gap-2">
-                <p
-                  v-if="getQuickPost(platform.name).result"
-                  class="text-xs"
-                  :class="
-                    getQuickPost(platform.name).result.success
-                      ? 'text-green-400'
-                      : 'text-rose-400'
-                  "
-                >
-                  {{ getQuickPost(platform.name).result.text }}
-                </p>
-                <button
-                  @click="doQuickPublish(platform.name)"
-                  :disabled="
-                    getQuickPost(platform.name).publishing ||
-                    !getQuickPost(platform.name).message.trim()
-                  "
-                  class="ml-auto px-4 py-1.5 rounded-lg bg-blue-600 text-white text-xs font-medium hover:bg-blue-500 transition-colors disabled:opacity-50 flex items-center gap-1.5 shrink-0"
-                >
-                  <svg
-                    v-if="getQuickPost(platform.name).publishing"
-                    class="w-3 h-3 animate-spin"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                  >
-                    <circle
-                      class="opacity-25"
-                      cx="12"
-                      cy="12"
-                      r="10"
-                      stroke="currentColor"
-                      stroke-width="4"
-                    />
-                    <path
-                      class="opacity-75"
-                      fill="currentColor"
-                      d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"
-                    />
-                  </svg>
-                  {{
-                    getQuickPost(platform.name).publishing
-                      ? "Posting..."
-                      : "🚀 Post Now"
-                  }}
-                </button>
-              </div>
             </div>
           </div>
         </div>
@@ -160,25 +175,38 @@
 
       <!-- COMING SOON -->
       <div>
-        <h2 class="text-xs font-semibold theme-muted uppercase tracking-wider mb-3">
-          {{ t('connections.comingSoon') }}
+        <h2
+          class="text-xs font-semibold theme-muted uppercase tracking-wider mb-3"
+        >
+          {{ t("connections.comingSoon") }}
         </h2>
         <div class="grid grid-cols-2 md:grid-cols-2 gap-4">
-          <div v-for="platform in comingSoonPlatforms" :key="platform.name"
-            class="rounded-2xl theme-surface theme-border p-5 flex flex-col gap-3 opacity-50">
+          <div
+            v-for="platform in comingSoonPlatforms"
+            :key="platform.name"
+            class="rounded-2xl theme-surface theme-border p-5 flex flex-col gap-3 opacity-50"
+          >
             <div class="flex items-center gap-3">
-              <div class="w-10 h-10 rounded-xl flex items-center justify-center"
-                :class="[platform.iconBg, platform.iconColor]">
+              <div
+                class="w-10 h-10 rounded-xl flex items-center justify-center"
+                :class="[platform.iconBg, platform.iconColor]"
+              >
                 <div class="w-5 h-5" v-html="platform.icon"></div>
               </div>
               <div>
-                <p class="font-medium theme-text text-sm">{{ t(platform.nameKey) }}</p>
-                <p class="text-[11px] theme-muted">{{ t('connections.integrationInDev') }}</p>
+                <p class="font-medium theme-text text-sm">
+                  {{ t(platform.nameKey) }}
+                </p>
+                <p class="text-[11px] theme-muted">
+                  {{ t("connections.integrationInDev") }}
+                </p>
               </div>
             </div>
             <div class="flex items-center justify-between">
-              <span class="text-[10px] px-2 py-0.5 rounded-full bg-slate-500/10 text-slate-400 border border-slate-500/15">
-                🔜 {{ t('connections.comingSoonBadge') }}
+              <span
+                class="text-[10px] px-2 py-0.5 rounded-full bg-slate-500/10 text-slate-400 border border-slate-500/15"
+              >
+                🔜 {{ t("connections.comingSoonBadge") }}
               </span>
             </div>
           </div>
@@ -186,57 +214,95 @@
       </div>
 
       <!-- CONNECT MODAL -->
-      <div v-if="showModal"
+      <div
+        v-if="showModal"
         class="fixed inset-0 z-50 flex items-center justify-center"
-        style="background: rgba(0,0,0,0.6)"
-        @click.self="closeModal">
-        <div class="rounded-2xl theme-surface theme-border p-6 w-full max-w-md mx-4 flex flex-col gap-5"
-          style="max-height: 90vh">
-
+        style="background: rgba(0, 0, 0, 0.6)"
+        @click.self="closeModal"
+      >
+        <div
+          class="rounded-2xl theme-surface theme-border p-6 w-full max-w-md mx-4 flex flex-col gap-5"
+          style="max-height: 90vh"
+        >
           <!-- Modal Header -->
           <div class="flex items-center justify-between">
             <div class="flex items-center gap-3">
-              <div class="w-9 h-9 rounded-xl flex items-center justify-center"
-                :class="[activePlatform?.iconBg, activePlatform?.iconColor]">
+              <div
+                class="w-9 h-9 rounded-xl flex items-center justify-center"
+                :class="[activePlatform?.iconBg, activePlatform?.iconColor]"
+              >
                 <div class="w-5 h-5" v-html="activePlatform?.icon"></div>
               </div>
               <div>
                 <p class="font-medium theme-text text-sm">
-                  {{ t('connections.modalTitle', { name: t(activePlatform?.nameKey ?? '') }) }}
+                  {{
+                    t("connections.modalTitle", {
+                      name: t(activePlatform?.nameKey ?? ""),
+                    })
+                  }}
                 </p>
-                <p class="text-[11px] theme-muted">{{ t('connections.modalSubtitle') }}</p>
+                <p class="text-[11px] theme-muted">
+                  {{ t("connections.modalSubtitle") }}
+                </p>
               </div>
             </div>
-            <button @click="closeModal" class="text-xl theme-muted hover:theme-text transition-colors">✕</button>
+            <button
+              @click="closeModal"
+              class="text-xl theme-muted hover:theme-text transition-colors"
+            >
+              ✕
+            </button>
           </div>
 
           <!-- Dynamic Form Fields -->
-          <div class="flex flex-col gap-3 overflow-y-auto" style="max-height: 55vh">
+          <div
+            class="flex flex-col gap-3 overflow-y-auto"
+            style="max-height: 55vh"
+          >
             <div v-for="field in currentFields" :key="field.key">
-              <label class="text-xs theme-sub mb-1.5 block">{{ t(field.labelKey) }}</label>
-              <input v-model="formData[field.key]" :type="field.type || 'text'"
+              <label class="text-xs theme-sub mb-1.5 block">{{
+                t(field.labelKey)
+              }}</label>
+              <input
+                v-model="formData[field.key]"
+                :type="field.type || 'text'"
                 :placeholder="t(field.placeholderKey)"
                 class="w-full theme-input rounded-xl px-3 py-2.5 text-sm theme-text border focus:outline-none focus:border-blue-500/40 transition-colors"
-                style="border-color: var(--border)" />
+                style="border-color: var(--border)"
+              />
             </div>
           </div>
 
           <!-- Modal Actions -->
-          <div class="flex gap-3 pt-2 border-t" style="border-color: var(--border)">
-            <button @click="closeModal" :disabled="isSubmitting"
-              class="flex-1 py-2.5 rounded-xl theme-card theme-border theme-sub text-sm hover:theme-text transition-colors disabled:opacity-50">
-              {{ t('common.cancel') }}
+          <div
+            class="flex gap-3 pt-2 border-t"
+            style="border-color: var(--border)"
+          >
+            <button
+              @click="closeModal"
+              :disabled="isSubmitting"
+              class="flex-1 py-2.5 rounded-xl theme-card theme-border theme-sub text-sm hover:theme-text transition-colors disabled:opacity-50"
+            >
+              {{ t("common.cancel") }}
             </button>
-            <button @click="submitForm" :disabled="isSubmitting"
-              class="flex-1 py-2.5 rounded-xl bg-blue-600 text-white text-sm font-medium hover:bg-blue-500 transition-all disabled:opacity-70 flex items-center justify-center gap-2">
-              <span v-if="isSubmitting"
-                class="inline-block w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></span>
-              <span>{{ isSubmitting ? t('connections.connecting') : t('connections.connectConfirm') }}</span>
+            <button
+              @click="submitForm"
+              :disabled="isSubmitting"
+              class="flex-1 py-2.5 rounded-xl bg-blue-600 text-white text-sm font-medium hover:bg-blue-500 transition-all disabled:opacity-70 flex items-center justify-center gap-2"
+            >
+              <span
+                v-if="isSubmitting"
+                class="inline-block w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"
+              ></span>
+              <span>{{
+                isSubmitting
+                  ? t("connections.connecting")
+                  : t("connections.connectConfirm")
+              }}</span>
             </button>
           </div>
         </div>
       </div>
-
     </div>
   </AppLayout>
 </template>
@@ -262,26 +328,6 @@ const activePlatform = ref(null);
 const formData = ref({});
 const isSubmitting = ref(false);
 
-// ── Quick Post state ──────────────────────────────────────────────────────────
-const quickPost = ref({}); // { Facebook: { message, imageUrl, publishing, result } }
-
-const currentFields = computed(() =>
-  activePlatform.value ? (platformFields[activePlatform.value.name] ?? []) : []
-);
-
-function openConnectModal(platform) {
-  activePlatform.value = platform;
-  formData.value = {};
-  showModal.value = true;
-}
-
-function closeModal() {
-  showModal.value = false;
-  activePlatform.value = null;
-  formData.value = {};
-  isSubmitting.value = false;
-}
-
 // ── All platforms data ────────────────────────────────────────────────────────
 const allPlatforms = ref([
   {
@@ -295,7 +341,11 @@ const allPlatforms = ref([
     loading: false,
     comingSoon: false,
     permissions: ["Read posts", "Publish", "Analytics"],
-    permissionKeys: ["connections.permissions.readPosts", "connections.permissions.publish", "connections.permissions.analytics"],
+    permissionKeys: [
+      "connections.permissions.read",
+      "connections.permissions.publish",
+      "connections.permissions.analytics",
+    ],
     stats: [],
   },
   {
@@ -309,7 +359,11 @@ const allPlatforms = ref([
     loading: false,
     comingSoon: false,
     permissions: ["Read", "Publish", "Insights"],
-    permissionKeys: ["connections.permissions.read", "connections.permissions.publish", "connections.permissions.insights"],
+    permissionKeys: [
+      "connections.permissions.read",
+      "connections.permissions.publish",
+      "connections.permissions.insights",
+    ],
     stats: [],
   },
   {
@@ -370,28 +424,70 @@ const allPlatforms = ref([
   },
 ]);
 
-
-const activePlatforms = computed(() => allPlatforms.value.filter((p) => !p.comingSoon));
-const comingSoonPlatforms = computed(() => allPlatforms.value.filter((p) => p.comingSoon));
-
+const activePlatforms = computed(() =>
+  allPlatforms.value.filter((p) => !p.comingSoon),
+);
+const comingSoonPlatforms = computed(() =>
+  allPlatforms.value.filter((p) => p.comingSoon),
+);
 
 // ── Platform fields (for manual-connect modal, kept for future use) ───────────
 const platformFields = {
   LinkedIn: [
-    { key: "profileUrl",  labelKey: "connections.fields.profileUrl",  placeholderKey: "connections.fields.profileUrlPlaceholder",  type: "url" },
-    { key: "email",       labelKey: "connections.fields.email",        placeholderKey: "connections.fields.emailPlaceholder",        type: "email" },
+    {
+      key: "profileUrl",
+      labelKey: "connections.fields.profileUrl",
+      placeholderKey: "connections.fields.profileUrlPlaceholder",
+      type: "url",
+    },
+    {
+      key: "email",
+      labelKey: "connections.fields.email",
+      placeholderKey: "connections.fields.emailPlaceholder",
+      type: "email",
+    },
   ],
   "Twitter/X": [
-    { key: "username",    labelKey: "connections.fields.username",     placeholderKey: "connections.fields.usernamePlaceholder",     type: "text" },
-    { key: "email",       labelKey: "connections.fields.email",        placeholderKey: "connections.fields.emailPlaceholder",        type: "email" },
+    {
+      key: "username",
+      labelKey: "connections.fields.username",
+      placeholderKey: "connections.fields.usernamePlaceholder",
+      type: "text",
+    },
+    {
+      key: "email",
+      labelKey: "connections.fields.email",
+      placeholderKey: "connections.fields.emailPlaceholder",
+      type: "email",
+    },
   ],
   TikTok: [
-    { key: "username",    labelKey: "connections.fields.username",     placeholderKey: "connections.fields.tiktokUsernamePlaceholder", type: "text" },
-    { key: "email",       labelKey: "connections.fields.email",        placeholderKey: "connections.fields.emailPlaceholder",          type: "email" },
+    {
+      key: "username",
+      labelKey: "connections.fields.username",
+      placeholderKey: "connections.fields.tiktokUsernamePlaceholder",
+      type: "text",
+    },
+    {
+      key: "email",
+      labelKey: "connections.fields.email",
+      placeholderKey: "connections.fields.emailPlaceholder",
+      type: "email",
+    },
   ],
   YouTube: [
-    { key: "channelName", labelKey: "connections.fields.channelName",  placeholderKey: "connections.fields.channelNamePlaceholder", type: "text" },
-    { key: "email",       labelKey: "connections.fields.email",        placeholderKey: "connections.fields.emailPlaceholder",        type: "email" },
+    {
+      key: "channelName",
+      labelKey: "connections.fields.channelName",
+      placeholderKey: "connections.fields.channelNamePlaceholder",
+      type: "text",
+    },
+    {
+      key: "email",
+      labelKey: "connections.fields.email",
+      placeholderKey: "connections.fields.emailPlaceholder",
+      type: "email",
+    },
   ],
 };
 
@@ -451,49 +547,15 @@ async function fetchPlatformStats() {
   }
 }
 
-// ── Quick Post ────────────────────────────────────────────────────────────────
-function getQuickPost(platformName) {
-  if (!quickPost.value[platformName]) {
-    quickPost.value[platformName] = {
-      message: "",
-      imageUrl: "",
-      publishing: false,
-      result: null,
-    };
-  }
-  return quickPost.value[platformName];
+function statsGridCols(name) {
+  const s = platformStats.value[name];
+  if (!s) return 'grid-cols-2';
+  const count = [s.followers, s.totalPosts, s.following, s.likes, s.reach]
+    .filter(v => v !== undefined).length;
+  if (count <= 2) return 'grid-cols-2';
+  if (count === 3) return 'grid-cols-3';
+  return 'grid-cols-4';
 }
-
-async function doQuickPublish(platformName) {
-  const qp = getQuickPost(platformName);
-  if (!qp.message.trim()) return;
-  qp.publishing = true;
-  qp.result = null;
-  try {
-    const brandId = localStorage.getItem("cf_brandId"); // ← get brandId
-    await postsApi.quickPublish(
-      platformName,
-      qp.message,
-      qp.imageUrl || null,
-      brandId,
-    );
-    qp.result = { success: true, text: "✅ Posted successfully!" };
-    qp.message = "";
-    qp.imageUrl = "";
-    await fetchPlatformStats();
-  } catch (err) {
-    qp.result = {
-      success: false,
-      text: "❌ " + (err.message || "Failed to publish"),
-    };
-  } finally {
-    qp.publishing = false;
-    setTimeout(() => {
-      if (qp.result) qp.result = null;
-    }, 3000);
-  }
-}
-
 // ── Connect / Disconnect ──────────────────────────────────────────────────────
 async function togglePlatform(platform) {
   platform.loading = true;
@@ -517,7 +579,9 @@ async function togglePlatform(platform) {
               popup.close();
               await refreshConnections();
               await fetchPlatformStats();
-              toast.success(t('connections.toast.connected', { name: t(platform.nameKey) }))
+              toast.success(
+                t("connections.toast.connected", { name: t(platform.nameKey) }),
+              );
             }
           };
           window.addEventListener("message", messageHandler);
@@ -542,11 +606,20 @@ async function togglePlatform(platform) {
       platform.handle = null;
       platform.stats = [];
       platformStats.value[platform.name] = null;
-      toast.info(t('connections.toast.disconnected', { name: t(platform.nameKey) }))
+      toast.info(
+        t("connections.toast.disconnected", { name: t(platform.nameKey) }),
+      );
     }
   } catch (err) {
     console.error(`[${platform.name}] togglePlatform error:`, err);
-    toast.error(t('connections.toast.error', { action: platform.connected ? t('connections.disconnect') : t('connections.connect'), name: t(platform.nameKey) }))
+    toast.error(
+      t("connections.toast.error", {
+        action: platform.connected
+          ? t("connections.disconnect")
+          : t("connections.connect"),
+        name: t(platform.nameKey),
+      }),
+    );
   } finally {
     platform.loading = false;
   }
@@ -569,10 +642,14 @@ async function submitForm() {
     });
     await refreshConnections();
     closeModal();
-    toast.success(t('connections.toast.connected', { name: t(activePlatform.value.nameKey) }))
+    toast.success(
+      t("connections.toast.connected", {
+        name: t(activePlatform.value.nameKey),
+      }),
+    );
   } catch (err) {
     console.error("submitForm error:", err);
-    toast.error(t('connections.toast.submitError'))
+    toast.error(t("connections.toast.submitError"));
   } finally {
     isSubmitting.value = false;
   }

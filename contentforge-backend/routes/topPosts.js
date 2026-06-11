@@ -82,16 +82,39 @@ router.post("/:brandId/from-link", protect, async (req, res) => {
 });
 
 // ── POST /api/top-posts/:brandId/from-doc ─────────────────────────────────────
-// يرفع ملف (PDF / DOCX / صورة) والـ AI يستخرج البيانات منه
+// يرفع ملف (PDF / DOCX / صورة سكرين شوت) والـ AI يستخرج البيانات منه
 router.post(
   "/:brandId/from-doc",
   protect,
-  upload.single("file"),
+  upload.single("file"), // الـ key هنا يجب أن يكون 'file' في الـ FormData بالفرونت إند
   async (req, res) => {
-    if (!req.file) return res.status(400).json({ message: "No file uploaded" });
+    // إذا وصلنا هنا ورأينا الرسالة، فالمشكلة حُلت
+    if (!req.file) {
+      return res
+        .status(400)
+        .json({ message: "No file uploaded. Check FormData key name." });
+    }
 
     try {
       const ext = path.extname(req.file.originalname).toLowerCase();
+
+      // 🔥 1. إذا كان الملف سكرين شوت (صورة)، نتوجّه مباشرة للدالة الذكية الجديدة
+      if ([".jpg", ".jpeg", ".png", ".webp"].includes(ext)) {
+        const imageData = fs.readFileSync(req.file.path).toString("base64");
+
+        console.log(
+          "[AI] Analyzing screenshot with Gemini 2.5 Flash Vision...",
+        );
+        const extractedData = await extractPostDataFromImageWithAI(
+          imageData,
+          ext,
+        );
+
+        // نرسل الـ JSON المستخرج مباشرة للفرونت إند
+        return res.json({ ...extractedData, source: "doc" });
+      }
+
+      // ── 2. معالجة المستندات النصية (PDF / DOCX) ──
       let text = "";
 
       if (ext === ".pdf") {
@@ -103,27 +126,27 @@ router.post(
         const mammoth = require("mammoth");
         const result = await mammoth.extractRawText({ path: req.file.path });
         text = result.value;
-      } else if ([".jpg", ".jpeg", ".png", ".webp"].includes(ext)) {
-        // صورة — نبعتها لـ Gemini Vision
-        const imageData = fs.readFileSync(req.file.path).toString("base64");
-        text = await extractTextFromImage(imageData, ext);
       }
 
       if (!text.trim()) {
         return res
           .status(422)
-          .json({ message: "Could not extract text from file" });
+          .json({ message: "Could not extract text from document" });
       }
 
-      // Gemini يستخرج البيانات المنظّمة
-      const extracted = await extractPostDataWithAI(text);
+      // استخراج البيانات المنظمة للمستندات النصية
+      const extracted = await extractPostDataFromImageWithAI(text);
       res.json({ ...extracted, source: "doc" });
     } catch (err) {
       console.error("from-doc error:", err);
-      res.status(500).json({ message: err.message });
+      res
+        .status(500)
+        .json({ message: "AI Extraction failed", error: err.message });
     } finally {
-      // نحذف الملف المؤقت
-      fs.unlink(req.file.path, () => {});
+      // حذف الملف المؤقت دائماً لحفظ مساحة السيرفر
+      if (req.file && fs.existsSync(req.file.path)) {
+        fs.unlink(req.file.path, () => {});
+      }
     }
   },
 );
@@ -259,31 +282,44 @@ async function extractTextFromImage(base64Data, ext) {
   return result.response.text();
 }
 
-async function extractPostDataWithAI(rawText) {
+// تعديل الدالة المساعدة في أسفل الملف لتستخرج الـ JSON مباشرة من الصورة!
+async function extractPostDataFromImageWithAI(base64Data, ext) {
+  const mimeMap = {
+    ".jpg": "image/jpeg",
+    ".jpeg": "image/jpeg",
+    ".png": "image/png",
+    ".webp": "image/webp",
+  };
   const { GoogleGenerativeAI } = require("@google/generative-ai");
   const genai = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
   const model = genai.getGenerativeModel({ model: "gemini-2.5-flash" });
 
   const prompt = `
-Extract social media post data from the following text and return ONLY valid JSON (no markdown, no explanation):
-{
-  "platform": "Instagram|Facebook|LinkedIn|Twitter/X|TikTok",
-  "content": "post text content",
-  "date": "YYYY-MM",
-  "stats": {
-    "likes": 0,
-    "comments": 0,
-    "shares": 0,
-    "reach": 0,
-    "saves": 0,
-    "engagementRate": 0
+  Analyze this social media post screenshot. Extract the text content and any visible engagement stats (likes, comments, shares).
+  Return ONLY a valid JSON object matching this schema (no markdown, no backticks):
+  {
+    "platform": "Facebook",
+    "content": "the actual text content of the post in Arabic/English",
+    "date": "2026-06",
+    "stats": {
+      "likes": 120,
+      "comments": 45,
+      "shares": 12,
+      "reach": 0,
+      "saves": 0,
+      "engagementRate": 5.4
+    }
   }
-}
+  If stats are not visible, set them to 0.
+  `;
 
-Text to analyze:
-${rawText.slice(0, 3000)}
-`;
-  const result = await model.generateContent(prompt);
+  const result = await model.generateContent([
+    {
+      inlineData: { data: base64Data, mimeType: mimeMap[ext] || "image/jpeg" },
+    },
+    prompt,
+  ]);
+
   const text = result.response
     .text()
     .replace(/```json|```/g, "")

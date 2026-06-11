@@ -528,4 +528,63 @@ router.post("/quick-publish", protect, async (req, res) => {
   }
 });
 
+// POST /api/posts — إنشاء منشور جديد من الـ Modal وتحديث الكالندر
+router.post("/", protect, async (req, res) => {
+  try {
+    const {
+      brand,
+      calendar, // المعرف القادم من الفرونت إند
+      dialect,
+      platform,
+      copyAR,
+      copyEN,
+      hashtags,
+      status,
+      date,
+      scheduledAt,
+      scheduledDate,
+    } = req.body;
+
+    if (!brand) {
+      return res.status(400).json({ message: "Brand ID is required" });
+    }
+
+    // نحسب التاريخ من أي field يكون موجود
+    const resolvedDate = scheduledDate || scheduledAt || date;
+    const dateObj = resolvedDate ? new Date(resolvedDate) : new Date();
+    const dateStr = dateObj.toISOString().split("T")[0];
+
+    // 1. إنشاء البوست وحفظه
+    const newPost = new Post({
+      brand,
+      calendar, // حفظ الكالندر داخل البوست
+      dialect: dialect || "Egyptian Arabic",
+      platform: platform || "Instagram",
+      copyAR: copyAR || "",
+      copyEN: copyEN || "",
+      hashtags: hashtags || [],
+      status: status || "draft",
+      date: dateStr, 
+      scheduledAt: dateObj, 
+    });
+
+    await newPost.save();
+
+    // 2. 🔥 الخطوة السحرية الناقصة: تحديث وثيقة الكالندر وإضافة البوست الجديد لها
+    if (calendar) {
+      await Calendar.findByIdAndUpdate(
+        calendar,
+        { $push: { posts: newPost._id } } // عمل Push لمعرف البوست داخل الكالندر
+      );
+      console.log(`[Calendar] Linked post ${newPost._id} to calendar ${calendar}`);
+    }
+
+    console.log(`[Posts] Created new post successfully: ${newPost._id}`);
+    res.status(201).json(newPost);
+  } catch (err) {
+    console.error("[Posts Create] Error:", err.message);
+    res.status(500).json({ message: "Server error creating post: " + err.message });
+  }
+});
+
 module.exports = router;

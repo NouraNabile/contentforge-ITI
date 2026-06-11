@@ -93,6 +93,10 @@ const postsApi = {
       brandId,
     });
   },
+
+  async createPost(data) {
+    return await api.post("/posts", data);
+  },
 };
 
 export default postsApi;

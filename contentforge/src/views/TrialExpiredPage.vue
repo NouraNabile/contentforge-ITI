@@ -92,8 +92,12 @@
               </ul>
             </div>
             
-            <button @click="handleUpgrade"
-              class="w-full py-2.5 rounded-xl theme-card theme-border text-xs theme-sub hover:theme-text transition-colors mt-auto">
+            <button @click="handleUpgrade('starter')" :disabled="checkoutLoading === 'starter'"
+              class="w-full py-2.5 rounded-xl theme-card theme-border text-xs theme-sub hover:theme-text transition-colors mt-auto flex items-center justify-center gap-2">
+              <svg v-if="checkoutLoading === 'starter'" class="w-3.5 h-3.5 animate-spin" fill="none" viewBox="0 0 24 24">
+                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" />
+                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+              </svg>
               {{ t('trial.starter.cta') }}
             </button>
           </div>
@@ -122,21 +126,22 @@
               </ul>
             </div>
             
-            <button @click="handleUpgrade"
-              class="w-full py-2.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white text-xs font-medium transition-colors mt-auto shadow-md shadow-blue-600/10">
+            <button @click="handleUpgrade('growth')" :disabled="checkoutLoading === 'growth'"
+              class="w-full py-2.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white text-xs font-medium transition-colors mt-auto shadow-md shadow-blue-600/10 flex items-center justify-center gap-2">
+              <svg v-if="checkoutLoading === 'growth'" class="w-3.5 h-3.5 animate-spin" fill="none" viewBox="0 0 24 24">
+                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" />
+                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+              </svg>
               {{ t('trial.pro.cta') }}
             </button>
           </div>
 
         </div>
 
-        <Transition name="fade">
-          <div v-if="showToast" class="mb-4 px-4 py-3 rounded-xl bg-blue-500/10 border border-blue-500/20 text-blue-400 text-sm flex items-center gap-2">
-            <svg class="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-            {{ t('trial.comingSoon') }}
-          </div>
-        </Transition>
- 
+        <p v-if="errorMsg" class="text-sm text-rose-400 text-center mb-4">
+          {{ errorMsg }}
+        </p>
+
         <div class="flex items-center gap-3 my-5">
           <div class="flex-1 h-px" style="background:var(--border)"></div>
           <span class="text-xs theme-muted">{{ t('common.or') }}</span>
@@ -159,13 +164,18 @@ import { RouterLink, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { useLang } from '../composables/useLang.js'
 import { useTheme } from '../composables/useTheme.js'
+// استيراد الـ paymentApi الجديد للاستخدام المباشر
+import paymentApi from '../api/paymentApi.js' 
 
 const { t } = useI18n()
 const { locale, switchLang } = useLang()
 const { isDark, toggle: toggleTheme } = useTheme()
 
 const router = useRouter()
-const showToast = ref(false)
+
+// الـ States الخاصة بالـ API
+const checkoutLoading = ref(null)
+const errorMsg = ref("")
 
 const starterFeatures = [
   'trial.starter.feature1',
@@ -180,9 +190,22 @@ const proFeatures = [
   'trial.pro.feature4',
 ]
 
-function handleUpgrade() {
-  showToast.value = true
-  setTimeout(() => { showToast.value = false }, 4000)
+// دالة الـ Upgrade المعدلة لطلب Stripe Checkout مباشرة وتوجيه العميل
+async function handleUpgrade(planKey) {
+  checkoutLoading.value = planKey
+  errorMsg.value = ""
+  try {
+    // نحدد صيغة الـ Monthly بناءً على الكود في صفحة الـ Payment
+    const key = `${planKey}_monthly`
+    const url = await paymentApi.checkout(key)
+    
+    // التوجيه المباشر لبوابة Stripe الدفع
+    window.location.href = url
+  } catch (e) {
+    errorMsg.value = e.message || t("payment.errorGeneric")
+  } finally {
+    checkoutLoading.value = null
+  }
 }
 
 function logout() {

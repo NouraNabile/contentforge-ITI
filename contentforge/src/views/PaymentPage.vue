@@ -61,7 +61,6 @@
         </div>
       </div>
 
-      <!-- ── Billing Toggle ── -->
       <div class="flex items-center justify-center gap-3 select-none">
         <span class="text-sm transition-colors cursor-pointer"
           :class="!annual ? 'theme-text font-medium' : 'theme-muted'" @click="annual = false">
@@ -109,7 +108,7 @@
             <span class="text-xs theme-muted mb-1">{{
               t("pricing.perMonth")
             }}</span>
-            <span v-if="annual" class="ml-auto text-[11px] text-green-400 line-through-none">
+            <span v-if="annual && plan.monthlyPrice > 0" class="ml-auto text-[11px] text-green-400 line-through-none">
               {{ t("pricing.wasPrice", { price: plan.monthlyPrice }) }}
             </span>
           </div>
@@ -176,51 +175,46 @@ const errorMsg = ref("");
 // ── Plans data ────────────────────────────────────────────────────────────────
 const plans = computed(() => [
   {
-    key: "starter",
-    name: t("pricing.plans.starter.name"),
-    tagline: t("pricing.plans.starter.tagline"),
-    monthlyPrice: 29,
-    annualPrice: 23,
+    key: "free",
+    name: t("pricing.plans.free.name"),
+    tagline: t("pricing.plans.free.tagline"),
+    monthlyPrice: 0,
+    annualPrice: 0,
     popular: false,
     features: [
-      t("pricing.plans.starter.f1"),
-      t("pricing.plans.starter.f2"),
-      t("pricing.plans.starter.f3"),
-      t("pricing.plans.starter.f4"),
-      t("pricing.plans.starter.f5"),
-      t("pricing.plans.starter.f6"),
+      t("pricing.plans.free.f1"),
+      t("pricing.plans.free.f2"),
+      t("pricing.plans.free.f3"),
+      t("pricing.plans.free.f4")
     ],
   },
   {
-    key: "growth",
-    name: t("pricing.plans.growth.name"),
-    tagline: t("pricing.plans.growth.tagline"),
-    monthlyPrice: 79,
-    annualPrice: 63,
+    key: "pro",
+    name: t("pricing.plans.pro.name"),
+    tagline: t("pricing.plans.pro.tagline"),
+    monthlyPrice: 19,
+    annualPrice: 15, // Calculated: 19 - 20% discount = 15.2 -> 15 rounded
     popular: true,
-    features: [
-      t("pricing.plans.growth.f1"),
-      t("pricing.plans.growth.f2"),
-      t("pricing.plans.growth.f3"),
-      t("pricing.plans.growth.f4"),
-      t("pricing.plans.growth.f5"),
-      t("pricing.plans.growth.f6"),
+  	features: [
+      t("pricing.plans.pro.f1"),
+      t("pricing.plans.pro.f2"),
+      t("pricing.plans.pro.f3"),
+      t("pricing.plans.pro.f4")
     ],
   },
   {
-    key: "agency",
-    name: t("pricing.plans.agency.name"),
-    tagline: t("pricing.plans.agency.tagline"),
-    monthlyPrice: 199,
-    annualPrice: 159,
+    key: "enterprise",
+    name: t("pricing.plans.enterprise.name"),
+    tagline: t("pricing.plans.enterprise.tagline"),
+    monthlyPrice: 49,
+    annualPrice: 39, // Calculated: 49 - 20% discount = 39.2 -> 39 rounded
     popular: false,
     features: [
-      t("pricing.plans.agency.f1"),
-      t("pricing.plans.agency.f2"),
-      t("pricing.plans.agency.f3"),
-      t("pricing.plans.agency.f4"),
-      t("pricing.plans.agency.f5"),
-      t("pricing.plans.agency.f6"),
+      t("pricing.plans.enterprise.f1"),
+      t("pricing.plans.enterprise.f2"),
+      t("pricing.plans.enterprise.f3"),
+      t("pricing.plans.enterprise.f4"),
+      t("pricing.plans.enterprise.f5")
     ],
   },
 ]);
@@ -241,9 +235,7 @@ const toggleKnobClass = computed(() => {
 const planLabel = computed(() => {
   const map = {
     free: "Free",
-    starter: "Starter",
-    growth: "Growth",
-    agency: "Agency",
+    pro: "Pro",
     enterprise: "Enterprise",
   };
   return map[currentPlan.value] || currentPlan.value;

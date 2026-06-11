@@ -116,38 +116,38 @@ router.post('/webhook', express.raw({ type: 'application/json' }), async (req, r
   const data = event.data.object
 
   switch (event.type) {
-      // ── اشتراك جديد أو تجديد ──────────────────────────────────────────────────
-      case 'customer.subscription.created':
-      case 'customer.subscription.updated': {
-        const userId = data.metadata?.userId
-        const planKey = data.metadata?.planKey
-        const planName = PLANS[planKey]?.plan
-        if (userId && planName && data.status === 'active') {
-          await User.findByIdAndUpdate(userId, {
-            plan: planName,
-            isTrial: false,
-          })
-          console.log(`✅ User ${userId} upgraded to ${planName}`)
-        }
-        break
+    // ── اشتراك جديد أو تجديد ──────────────────────────────────────────────────
+    case 'customer.subscription.created':
+    case 'customer.subscription.updated': {
+      const userId = data.metadata?.userId
+      const planKey = data.metadata?.planKey
+      const planName = PLANS[planKey]?.plan
+      if (userId && planName && data.status === 'active') {
+        await User.findByIdAndUpdate(userId, {
+          plan: planName,
+          isTrial: false,
+        })
+        console.log(`✅ User ${userId} upgraded to ${planName}`)
       }
-      // ── إلغاء الاشتراك ────────────────────────────────────────────────────────
-      case 'customer.subscription.deleted': {
-        const userId = data.metadata?.userId
-        if (userId) {
-          await User.findByIdAndUpdate(userId, { plan: 'free' })
-          console.log(`🔴 User ${userId} subscription canceled → free`)
-        }
-        break
-      }
-      // ── فشل الدفع ─────────────────────────────────────────────────────────────
-      case 'invoice.payment_failed': {
-        console.warn(`⚠️ Payment failed for customer: ${data.customer}`)
-        break
-      }
+      break
     }
-  
-    res.json({ received: true })
-  })
-  
-  module.exports = router
+    // ── إلغاء الاشتراك ────────────────────────────────────────────────────────
+    case 'customer.subscription.deleted': {
+      const userId = data.metadata?.userId
+      if (userId) {
+        await User.findByIdAndUpdate(userId, { plan: 'free' })
+        console.log(`🔴 User ${userId} subscription canceled → free`)
+      }
+      break
+    }
+    // ── فشل الدفع ─────────────────────────────────────────────────────────────
+    case 'invoice.payment_failed': {
+      console.warn(`⚠️ Payment failed for customer: ${data.customer}`)
+      break
+    }
+  }
+
+  res.json({ received: true })
+})
+
+module.exports = router

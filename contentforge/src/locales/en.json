@@ -757,44 +757,33 @@
     "wasPrice": "was ${price}",
     "bottomNote": "All plans include Arabic dialect support, cultural trend injection, and a free trial. No credit card required to start.",
     "plans": {
-      "starter": {
-        "name": "Starter",
-        "tagline": "For freelancers & solo creators",
-        "cta": "Start Free Trial",
-        "f1": "1 Brand Profile",
-        "f2": "2 calendars/month",
-        "f3": "Egyptian Arabic dialect",
-        "f4": "Basic brand voice upload",
-        "f5": "Instagram & Facebook publish",
-        "f6": "A/B Critic Agent",
-        "f7": "AI Image Generation",
-        "f8": "Multi-dialect support"
+      "free": {
+        "name": "Free",
+        "tagline": "Explore the essential capabilities of our platform",
+        "cta": "Get Started Free",
+        "f1": "AI image generation for up to 3 posts",
+        "f2": "Standard feature set (Top Posts excluded)",
+        "f3": "Core Arabic dialects support",
+        "f4": "Instagram & Facebook publishing only"
       },
-      "growth": {
-        "name": "Growth",
-        "tagline": "For SME marketing teams",
-        "cta": "Start Free Trial",
-        "f1": "3 Brand Profiles",
-        "f2": "Unlimited calendars",
-        "f3": "All 3 Arabic dialects",
-        "f4": "Full RAG brand voice memory",
-        "f5": "All platforms + LinkedIn",
-        "f6": "A/B Critic Agent",
-        "f7": "AI Image Generation (50/mo)",
-        "f8": "Priority support"
+      "pro": {
+        "name": "Pro",
+        "tagline": "Perfect for growing creators and marketing teams",
+        "cta": "Start Premium Trial",
+        "f1": "Generate 1 tailored image per post",
+        "f2": "Advanced Top Posts performance analytics",
+        "f3": "Expanded multi-dialect Arabic support",
+        "f4": "Additional publishing platforms coming soon"
       },
-      "agency": {
-        "name": "Agency",
-        "tagline": "For regional marketing agencies",
+      "enterprise": {
+        "name": "Enterprise",
+        "tagline": "Maximum production value and custom toolsets for scale",
         "cta": "Contact Sales",
-        "f1": "Unlimited Brand Profiles",
-        "f2": "Unlimited calendars",
-        "f3": "All dialects + custom voices",
-        "f4": "White-label dashboard",
-        "f5": "12-platform publishing",
-        "f6": "A/B Critic Agent",
-        "f7": "Unlimited AI Image Generation",
-        "f8": "Dedicated account manager"
+        "f1": "Generate multiple AI images per post",
+        "f2": "Advanced Top Posts performance analytics",
+        "f3": "Comprehensive Arabic dialect coverage",
+        "f4": "Additional publishing platforms coming soon",
+        "f5": "Automated AI Reels generation per post"
       }
     }
   },

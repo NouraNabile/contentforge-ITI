@@ -81,35 +81,6 @@
             ></span>
           </label>
         </div>
-
-        <!-- Demo Enabled -->
-        <div class="flex items-center justify-between gap-4 py-4">
-          <div class="flex-1">
-            <p class="text-[13px] font-medium mb-0.5" :class="isDark ? 'text-white' : 'text-slate-900'">
-              {{ t('admin.settingsPage.demoEnabled') }}
-            </p>
-            <p class="text-[12px]" :class="isDark ? 'text-slate-400' : 'text-slate-600'">
-              {{ t('admin.settingsPage.demoEnabledDesc') }}
-            </p>
-          </div>
-          <label class="relative inline-block w-10 h-[22px] shrink-0 cursor-pointer">
-            <input type="checkbox" v-model="settings.demoEnabled" class="opacity-0 w-0 h-0"/>
-            <span 
-              class="absolute inset-0 rounded-full transition-colors"
-              :class="isDark ? 'bg-white/10' : 'bg-slate-200'"
-              style="transition: background 0.2s;"
-            ></span>
-            <span 
-              class="absolute top-[3px] left-[3px] w-4 h-4 rounded-full transition-all"
-              :class="[
-                settings.demoEnabled 
-                  ? 'bg-blue-500 translate-x-[18px]' 
-                  : (isDark ? 'bg-slate-500' : 'bg-slate-400')
-              ]"
-              style="transition: all 0.2s;"
-            ></span>
-          </label>
-        </div>
  
       </div>
 
@@ -225,7 +196,6 @@ const loading = ref(true)
 const settings = ref({
   trialDays: 14,
   blockByPhone: true,
-  demoEnabled: true,
   otpExpiryMinutes: 10,
   sendExpiryWarning: false,
 })

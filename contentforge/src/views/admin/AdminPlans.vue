@@ -95,7 +95,7 @@
               <!-- Trial Ends Column -->
               <td class="py-3 px-4 border-t text-[12px]"
                 :class="isDark ? 'border-white/5 text-slate-400' : 'border-slate-200 text-slate-600'">
-                {{ formatDate(u.trialEndsAt) }}
+                {{ formatDate(u.planEndsAt) }}
               </td>
 
               <!-- Days Left Column -->
@@ -156,16 +156,16 @@ const countCards = computed(() => [
 
 const filteredTrialUsers = computed(() =>
   trialUsers.value
-    .filter(u => !u.isBlocked && !u.isDeleted)
+    .filter(u => !u.isBlocked && !u.deletionRequest?.isDeleted)
     .filter(u => tab.value === 'expired' ? isExpired(u) : !isExpired(u))
 )
 
 function isExpired(u) {
-  return new Date(u.trialEndsAt) < new Date()
+  return new Date(u.planEndsAt) < new Date()
 }
 
 function daysLeft(u) {
-  const d = Math.ceil((new Date(u.trialEndsAt) - Date.now()) / 86400000)
+  const d = Math.ceil((new Date(u.planEndsAt) - Date.now()) / 86400000)
   return isExpired(u)
     ? t('admin.plans.daysAgo', { days: Math.abs(d) })
     : t('admin.plans.daysLeft', { days: d })
@@ -173,7 +173,7 @@ function daysLeft(u) {
 
 function daysClass(u) {
   if (isExpired(u)) return isDark.value ? 'text-rose-400' : 'text-rose-600'
-  const d = Math.ceil((new Date(u.trialEndsAt) - Date.now()) / 86400000)
+  const d = Math.ceil((new Date(u.planEndsAt) - Date.now()) / 86400000)
   return d <= 3
     ? (isDark.value ? 'text-amber-400' : 'text-amber-600')
     : (isDark.value ? 'text-emerald-400' : 'text-emerald-600')
@@ -184,17 +184,17 @@ function formatDate(d) {
 }
 
 async function extendTrial(u) {
-  const newEnd = new Date(Math.max(new Date(u.trialEndsAt), Date.now()))
+  const newEnd = new Date(Math.max(new Date(u.planEndsAt), Date.now()))
   newEnd.setDate(newEnd.getDate() + 7)
-  await adminApi.updateUser(u._id, { trialEndsAt: newEnd, isTrial: true })
-  u.trialEndsAt = newEnd.toISOString()
+  await adminApi.updateUser(u._id, { planEndsAt: newEnd, isTrial: true })
+  u.planEndsAt = newEnd.toISOString()
 }
 
 onMounted(async () => {
   try {
     const res = await adminApi.getPlans()
     counts.value = res.counts || {}
-    trialUsers.value = res.trialUsers || []
+    trialUsers.value = res.trialUsersList || []
     console.log('trialUsers:', trialUsers.value)
   } finally {
     loading.value = false

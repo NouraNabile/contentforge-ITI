@@ -1,8 +1,8 @@
 // routes/payment.js
-const express  = require('express')
-const router   = express.Router()
-const Stripe   = require('stripe')
-const protect  = require('../middleware/auth')
+const express = require('express')
+const router = express.Router()
+const Stripe = require('stripe')
+const protect = require('../middleware/auth')
 const { User } = require('../models')
 
 const stripe = Stripe(process.env.STRIPE_SECRET_KEY)
@@ -10,11 +10,11 @@ const stripe = Stripe(process.env.STRIPE_SECRET_KEY)
 // ── Plan config (priceId من Stripe Dashboard) ─────────────────────────────────
 const PLANS = {
   starter_monthly: { priceId: process.env.STRIPE_STARTER_MONTHLY, plan: 'starter' },
-  starter_annual:  { priceId: process.env.STRIPE_STARTER_ANNUAL,  plan: 'starter' },
-  growth_monthly:  { priceId: process.env.STRIPE_GROWTH_MONTHLY,  plan: 'growth'  },
-  growth_annual:   { priceId: process.env.STRIPE_GROWTH_ANNUAL,   plan: 'growth'  },
-  agency_monthly:  { priceId: process.env.STRIPE_AGENCY_MONTHLY,  plan: 'agency'  },
-  agency_annual:   { priceId: process.env.STRIPE_AGENCY_ANNUAL,   plan: 'agency'  },
+  starter_annual: { priceId: process.env.STRIPE_STARTER_ANNUAL, plan: 'starter' },
+  growth_monthly: { priceId: process.env.STRIPE_GROWTH_MONTHLY, plan: 'growth' },
+  growth_annual: { priceId: process.env.STRIPE_GROWTH_ANNUAL, plan: 'growth' },
+  agency_monthly: { priceId: process.env.STRIPE_AGENCY_MONTHLY, plan: 'agency' },
+  agency_annual: { priceId: process.env.STRIPE_AGENCY_ANNUAL, plan: 'agency' },
 }
 
 // ── POST /api/payment/checkout — create Stripe Checkout session ───────────────
@@ -30,7 +30,7 @@ router.post('/checkout', protect, async (req, res) => {
   if (!customerId) {
     const customer = await stripe.customers.create({
       email: user.email,
-      name:  user.name,
+      name: user.name,
       metadata: { userId: String(user._id) },
     })
     customerId = customer.id
@@ -39,13 +39,13 @@ router.post('/checkout', protect, async (req, res) => {
   }
 
   const session = await stripe.checkout.sessions.create({
-    customer:             customerId,
+    customer: customerId,
     payment_method_types: ['card'],
-    mode:                 'subscription',
+    mode: 'subscription',
     line_items: [{ price: plan.priceId, quantity: 1 }],
     success_url: `${process.env.CLIENT_URL}/payment/success?session_id={CHECKOUT_SESSION_ID}`,
-    cancel_url:  `${process.env.CLIENT_URL}/payment/cancel`,
-    metadata:    { userId: String(user._id), planKey },
+    cancel_url: `${process.env.CLIENT_URL}/payment/cancel`,
+    metadata: { userId: String(user._id), planKey },
     subscription_data: {
       metadata: { userId: String(user._id), planKey },
     },
@@ -61,7 +61,7 @@ router.post('/portal', protect, async (req, res) => {
     return res.status(400).json({ message: 'No active subscription found' })
 
   const session = await stripe.billingPortal.sessions.create({
-    customer:   user.stripeCustomerId,
+    customer: user.stripeCustomerId,
     return_url: `${process.env.CLIENT_URL}/dashboard`,
   })
   res.json({ url: session.url })
@@ -75,9 +75,9 @@ router.get('/status', protect, async (req, res) => {
 
   const subs = await stripe.subscriptions.list({
     customer: user.stripeCustomerId,
-    status:   'all',
-    limit:    1,
-    expand:   ['data.default_payment_method'],
+    status: 'all',
+    limit: 1,
+    expand: ['data.default_payment_method'],
   })
 
   const sub = subs.data[0]
@@ -85,18 +85,18 @@ router.get('/status', protect, async (req, res) => {
 
   const pm = sub.default_payment_method
   res.json({
-    plan:   user.plan,
+    plan: user.plan,
     status: sub.status,          // active | past_due | canceled | trialing
     subscription: {
-      id:             sub.id,
+      id: sub.id,
       currentPeriodEnd: new Date(sub.current_period_end * 1000).toISOString(),
       cancelAtPeriodEnd: sub.cancel_at_period_end,
-      interval:       sub.items.data[0]?.plan?.interval,  // month | year
+      interval: sub.items.data[0]?.plan?.interval,  // month | year
       card: pm?.card ? {
         brand: pm.card.brand,
         last4: pm.card.last4,
         expMonth: pm.card.exp_month,
-        expYear:  pm.card.exp_year,
+        expYear: pm.card.exp_year,
       } : null,
     },
   })
@@ -116,31 +116,34 @@ router.post('/webhook', express.raw({ type: 'application/json' }), async (req, r
   const data = event.data.object
 
   switch (event.type) {
-    // ── اشتراك جديد أو تجديد ──────────────────────────────────────────────────
+    // REPLACE the existing created/updated cases with this:
     case 'customer.subscription.created':
     case 'customer.subscription.updated': {
-      const userId  = data.metadata?.userId
+      const userId = data.metadata?.userId
       const planKey = data.metadata?.planKey
       const planName = PLANS[planKey]?.plan
       if (userId && planName && data.status === 'active') {
         await User.findByIdAndUpdate(userId, {
-          plan:    planName,
+          plan: planName,
           isTrial: false,
+          planEndsAt: new Date(data.current_period_end * 1000), // ← new
         })
-        console.log(`✅ User ${userId} upgraded to ${planName}`)
       }
       break
     }
-    // ── إلغاء الاشتراك ────────────────────────────────────────────────────────
+
+    // REPLACE the existing deleted case with this:
     case 'customer.subscription.deleted': {
       const userId = data.metadata?.userId
       if (userId) {
-        await User.findByIdAndUpdate(userId, { plan: 'free' })
-        console.log(`🔴 User ${userId} subscription canceled → free`)
+        await User.findByIdAndUpdate(userId, {
+          plan: 'free',
+          planEndsAt: new Date(), // ← new
+        })
       }
       break
     }
-    // ── فشل الدفع ─────────────────────────────────────────────────────────────
+
     case 'invoice.payment_failed': {
       console.warn(`⚠️ Payment failed for customer: ${data.customer}`)
       break

@@ -118,7 +118,7 @@ cron.schedule("0 8 * * *", async () => {
         title: "📅 منشورات مجدولة اليوم",
         message: `لديك ${posts.length} منشور مجدول اليوم. لا تنسَ نشرها!`,
         type: "scheduled_today",
-        read:false, 
+        read: false,
         postId: posts[0]._id
       });
       console.log(

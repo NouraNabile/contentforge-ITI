@@ -119,7 +119,7 @@
             <span class="resend-text">{{ t('auth.didntReceive') }}</span>
             <button @click="resendOtp" :disabled="resendLoading || resendCooldown > 0" class="resend-btn">
               <span v-if="resendCooldown > 0">{{ t('auth.resendIn') }} {{ resendCooldown }}{{ t('auth.seconds')
-                }}</span> <span v-else>{{ resendLoading ? t('auth.sending') : t('auth.resendCode') }}</span>
+              }}</span> <span v-else>{{ resendLoading ? t('auth.sending') : t('auth.resendCode') }}</span>
             </button>
           </div>
         </div>
@@ -194,7 +194,8 @@
             <span class="resend-text">{{ t('auth.didntReceive') }}</span>
             <button @click="resendForgotOtp" :disabled="forgotResendLoading || forgotResendCooldown > 0"
               class="resend-btn">
-              <span v-if="forgotResendCooldown > 0">{{ t('auth.resendIn') }} {{ forgotResendCooldown }}{{ t('auth.seconds') }}</span>
+              <span v-if="forgotResendCooldown > 0">{{ t('auth.resendIn') }} {{ forgotResendCooldown }}{{
+                t('auth.seconds') }}</span>
               <span v-else>{{ forgotResendLoading ? t('auth.sending') : t('auth.resendCode') }}</span>
             </button>
           </div>
@@ -421,12 +422,15 @@ const authStore = useAuthStore()
 
 // ── Core state ────────────────────────────────────────────────────────────────
 const showOTP = ref(false)
+const otpCode = ref('')
 const isRegister = ref(false)
 const showPass = ref(false)
 const showConfirmPass = ref(false)
 const loading = ref(false)
 const error = ref(null)
 const successKey = ref(null)
+const serverOnline = ref(false)
+const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:3000/api'
 const form = ref({ name: '', email: '', password: '', confirmPassword: '', phone: '' })
 const otpInputs = ref(['', '', '', '', '', ''])
 const inputRefs = ref([])
@@ -468,7 +472,12 @@ function handleForgotOtpKeyDown(index, event) {
 }
 
 onMounted(async () => {
-  try { await api.get('/health') } catch { /* silent */ }
+  try {
+    await api.get('/health')
+    serverOnline.value = true
+  } catch {
+    serverOnline.value = false
+  }
 })
 
 // ── Resend OTP (registration) ─────────────────────────────────────────────────

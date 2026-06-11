@@ -123,7 +123,7 @@
                     </p>
                     <p class="text-[11px] m-0" :class="isDark ? 'text-slate-400' : 'text-slate-600'">{{ u.email }}</p>
                     <span 
-                      v-if="u.isAskToDelete" 
+                      v-if="u.deletionRequest?.isAsked" 
                       class="inline-block mt-1 text-[10px] px-2 py-0.5 rounded-full font-medium"
                       :class="isDark ? 'bg-rose-500/15 text-rose-400' : 'bg-rose-100 text-rose-700'"
                     >
@@ -147,7 +147,16 @@
               
               <!-- Trial Ends -->
               <td class="py-3 px-4 border-t text-xs" :class="isDark ? 'border-white/5 text-slate-400' : 'border-slate-200 text-slate-600'">
-                {{ u.isTrial ? formatDate(u.trialEndsAt) : '—' }}
+                {{ formatDate(u.planEndsAt) }}
+                <span
+                  v-if="u.subscriptionType && u.subscriptionType !== 'none'"
+                  class="ml-1 text-[10px] px-1.5 py-0.5 rounded font-medium"
+                  :class="u.subscriptionType === 'yearly'
+                    ? (isDark ? 'bg-teal-500/15 text-teal-400' : 'bg-teal-100 text-teal-700')
+                    : (isDark ? 'bg-slate-500/15 text-slate-400' : 'bg-slate-100 text-slate-600')"
+                >
+                  {{ u.subscriptionType === 'yearly' ? '/ yr' : '/ mo' }}
+                </span>
               </td>
               
               <!-- Verified -->
@@ -173,7 +182,7 @@
                   <button 
                     class="text-[11px] px-2.5 py-1 rounded-md border font-medium transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
                     :class="[
-                      u.blockStatus === 'warning' 
+                      u.moderation?.blockStatus === 'warning' 
                         ? (isDark ? 'border-amber-500/30 text-amber-400 hover:bg-amber-500/10' : 'border-amber-200 text-amber-700 hover:bg-amber-50')
                         : u.isBlocked 
                           ? (isDark ? 'border-emerald-500/30 text-emerald-400 hover:bg-emerald-500/10' : 'border-emerald-200 text-emerald-700 hover:bg-emerald-50')
@@ -182,7 +191,7 @@
                     @click="handleBlockAction(u)"
                     :disabled="u.isAdmin"
                   >
-                    {{ u.blockStatus === 'warning' ? t('admin.usersPage.cancelWarning') : u.isBlocked ? t('admin.usersPage.unblock') : t('admin.usersPage.block') }}
+                    {{ u.moderation?.blockStatus === 'warning' ? t('admin.usersPage.cancelWarning') : u.isBlocked ? t('admin.usersPage.unblock') : t('admin.usersPage.block') }}
                   </button>
                   <button 
                     class="text-[11px] px-2.5 py-1 rounded-md border font-medium transition-colors"
@@ -204,7 +213,7 @@
                     ✕
                   </button>
                   <button 
-                    v-if="u.isAskToDelete" 
+                    v-if="u.deletionRequest?.isAsked" 
                     class="text-[11px] px-2.5 py-1 rounded-md border font-medium transition-colors"
                     :class="isDark 
                       ? 'bg-rose-500/10 border-rose-500/20 text-rose-400 hover:bg-rose-500/20' 
@@ -215,11 +224,11 @@
                   </button>
                 </div>
                 <p 
-                  v-if="u.blockStatus === 'warning' && u.gracePeriodExpiresAt" 
+                  v-if="u.moderation?.blockStatus === 'warning' && u.moderation?.gracePeriodExpiresAt" 
                   class="text-[10px] mt-1"
                   :class="isDark ? 'text-amber-400' : 'text-amber-600'"
                 >
-                  {{ t('admin.usersPage.endsIn') }}: {{ getRemainingTime(u.gracePeriodExpiresAt) }}
+                  {{ t('admin.usersPage.endsIn') }}: {{ getRemainingTime(u.moderation?.gracePeriodExpiresAt) }}
                 </p>
               </td>
             </tr>
@@ -324,7 +333,7 @@
                 </label>
                 <input 
                   type="date" 
-                  v-model="editForm.trialEndsAt" 
+                  v-model="editForm.planEndsAt" 
                   class="w-full px-3 py-2.5 rounded-xl text-sm border focus:outline-none focus:border-blue-500/40"
                   :class="isDark 
                     ? 'bg-slate-900 border-white/10 text-white' 
@@ -532,19 +541,9 @@ async function fetchUsers(p = 1) {
   try {
     const res = await adminApi.getUsers({ page: p, limit: 20, search: search.value, plan: planFilter.value })
     
-    const fetchedUsers = (res.users || []).filter(u => u.isDeleted !== true)
-    
-    users.value = fetchedUsers.map(u => {
-      const savedStatus = localStorage.getItem(`user_status_${u._id}`)
-      if (savedStatus) {
-        const parsed = JSON.parse(savedStatus)
-        u.blockStatus = parsed.blockStatus
-        u.gracePeriodExpiresAt = parsed.gracePeriodExpiresAt
-      }
-      return u
-    })
-
-    total.value = fetchedUsers.length
+    const fetchedUsers = (res.users || []).filter(u => u.deletionRequest?.isDeleted !== true)
+    users.value = fetchedUsers
+    total.value = res.total ?? fetchedUsers.length
     pages.value = res.pages || 1
   } finally {
     loading.value = false
@@ -560,13 +559,8 @@ async function submitBlockWarning() {
     const res = await adminApi.blockUser(userToUpdate._id, blockReason.value.trim())
     
     userToUpdate.isBlocked = res.isBlocked
-    userToUpdate.blockStatus = 'warning'
-    userToUpdate.gracePeriodExpiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString()
-    
-    localStorage.setItem(`user_status_${userToUpdate._id}`, JSON.stringify({
-      blockStatus: 'warning',
-      gracePeriodExpiresAt: userToUpdate.gracePeriodExpiresAt
-    }))
+    if (!userToUpdate.moderation) userToUpdate.moderation = {}
+    Object.assign(userToUpdate.moderation, res.moderation)
 
     closeModal()
     alert("Warning issued and saved to DB successfully!")
@@ -579,16 +573,9 @@ async function submitBlockWarning() {
 async function executeToggleBlock(u) {
   try {
     const res = await adminApi.blockUser(u._id)
-    
-    if (u.blockStatus === 'warning') {
-      u.isBlocked = false
-      u.blockStatus = null
-    } else {
-      u.isBlocked = res.isBlocked
-      u.blockStatus = null
-    }
-    
-    localStorage.removeItem(`user_status_${u._id}`)
+    u.isBlocked = res.isBlocked
+    if (!u.moderation) u.moderation = {}
+    Object.assign(u.moderation, res.moderation)
   } catch (error) {
     console.error("Error toggling block:", error)
   }
@@ -602,7 +589,7 @@ function closeModal() {
 
 function handleBlockAction(u) {
   selectedUser.value = u
-  if (u.isBlocked || u.blockStatus === 'warning') {
+  if (u.isBlocked || u.moderation?.blockStatus === 'warning') {
     executeToggleBlock(u)
   } else {
     blockReason.value = ''
@@ -624,7 +611,7 @@ function openEdit(u) {
   editForm.value = {
     plan: u.plan || 'free',
     isTrial: !!u.isTrial,
-    trialEndsAt: u.trialEndsAt ? u.trialEndsAt.slice(0, 10) : '',
+    planEndsAt: u.planEndsAt ? u.planEndsAt.slice(0, 10) : '',
     isVerified: !!u.isVerified,
     isAdmin: !!u.isAdmin,
   }
@@ -636,7 +623,7 @@ async function saveEdit() {
     const updated = await adminApi.updateUser(editUser.value._id, {
       plan: editForm.value.plan,
       isTrial: editForm.value.isTrial,
-      trialEndsAt: editForm.value.trialEndsAt ? new Date(editForm.value.trialEndsAt) : null,
+      planEndsAt: editForm.value.planEndsAt ? new Date(editForm.value.planEndsAt) : null,
       isVerified: editForm.value.isVerified,
       isAdmin: editForm.value.isAdmin,
     })
@@ -666,7 +653,7 @@ async function doDelete() {
 
 function planLabel(u) {
   if (u.isTrial) {
-    const days = Math.ceil((new Date(u.trialEndsAt) - Date.now()) / 86400000)
+    const days = Math.ceil((new Date(u.planEndsAt) - Date.now()) / 86400000)
     return days > 0 ? `${t('admin.usersPage.trial')} (${days}${t('admin.usersPage.daysShort')})` : t('admin.usersPage.trialExpired')
   }
   return u.plan || 'free'
@@ -674,7 +661,7 @@ function planLabel(u) {
 
 function planClass(u) {
   if (u.isTrial) {
-    const isExpired = new Date(u.trialEndsAt) <= Date.now()
+    const isExpired = new Date(u.planEndsAt) <= Date.now()
     return isExpired 
       ? (isDark.value ? 'bg-rose-500/15 text-rose-400' : 'bg-rose-100 text-rose-700')
       : (isDark.value ? 'bg-amber-500/15 text-amber-400' : 'bg-amber-100 text-amber-700')

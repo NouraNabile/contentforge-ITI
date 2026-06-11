@@ -1,8 +1,7 @@
-<!-- LoginPage.vue -->
 <template>
   <div class="login-page" :dir="locale === 'ar' ? 'rtl' : 'ltr'">
 
-    <!-- Left panel — branding -->
+    <!-- Left panel -->
     <div class="login-left">
       <div class="login-left-inner">
 
@@ -38,11 +37,11 @@
           </div>
         </div>
 
-        <p class="left-footer">© 2026 ContentForge</p>
+        <p class="left-footer">{{ t('auth.copyright') }}</p>
       </div>
     </div>
 
-    <!-- Right panel — form -->
+    <!-- Right panel -->
     <div class="login-right">
 
       <!-- Back to home — mobile only -->
@@ -79,7 +78,7 @@
 
       <div class="form-wrap">
 
-        <!-- OTP view -->
+        <!-- ── OTP view (registration) ── -->
         <div v-if="showOTP" class="form-inner">
           <div class="form-head">
             <div class="form-icon">📬</div>
@@ -115,21 +114,170 @@
             </svg>
             {{ loading ? t('auth.verifying') : t('auth.verifyCode') }}
           </button>
-          <!-- resend -->
-                  <div class="resend-row">
-          <span class="resend-text">{{ t('YouDidntReceive OTP ??') }}</span>
-          <button 
-            @click="resendOtp" 
-            :disabled="resendLoading || resendCooldown > 0"
-            class="resend-btn">
-            <span v-if="resendCooldown > 0">{{ t('auth.resendIn') }} {{ resendCooldown }}s</span>
-            <span v-else>{{ resendLoading ? t('sending') : t('resendCode') }}</span>
-          </button>
-        </div>
+
+          <div class="resend-row">
+            <span class="resend-text">{{ t('auth.didntReceive') }}</span>
+            <button @click="resendOtp" :disabled="resendLoading || resendCooldown > 0" class="resend-btn">
+              <span v-if="resendCooldown > 0">{{ t('auth.resendIn') }} {{ resendCooldown }}{{ t('auth.seconds')
+                }}</span> <span v-else>{{ resendLoading ? t('auth.sending') : t('auth.resendCode') }}</span>
+            </button>
+          </div>
         </div>
 
-        
-        <!-- Login / Register view -->
+        <!-- ── FORGOT: Step 1 — Email ── -->
+        <div v-else-if="forgotStep === 'email'" class="form-inner">
+          <div class="form-head">
+            <div class="form-icon">🔑</div>
+            <h1 class="form-title">{{ t('auth.forgotTitle') }}</h1>
+            <p class="form-sub">{{ t('auth.forgotSubtitle') }}</p>
+          </div>
+
+          <div v-if="error" class="alert alert-error">
+            <svg class="alert-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+              <path stroke-linecap="round" stroke-linejoin="round"
+                d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            {{ error }}
+          </div>
+
+          <div class="field">
+            <label>{{ t('auth.email') }}</label>
+            <input v-model="forgotEmail" type="email" :placeholder="t('auth.emailPlaceholder')"
+              @keyup.enter="sendForgotOtp" />
+          </div>
+
+          <button @click="sendForgotOtp" :disabled="loading" class="btn-primary">
+            <svg v-if="loading" class="spin" fill="none" viewBox="0 0 24 24">
+              <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" />
+              <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+            </svg>
+            {{ loading ? t('auth.sending') : t('auth.sendResetCode') }}
+          </button>
+
+          <p class="switch-mode">
+            <button @click="forgotStep = null; error = null">← {{ t('auth.backToLogin') }}</button>
+          </p>
+        </div>
+
+        <!-- ── FORGOT: Step 2 — OTP (reuses verify-email endpoint) ── -->
+        <div v-else-if="forgotStep === 'otp'" class="form-inner">
+          <div class="form-head">
+            <div class="form-icon">📬</div>
+            <h1 class="form-title">{{ t('auth.confirmEmail') }}</h1>
+            <p class="form-sub">{{ t('auth.otpSubtitle') }}</p>
+          </div>
+
+          <div v-if="error" class="alert alert-error">
+            <svg class="alert-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+              <path stroke-linecap="round" stroke-linejoin="round"
+                d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            {{ error }}
+          </div>
+
+          <div class="otp-row" dir="ltr">
+            <input v-for="(digit, index) in 6" :key="index" ref="forgotOtpRefs" v-model="forgotOtpInputs[index]"
+              type="text" maxlength="1" class="otp-input" @input="handleForgotOtpInput(index, $event)"
+              @keydown="handleForgotOtpKeyDown(index, $event)" />
+          </div>
+
+          <button @click="verifyForgotOtp" :disabled="loading" class="btn-primary">
+            <svg v-if="loading" class="spin" fill="none" viewBox="0 0 24 24">
+              <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" />
+              <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+            </svg>
+            {{ loading ? t('auth.verifying') : t('auth.verifyCode') }}
+          </button>
+
+          <!-- Resend OTP row -->
+          <div class="resend-row">
+            <span class="resend-text">{{ t('auth.didntReceive') }}</span>
+            <button @click="resendForgotOtp" :disabled="forgotResendLoading || forgotResendCooldown > 0"
+              class="resend-btn">
+              <span v-if="forgotResendCooldown > 0">{{ t('auth.resendIn') }} {{ forgotResendCooldown }}{{ t('auth.seconds') }}</span>
+              <span v-else>{{ forgotResendLoading ? t('auth.sending') : t('auth.resendCode') }}</span>
+            </button>
+          </div>
+
+          <p class="switch-mode">
+            <button @click="forgotStep = 'email'; error = null">← {{ t('auth.backToLogin') }}</button>
+          </p>
+        </div>
+
+        <!-- ── FORGOT: Step 3 — New password (reuses change-password endpoint) ── -->
+        <div v-else-if="forgotStep === 'reset'" class="form-inner">
+          <div class="form-head">
+            <div class="form-icon">🔒</div>
+            <h1 class="form-title">{{ t('auth.newPasswordTitle') }}</h1>
+            <p class="form-sub">{{ t('auth.newPasswordSubtitle') }}</p>
+          </div>
+
+          <div v-if="error" class="alert alert-error">
+            <svg class="alert-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+              <path stroke-linecap="round" stroke-linejoin="round"
+                d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            {{ error }}
+          </div>
+
+          <div class="field">
+            <label>{{ t('profile.newPassword') }}</label>
+            <div class="pass-wrap">
+              <input v-model="resetForm.newPassword" :type="showResetPass ? 'text' : 'password'"
+                :placeholder="t('auth.passwordPlaceholder')" @keyup.enter="submitReset"
+                :style="locale === 'ar' ? 'padding: 12px 14px 12px 38px' : 'padding: 12px 38px 12px 14px'" />
+              <button @click="showResetPass = !showResetPass" type="button" class="pass-toggle"
+                :style="locale === 'ar' ? 'right: auto; left: 12px' : 'right: 12px; left: auto'">
+                <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                  stroke-linejoin="round">
+                  <template v-if="showResetPass">
+                    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
+                    <circle cx="12" cy="12" r="3" />
+                  </template>
+                  <template v-else>
+                    <path
+                      d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24" />
+                    <line x1="1" y1="1" x2="23" y2="23" />
+                  </template>
+                </svg>
+              </button>
+            </div>
+          </div>
+
+          <div class="field">
+            <label>{{ t('profile.confirmPassword') }}</label>
+            <div class="pass-wrap">
+              <input v-model="resetForm.confirmPassword" :type="showResetConfirm ? 'text' : 'password'"
+                :placeholder="t('auth.confirmPasswordPlaceholder')" @keyup.enter="submitReset"
+                :style="locale === 'ar' ? 'padding: 12px 14px 12px 38px' : 'padding: 12px 38px 12px 14px'" />
+              <button @click="showResetConfirm = !showResetConfirm" type="button" class="pass-toggle"
+                :style="locale === 'ar' ? 'right: auto; left: 12px' : 'right: 12px; left: auto'">
+                <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                  stroke-linejoin="round">
+                  <template v-if="showResetConfirm">
+                    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
+                    <circle cx="12" cy="12" r="3" />
+                  </template>
+                  <template v-else>
+                    <path
+                      d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24" />
+                    <line x1="1" y1="1" x2="23" y2="23" />
+                  </template>
+                </svg>
+              </button>
+            </div>
+          </div>
+
+          <button @click="submitReset" :disabled="loading" class="btn-primary">
+            <svg v-if="loading" class="spin" fill="none" viewBox="0 0 24 24">
+              <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" />
+              <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+            </svg>
+            {{ loading ? t('auth.resetting') : t('auth.resetPassword') }}
+          </button>
+        </div>
+
+        <!-- ── Login / Register view ── -->
         <div v-else class="form-inner">
           <div class="form-head">
             <h1 class="form-title">
@@ -175,12 +323,12 @@
                 @keyup.enter="submit" />
             </div>
 
-            <!-- Password Field -->
             <div class="field">
               <label>{{ t('auth.password') }}</label>
               <div class="pass-wrap">
                 <input v-model="form.password" :type="showPass ? 'text' : 'password'"
-                  :placeholder="t('auth.passwordPlaceholder')" @keyup.enter="submit" />
+                  :placeholder="t('auth.passwordPlaceholder')" @keyup.enter="submit"
+                  :style="locale === 'ar' ? 'padding: 12px 14px 12px 38px' : 'padding: 12px 38px 12px 14px'" />
                 <button @click="showPass = !showPass" type="button" class="pass-toggle"
                   :style="locale === 'ar' ? 'right: auto; left: 12px' : 'right: 12px; left: auto'">
                   <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" stroke-linecap="round"
@@ -199,12 +347,19 @@
               </div>
             </div>
 
+            <!-- Forgot password link — login only -->
+            <div v-if="!isRegister" class="flex justify-end" style="margin-top: -6px">
+              <button @click="forgotStep = 'email'; error = null" type="button" class="forgot-link">
+                {{ t('auth.forgotPassword') }}
+              </button>
+            </div>
+
             <div class="field" v-if="isRegister">
               <label>{{ t('auth.confirmPassword') }}</label>
               <div class="pass-wrap">
                 <input v-model="form.confirmPassword" :type="showConfirmPass ? 'text' : 'password'"
-                  :placeholder="locale === 'ar' ? 'أعد كتابة كلمة المرور' : 'Re-enter your password'"
-                  @keyup.enter="submit" />
+                  :placeholder="t('auth.confirmPasswordPlaceholder')" @keyup.enter="submit"
+                  :style="locale === 'ar' ? 'padding: 12px 14px 12px 38px' : 'padding: 12px 38px 12px 14px'" />
                 <button @click="showConfirmPass = !showConfirmPass" type="button" class="pass-toggle"
                   :style="locale === 'ar' ? 'right: auto; left: 12px' : 'right: 12px; left: auto'">
                   <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" stroke-linecap="round"
@@ -230,7 +385,7 @@
               <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
             </svg>
             {{ loading
-              ? (isRegister ? t('auth(' + 'creatingAccount' + ')') : t('auth.signingIn'))
+              ? (isRegister ? t('auth.creatingAccount') : t('auth.signingIn'))
               : (isRegister ? t('auth.createAccountBtn') : t('auth.signIn')) }}
           </button>
 
@@ -254,117 +409,78 @@ import { RouterLink, useRouter } from 'vue-router'
 import { useAuthStore } from '../stores/authStore'
 import { useI18n } from 'vue-i18n'
 import { useLang } from '../composables/useLang.js'
-import api from '../api/client'
 import { useTheme } from '../composables/useTheme.js'
-
-const { isDark, toggle: toggleTheme } = useTheme()
+import api from '../api/client'
+import authApi from '../api/authApi'
 
 const { t } = useI18n()
 const { locale, switchLang } = useLang()
-const showOTP = ref(false)
-const otpCode = ref('')
-
+const { isDark, toggle: toggleTheme } = useTheme()
 const router = useRouter()
 const authStore = useAuthStore()
 
-const resendLoading  = ref(false)
-const resendCooldown = ref(0)
-let cooldownTimer = null
-
+// ── Core state ────────────────────────────────────────────────────────────────
+const showOTP = ref(false)
 const isRegister = ref(false)
 const showPass = ref(false)
 const showConfirmPass = ref(false)
 const loading = ref(false)
 const error = ref(null)
 const successKey = ref(null)
-const serverOnline = ref(false)
-const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:3000/api'
-
 const form = ref({ name: '', email: '', password: '', confirmPassword: '', phone: '' })
-
 const otpInputs = ref(['', '', '', '', '', ''])
 const inputRefs = ref([])
 
+// ── Resend OTP (registration) ─────────────────────────────────────────────────
+const resendLoading = ref(false)
+const resendCooldown = ref(0)
+let cooldownTimer = null
+
+// ── Forgot password state ─────────────────────────────────────────────────────
+const forgotStep = ref(null) // null | 'email' | 'otp' | 'reset'
+const forgotEmail = ref('')
+const forgotOtpInputs = ref(['', '', '', '', '', ''])
+const forgotOtpRefs = ref([])
+const forgotResendLoading = ref(false)
+const forgotResendCooldown = ref(0)
+let forgotCooldownTimer = null
+
+const showResetPass = ref(false)
+const showResetConfirm = ref(false)
+const resetForm = ref({ newPassword: '', confirmPassword: '' })
+
+// ── OTP handlers (registration) ───────────────────────────────────────────────
 const handleOtpInput = (index, event) => {
-  const value = event.target.value
-  if (value && index < 5) {
-    inputRefs.value[index + 1].focus()
-  }
+  if (event.target.value && index < 5) inputRefs.value[index + 1].focus()
+}
+const handleOtpKeyDown = (index, event) => {
+  if (event.key === 'Backspace' && !otpInputs.value[index] && index > 0)
+    inputRefs.value[index - 1].focus()
 }
 
-const handleOtpKeyDown = (index, event) => {
-  if (event.key === 'Backspace' && !otpInputs.value[index] && index > 0) {
-    inputRefs.value[index - 1].focus()
-  }
+// ── OTP handlers (forgot) ─────────────────────────────────────────────────────
+function handleForgotOtpInput(index, event) {
+  if (event.target.value && index < 5) forgotOtpRefs.value[index + 1]?.focus()
+}
+function handleForgotOtpKeyDown(index, event) {
+  if (event.key === 'Backspace' && !forgotOtpInputs.value[index] && index > 0)
+    forgotOtpRefs.value[index - 1]?.focus()
 }
 
 onMounted(async () => {
-  try {
-    await api.get('/health')
-    serverOnline.value = true
-  } catch {
-    serverOnline.value = false
-  }
+  try { await api.get('/health') } catch { /* silent */ }
 })
 
-
-// async function submit() {
-//   error.value = null
-//   if (!form.value.email || !form.value.password) {
-//     error.value = 'Please fill in all fields'
-//     return
-//   }
-//   if (isRegister.value && (!form.value.name || !form.value.phone)) {
-//     error.value = 'Please fill in all fields'
-//     return
-//   }
-//   loading.value = true
-//   try {
-//     if (isRegister.value) {
-//       await authStore.register(form.value)
-//       success.value = 'Check your email for a verification code'
-//       showOTP.value = true
-//       // ✅ No redirect here — user must verify first
-//     } else {
-//       await authStore.login(form.value)
-//       const userRaw = localStorage.getItem('cf_user')
-//       const user = userRaw ? JSON.parse(userRaw) : null
-
-//       if (localStorage.getItem('cf_token')) {
-//         // 🎯 الحتة السحرية الجديدة: لو أدمن وديه باث الأدمن، لو لأ وديه الـ dashboard العادي
-//         if (user && user.isAdmin === true) {
-//           router.push('/admin/dashboard')
-//         } else {
-//           router.push('/dashboard')
-//         }
-//       } else {
-//         error.value = 'تم تسجيل الدخول ولكن لم يتم حفظ التوكن، تأكدي من كود الـ Store'
-//       }
-//     }
-//   } catch (err) {
-//     error.value = err.message || 'Something went wrong. Is your backend running?'
-//   } finally {
-//     loading.value = false
-//   }
-// }
-
+// ── Resend OTP (registration) ─────────────────────────────────────────────────
 async function resendOtp() {
   resendLoading.value = true
   error.value = null
   try {
     await api.post('/auth/resend-otp', { email: form.value.email })
     successKey.value = 'auth.otpResent'
-    
-    // 🌟 السحر هنا: تصفير الـ 6 خانات تماماً أول ما الإرسال ينجح
     otpInputs.value = ['', '', '', '', '', '']
-
-    // 🎯 نقل المؤشر (Focus) أوتوماتيك لأول خانة عشان يكتب من جديد
-    setTimeout(() => {
-      inputRefs.value[0]?.focus()
-    }, 50)
-
-    // كاونت داون 60 ثانية بتاعك زي ما هو
-    resendCooldown.value = 60
+    setTimeout(() => inputRefs.value[0]?.focus(), 50)
+    resendCooldown.value = 10
     cooldownTimer = setInterval(() => {
       resendCooldown.value--
       if (resendCooldown.value <= 0) clearInterval(cooldownTimer)
@@ -375,36 +491,45 @@ async function resendOtp() {
     resendLoading.value = false
   }
 }
+
+// ── Resend OTP (forgot password) ──────────────────────────────────────────────
+async function resendForgotOtp() {
+  forgotResendLoading.value = true
+  error.value = null
+  try {
+    await authApi.sendResetOtp({ email: forgotEmail.value })
+    forgotOtpInputs.value = ['', '', '', '', '', '']
+    await nextTick()
+    forgotOtpRefs.value[0]?.focus()
+    forgotResendCooldown.value = 10
+    forgotCooldownTimer = setInterval(() => {
+      forgotResendCooldown.value--
+      if (forgotResendCooldown.value <= 0) clearInterval(forgotCooldownTimer)
+    }, 1000)
+  } catch (err) {
+    error.value = err.response?.data?.message || err.message || t('auth.errorGeneric')
+  } finally {
+    forgotResendLoading.value = false
+  }
+}
+
+// ── Submit (login / register) ─────────────────────────────────────────────────
 async function submit() {
   error.value = null
-
-  // 1. Basic validation: check email and password fields exist
   if (!form.value.email || !form.value.password) {
-    error.value = t('auth.errorFillAll')
-    return
+    error.value = t('auth.errorFillAll'); return
   }
-
-  // 2. Registration specific validations
   if (isRegister.value) {
     if (!form.value.name || !form.value.phone || !form.value.confirmPassword) {
-      error.value = t('auth.errorFillAll')
-      return
+      error.value = t('auth.errorFillAll'); return
     }
-
-    // Email format validation: check if the email contains '@'
     if (!form.value.email.includes('@')) {
-      error.value = t('auth.wrongMail')
-      return // Halts execution here so the server is never reached
+      error.value = t('auth.wrongMail'); return
     }
-
-    // CRITICAL FIX: Match check MUST happen before calling authStore.register
     if (form.value.password !== form.value.confirmPassword) {
-      error.value = t('auth.errorPasswordMismatch')
-      return // Halts execution so the server is never reached
+      error.value = t('auth.errorPasswordMismatch'); return
     }
   }
-
-  // 3. Proceed to network request safely
   loading.value = true
   try {
     if (isRegister.value) {
@@ -415,8 +540,7 @@ async function submit() {
       await authStore.login(form.value)
       await nextTick()
       if (localStorage.getItem('cf_token')) {
-        const userRaw = localStorage.getItem('cf_user')
-        const user = userRaw ? JSON.parse(userRaw) : null
+        const user = JSON.parse(localStorage.getItem('cf_user') || '{}')
         router.push(user?.isAdmin ? '/admin' : '/dashboard')
       } else {
         error.value = t('auth.errorTokenMissing')
@@ -429,21 +553,98 @@ async function submit() {
   }
 }
 
+// ── Verify email OTP (registration) ──────────────────────────────────────────
 async function verifyEmail() {
   error.value = null
+  loading.value = true
   try {
-    loading.value = true
     await api.post('/auth/verify-email', {
       email: form.value.email,
       code: otpInputs.value.join('')
     })
-    successKey.value = t('auth.verifiedSuccess')
+    successKey.value = 'auth.verifiedSuccess'
     await authStore.login(form.value)
-    const userRaw = localStorage.getItem('cf_user')
-    const user = userRaw ? JSON.parse(userRaw) : null
+    const user = JSON.parse(localStorage.getItem('cf_user') || '{}')
     router.push(user?.isAdmin ? '/admin' : '/dashboard')
   } catch (err) {
     error.value = err.response?.data?.message || t('auth.errorInvalidCode')
+  } finally {
+    loading.value = false
+  }
+}
+
+// ── FORGOT Step 1: Send OTP ───────────────────────────────────────────────────
+async function sendForgotOtp() {
+  if (!forgotEmail.value) { error.value = t('auth.errorFillAll'); return }
+  loading.value = true
+  error.value = null
+  try {
+    await authApi.sendResetOtp({ email: forgotEmail.value })
+    forgotStep.value = 'otp'
+    forgotOtpInputs.value = ['', '', '', '', '', '']
+    forgotResendCooldown.value = 10
+    forgotCooldownTimer = setInterval(() => {
+      forgotResendCooldown.value--
+      if (forgotResendCooldown.value <= 0) clearInterval(forgotCooldownTimer)
+    }, 1000)
+    await nextTick()
+    forgotOtpRefs.value[0]?.focus()
+  } catch (err) {
+    error.value = err.response?.data?.message || err.message || t('auth.errorGeneric')
+  } finally {
+    loading.value = false
+  }
+}
+
+// ── FORGOT Step 2: Verify OTP → move to password reset ────────────────────────
+async function verifyForgotOtp() {
+  const otp = forgotOtpInputs.value.join('')
+  if (otp.length < 6) { error.value = t('auth.errorFillAll'); return }
+  loading.value = true
+  error.value = null
+  try {
+    await authApi.verifyResetOtp({
+      email: forgotEmail.value,
+      otp: otp
+    })
+    forgotStep.value = 'reset'
+    error.value = null
+  } catch (err) {
+    error.value = err.response?.data?.message || err.message || t('auth.errorInvalidCode')
+  } finally {
+    loading.value = false
+  }
+}
+
+// ── FORGOT Step 3: Set new password → redirect to login ───────────────────────
+async function submitReset() {
+  if (!resetForm.value.newPassword || !resetForm.value.confirmPassword) {
+    error.value = t('auth.errorFillAll'); return
+  }
+  if (resetForm.value.newPassword !== resetForm.value.confirmPassword) {
+    error.value = t('auth.errorPasswordMismatch'); return
+  }
+  if (resetForm.value.newPassword.length < 6) {
+    error.value = t('profile.passwordTooShort'); return
+  }
+
+  loading.value = true
+  error.value = null
+  try {
+    await authApi.resetPassword({
+      email: forgotEmail.value,
+      otp: forgotOtpInputs.value.join(''),
+      newPassword: resetForm.value.newPassword,
+    })
+
+    // Clear any leftover tokens from the auto-login in resetPassword
+    localStorage.removeItem('cf_token')
+    localStorage.removeItem('cf_user')
+
+    // Force a full page reload to the login page with success message
+    window.location.href = '/login?reset=success'
+  } catch (err) {
+    error.value = err.response?.data?.message || err.message || t('auth.errorGeneric')
   } finally {
     loading.value = false
   }
@@ -457,11 +658,33 @@ async function verifyEmail() {
   grid-template-columns: 1fr 1fr;
   background: var(--bg);
 }
-.resend-row  { display: flex; align-items: center; justify-content: center; gap: 6px; margin-top: 12px; }
-.resend-text { font-size: 12px; color: var(--sub, #6b7280); }
-.resend-btn  { font-size: 12px; color: #60a5fa; background: none; border: none; cursor: pointer; }
-.resend-btn:disabled { opacity: 0.5; cursor: not-allowed; }
-/* ── Left panel ── */
+
+.resend-row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  margin-top: 12px;
+}
+
+.resend-text {
+  font-size: 12px;
+  color: var(--sub, #6b7280);
+}
+
+.resend-btn {
+  font-size: 12px;
+  color: #60a5fa;
+  background: none;
+  border: none;
+  cursor: pointer;
+}
+
+.resend-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
 .login-left {
   background: var(--surface);
   border-inline-end: 1px solid var(--border);
@@ -785,6 +1008,20 @@ async function verifyEmail() {
 .btn-primary:disabled {
   opacity: 0.5;
   cursor: not-allowed;
+}
+
+.forgot-link {
+  font-size: 12px;
+  color: #60a5fa;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  transition: color 0.15s;
+}
+
+.forgot-link:hover {
+  color: #93c5fd;
 }
 
 .switch-mode {

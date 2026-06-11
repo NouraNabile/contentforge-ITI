@@ -96,7 +96,24 @@
     "feature3": "Brand vault - your voice, always consistent",
     "tryDemo": "Try demo account",
     "backHome": "Back",
-    "errorPasswordMismatch": "Passwords do not match!"
+    "errorPasswordMismatch": "Passwords do not match!",
+    "forgotTitle": "Reset your password",
+    "forgotSubtitle": "Enter your email and we'll send you a reset code.",
+    "sendResetCode": "Send Reset Code",
+    "sending": "Sending…",
+    "backToLogin": "Back to sign in",
+    "didntReceive": "Didn't receive it?",
+    "resendCode": "Resend code",
+    "resendIn": "Resend in",
+    "newPasswordTitle": "Set new password",
+    "newPasswordSubtitle": "Choose a strong password for your account.",
+    "resetPassword": "Reset Password",
+    "resetting": "Resetting…",
+    "confirmPasswordPlaceholder": "Re-enter your password",
+    "copyright": "© 2026 ContentForge",
+    "seconds": "s",
+    "otpResent": "A new verification code has been sent to your email",
+    "passwordResetSuccess": "Password reset successfully! Please log in with your new password."
   },
   "trial": {
     "badge": "Trial Expired",
@@ -790,7 +807,7 @@
       "pricing": "Pricing",
       "contact": "Contact Us",
       "language": "Language",
-    "theme": "Theme"
+      "theme": "Theme"
     },
     "closeMenu": "Close menu",
     "openMenu": "Open menu"
@@ -1200,7 +1217,7 @@
     "deleteSuccess": "Deletion request submitted successfully. You will receive a confirmation email.",
     "deleteFailed": "Failed to submit deletion request",
     "currentPasswordRequired": "Please enter your current password",
-  "currentPasswordIncorrect": "Current password is incorrect"
+    "currentPasswordIncorrect": "Current password is incorrect"
   },
   "admin": {
     "administrator": "Administrator",

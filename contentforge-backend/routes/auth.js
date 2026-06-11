@@ -32,20 +32,27 @@ router.post("/register", async (req, res) => {
       return res.status(400).json({ message: 'This phone has already been used for a trial.' })
 
     const verificationCode = Math.floor(100000 + Math.random() * 900000).toString()
-    const trialDays  = settings.trialDays ?? 14
-    const trialEndsAt = new Date(Date.now() + trialDays * 24 * 60 * 60 * 1000)
-
+    
+    // حساب تاريخ انتهاء الباقة/التجربة بناءً على إعدادات المنصة
+    const trialDays = settings.trialDays ?? 14
+    const calculatedExpiry =new Date(Date.now() + 14 * 24 * 60 * 60 * 1000)
+    
+    // الـ User.create المظبوط بناءً على الـ Schema الجديدة
     const user = await User.create({
-      name, email, password, phone,
+      name, 
+      email, 
+      password, 
+      phone,
       verificationCode,
-      // بياخد الـ otpExpiryMinutes من الـ settings
       verificationCodeExpires: Date.now() + otpExpiryMinutes * 60 * 1000,
       isVerified: false,
-      isTrial: true,
-      trialStartDate: new Date(), // تاريخ البداية
-      trialEndsAt,              // تاريخ النهاية الديناميكي بتاع الأدمن
-      trialDurationDays: trialDays,
-      hasUsedTrial: true,
+      
+      // إعدادات الاشتراك الموحدة الجديدة 💎
+      plan: 'free',                     // بيبدأ مجاني (تجريبي)
+      subscriptionType: 'none',          // ملوش نوع دفع شهري/سنوي حالياً
+      planEndsAt: calculatedExpiry,      // حطينا التاريخ الديناميكي هنا في الحقل الموحد
+      isTrial: true,                     // هو حالياً في فترة تجربة
+      hasUsedTrial: true,                // بنعلم عليه إنه استهلك فرصته عشان blockByPhone
     });
 
     await sendVerificationEmail(email, verificationCode)
@@ -125,53 +132,54 @@ router.get("/me", protect, async (req, res) => {
 // طريق الديمو الجديد
 // طريق الديمو الجديد
 // طريق الديمو الجديد والمؤمن بالكامل
-router.post("/demo", async (req, res) => {
-  try {
-    const settings = await PlatformSettings.findOne();
-    if (settings && !settings.demoEnabled)
-      return res
-        .status(403)
-        .json({ message: "Demo account is currently disabled." });
+// router.post("/demo", async (req, res) => {
+//   try {
+//     const settings = await PlatformSettings.findOne();
+//     if (settings && !settings.demoEnabled)
+//       return res
+//         .status(403)
+//         .json({ message: "Demo account is currently disabled." });
 
-    const demoEmail = "demo@arabycoffee.com";
-    let user = await User.findOne({ email: demoEmail });
+//     const demoEmail = "demo@arabycoffee.com";
+//     let user = await User.findOne({ email: demoEmail });
 
-    if (!user) {
-      const trialEndsAt = new Date();
-      trialEndsAt.setDate(trialEndsAt.getDate() + 14);
-      user = await User.create({
-        name: "Demo User",
-        email: demoEmail,
-        password: "secure_demo_password_123",
-        phone: "00000000000",
-        plan: "free",
-        isVerified: true,
-        isTrial: true,
-        trialEndsAt,
-        hasUsedTrial: true,
-      });
-    }
+//     if (!user) {
+//       const trialEndsAt = new Date();
+//       trialEndsAt.setDate(trialEndsAt.getDate() + 14);
+//       user = await User.create({
+//         name: "Demo User",
+//         email: demoEmail,
+//         password: "secure_demo_password_123",
+//         phone: "00000000000",
+//         plan: "free",
+//         isVerified: true,
+//         isTrial: true,
+//         trialEndsAt,
+//         hasUsedTrial: true,
+//       });
+//     }
 
-    if (Date.now() > new Date(user.trialEndsAt))
-      return res
-        .status(403)
-        .json({ message: "Your 14-day free trial has expired." });
+//     if (Date.now() > new Date(user.trialEndsAt))
+//       return res
+//         .status(403)
+//         .json({ message: "Your 14-day free trial has expired." });
 
-    const token = signToken(user._id);
-    return res.status(200).json({
-      success: true,
-      token,
-      user: {
-        id: user._id,
-        name: user.name,
-        email: user.email,
-        plan: user.plan,
-      },
-    });
-  } catch (err) {
-    res.status(500).json({ message: err.message });
-  }
-});
+//     const token = signToken(user._id);
+//     return res.status(200).json({
+//       success: true,
+//       token,
+//       user: {
+//         id: user._id,
+//         name: user.name,
+//         email: user.email,
+//         plan: user.plan,
+//       },
+//     });
+//   } catch (err) {
+//     res.status(500).json({ message: err.message });
+//   }
+// });
+
 // backend/routes/auth.js
 router.get("/notifications", protect, async (req, res) => {
   const user = await User.findById(req.user._id).select(
@@ -311,6 +319,104 @@ router.post("/resend-otp", async (req, res) => {
     res.status(500).json({ message: err.message });
   }
 });
+
+// POST /api/auth/verify-reset-otp — just verify OTP without clearing it
+router.post('/verify-reset-otp', async (req, res) => {
+  try {
+    const { email, otp } = req.body
+
+    if (!email || !otp) {
+      return res.status(400).json({ message: 'All fields required' })
+    }
+
+    const user = await User.findOne({ email })
+    if (!user) return res.status(404).json({ message: 'User not found' })
+
+    // Verify OTP
+    if (user.verificationCode !== otp || user.verificationCodeExpires < Date.now()) {
+      return res.status(400).json({ message: 'Invalid or expired code' })
+    }
+
+    // Don't clear OTP yet — /reset-password will do that after setting new password
+    res.json({ message: 'OTP verified successfully' })
+  } catch (err) {
+    console.error('VERIFY RESET OTP ERROR:', err)
+    res.status(500).json({ message: err.message })
+  }
+})
+
+router.post('/send-reset-otp', async (req, res) => {
+  try {
+    const { email } = req.body
+    const user = await User.findOne({ email })
+
+    if (!user) return res.status(404).json({ message: 'User not found with this email' })
+
+    // Get OTP expiry from settings
+    const settings = await PlatformSettings.findOne()
+    const otpExpiryMinutes = settings?.otpExpiryMinutes ?? 10
+
+    // Generate new OTP
+    const verificationCode = Math.floor(100000 + Math.random() * 900000).toString()
+    user.verificationCode = verificationCode
+    user.verificationCodeExpires = Date.now() + otpExpiryMinutes * 60 * 1000
+    await user.save()
+
+    await sendVerificationEmail(email, verificationCode)
+
+    res.json({ message: 'Reset code sent successfully' })
+  } catch (err) {
+    console.error('SEND RESET OTP ERROR:', err)
+    res.status(500).json({ message: err.message })
+  }
+})
+
+// POST /api/auth/reset-password — verify OTP + set new password + auto-login
+router.post('/reset-password', async (req, res) => {
+  try {
+    const { email, otp, newPassword } = req.body
+
+    if (!email || !otp || !newPassword) {
+      return res.status(400).json({ message: 'All fields required' })
+    }
+
+    if (newPassword.length < 6) {
+      return res.status(400).json({ message: 'Password must be at least 6 characters' })
+    }
+
+    const user = await User.findOne({ email })
+    if (!user) return res.status(404).json({ message: 'User not found' })
+
+    // Verify OTP
+    if (user.verificationCode !== otp || user.verificationCodeExpires < Date.now()) {
+      return res.status(400).json({ message: 'Invalid or expired code' })
+    }
+
+    // Clear OTP and set new password
+    user.verificationCode = undefined
+    user.verificationCodeExpires = undefined
+    user.password = newPassword
+    await user.save()
+
+    // Auto-login: generate token
+    const token = signToken(user._id)
+
+    res.json({
+      message: 'Password reset successfully',
+      token,
+      user: {
+        id: user._id,
+        name: user.name,
+        email: user.email,
+        plan: user.plan,
+        isAdmin: user.isAdmin,
+      },
+    })
+  } catch (err) {
+    console.error('RESET PASSWORD ERROR:', err)
+    res.status(500).json({ message: err.message })
+  }
+})
 
 // PUT /api/auth/change-password
 router.put('/change-password', protect, async (req, res) => {

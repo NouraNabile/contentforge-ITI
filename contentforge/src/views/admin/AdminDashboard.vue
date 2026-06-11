@@ -63,6 +63,13 @@
               <span class="font-bold text-red-400 text-xs">{{ s.details.blocked }}</span>
             </div>
             <div class="flex justify-between items-center">
+              <span class="text-orange-400 font-medium flex items-center gap-1.5 text-xs">
+                <span class="w-1.5 h-1.5 rounded-full bg-orange-500"></span>
+                {{ t('admin.stats.expired') }}
+              </span>
+              <span class="font-bold text-orange-300 text-xs">{{ s.details.expired }}</span>
+            </div>
+            <div class="flex justify-between items-center">
               <span class="text-slate-400 font-medium flex items-center gap-1.5 text-xs">
                 <span class="w-1.5 h-1.5 rounded-full bg-slate-500"></span>
                 {{ t('admin.stats.deleted') }}
@@ -355,6 +362,7 @@ const statCards = computed(() => [
       warned: stats.value.warnedCount ?? 0,
       isAskToDelete: stats.value.isAskToDeleteCount ?? 0,
       blocked: stats.value.blockedCount ?? 0,
+      expired: stats.value.expiredCount ?? 0,
       deleted: stats.value.deletedCount ?? 0,
       admin: stats.value.adminCount ?? 0
     }
@@ -402,7 +410,7 @@ function obfuscate(email) {
 
 function planLabel(u) {
   if (u.isTrial) {
-    const days = Math.ceil((new Date(u.trialEndsAt) - Date.now()) / 86400000)
+    const days = Math.ceil((new Date(u.planEndsAt) - Date.now()) / 86400000)
     return days > 0 ? `${t('admin.trial')} (${days}${t('admin.daysLeft')})` : t('admin.trialExpired')
   }
   return u.plan || 'free'

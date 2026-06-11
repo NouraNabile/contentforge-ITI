@@ -261,6 +261,25 @@
         </form>
       </div>
 
+      <!-- Danger Zone -->
+      <div class="theme-surface theme-border rounded-2xl p-6 sm:p-8 mb-6 border-rose-500/20">
+        <h3 class="font-display text-lg font-600 text-rose-400 mb-1">{{ t('profile.dangerZone') }}</h3>
+        <p class="text-xs theme-sub mb-6">{{ t('profile.dangerZoneDesc') }}</p>
+        
+        <div class="flex items-center justify-between p-4 rounded-xl border border-rose-500/20 bg-rose-500/5">
+          <div>
+            <p class="text-sm font-medium theme-text">{{ t('profile.deleteAccount') }}</p>
+            <p class="text-xs theme-sub mt-1">{{ t('profile.deleteAccountDesc') }}</p>
+          </div>
+          <button 
+            @click="showDeleteModal = true"
+            class="px-4 py-2 rounded-xl bg-rose-600 text-white text-sm font-medium hover:bg-rose-500 transition-colors shrink-0 ms-4"
+          >
+            {{ t('profile.deleteAccount') }}
+          </button>
+        </div>
+      </div>
+
     </div>
 
     <!-- Delete Brand Confirmation Modal -->
@@ -315,6 +334,81 @@
         </div>
       </Transition>
     </Teleport>
+
+    <!-- Delete Account Modal -->
+    <Teleport to="body">
+      <Transition name="modal-fade">
+        <div 
+          v-if="showDeleteModal" 
+          class="fixed inset-0 z-50 flex items-center justify-center p-4"
+          @click.self="showDeleteModal = false"
+        >
+          <div class="absolute inset-0 bg-black/70 backdrop-blur-sm"></div>
+          <div 
+            class="relative w-full max-w-md rounded-2xl p-6 shadow-xl theme-surface theme-border"
+            style="border: 1px solid var(--border)"
+          >
+            <div class="flex items-start gap-4 mb-6">
+              <div class="flex-shrink-0 w-11 h-11 rounded-xl bg-rose-500/10 flex items-center justify-center border border-rose-500/20">
+                <svg class="w-5 h-5 text-rose-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+                    d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                </svg>
+              </div>
+              <div class="flex-1 min-w-0">
+                <h3 class="font-display text-lg font-600 theme-text">
+                  {{ t('profile.deleteAccountTitle') }}
+                </h3>
+                <p class="text-sm theme-sub leading-relaxed mt-1">
+                  {{ t('profile.deleteAccountWarning') }}
+                </p>
+              </div>
+            </div>
+
+            <div class="space-y-2 mb-6">
+              <label class="text-xs font-medium theme-sub mb-1.5 block">{{ t('profile.deleteReason') }}</label>
+              <textarea 
+                v-model="deleteReason" 
+                rows="4" 
+                :placeholder="t('profile.deleteReasonPlaceholder')"
+                class="w-full theme-input rounded-xl px-4 py-3 text-sm theme-text border resize-none focus:outline-none focus:border-rose-500/40 leading-relaxed"
+                style="border-color: var(--border)" 
+              />
+            </div>
+
+            <p v-if="deleteError"
+              class="text-sm text-rose-400 mb-6 bg-rose-500/10 py-2.5 px-4 rounded-xl border border-rose-500/15">
+              {{ deleteError }}
+            </p>
+
+            <div v-if="deleteSuccess"
+              class="text-sm text-emerald-400 mb-6 bg-emerald-500/10 py-2.5 px-4 rounded-xl border border-emerald-500/15">
+              {{ t('profile.deleteSuccess') }}
+            </div>
+
+            <div class="flex gap-3">
+              <button 
+                @click="closeDeleteModal"
+                class="flex-1 py-3 rounded-xl theme-card theme-border theme-sub text-sm font-semibold hover:theme-text transition-colors"
+              >
+                {{ t('common.cancel') }}
+              </button>
+              <button 
+                @click="submitDeletion" 
+                :disabled="deleteLoading || deleteSuccess"
+                class="flex-1 py-3 rounded-xl bg-rose-600 text-white text-sm font-semibold hover:bg-rose-500 transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
+              >
+                <svg v-if="deleteLoading" class="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
+                  <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" />
+                  <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+                </svg>
+                {{ deleteLoading ? t('profile.deleting') : t('profile.confirmDelete') }}
+              </button>
+            </div>
+          </div>
+        </div>
+      </Transition>
+    </Teleport>
   </AppLayout>
 </template>
 
@@ -324,7 +418,7 @@ import { useI18n } from 'vue-i18n'
 import AppLayout from '../components/AppLayout.vue'
 import { useAuthStore } from '../stores/authStore'
 import api from '../api/client'
-import brandApi from '../api/brandApi' // ← Import your existing brandApi
+import brandApi from '../api/brandApi'
 
 const { t } = useI18n()
 const authStore = useAuthStore()
@@ -350,6 +444,13 @@ const brandsLoading = ref(true)
 const deleteBrandTarget = ref(null)
 const brandDeleting = ref(false)
 
+// Delete Account State
+const showDeleteModal = ref(false)
+const deleteReason = ref('')
+const deleteLoading = ref(false)
+const deleteError = ref(null)
+const deleteSuccess = ref(false)
+
 onMounted(async () => {
   if (authStore.user) {
     profileForm.value.name = authStore.user.name || ''
@@ -357,11 +458,10 @@ onMounted(async () => {
   await fetchBrands()
 })
 
-// Fetch user's brands using your existing brandApi
+// Fetch user's brands
 async function fetchBrands() {
   brandsLoading.value = true
   try {
-    // Your backend returns an array directly from GET /api/brand
     const response = await brandApi.getMyBrands()
     brands.value = Array.isArray(response) ? response : []
   } catch (err) {
@@ -377,7 +477,7 @@ function confirmDeleteBrand(brand) {
   deleteBrandTarget.value = brand
 }
 
-// Delete brand using your existing brandApi
+// Delete brand
 async function deleteBrand() {
   if (!deleteBrandTarget.value) return
   
@@ -439,6 +539,30 @@ async function updatePassword() {
   } finally {
     passwordLoading.value = false
     setTimeout(() => { passwordMsg.value = null }, 4000)
+  }
+}
+
+// Delete Account functions
+function closeDeleteModal() {
+  showDeleteModal.value = false
+  deleteReason.value = ''
+  deleteError.value = null
+  deleteSuccess.value = false
+}
+
+async function submitDeletion() {
+  deleteLoading.value = true
+  deleteError.value = null
+  try {
+    await api.post('/auth/deletion-request', { reason: deleteReason.value })
+    deleteSuccess.value = true
+    setTimeout(() => {
+      closeDeleteModal()
+    }, 2000)
+  } catch (err) {
+    deleteError.value = err.response?.data?.message || err.message || t('profile.deleteFailed')
+  } finally {
+    deleteLoading.value = false
   }
 }
 </script>

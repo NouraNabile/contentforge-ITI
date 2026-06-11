@@ -1,10 +1,10 @@
 // backend/routes/admin.js
 const express   = require('express')
 const router    = express.Router()
-const adminOnly = require('../middleware/adminAuth')
-const { User, Post, Brand,Trend } = require('../models')
-const { sendPolicyWarningEmail } = require('../services/emailService'); // اتأكدي من المسار الصح للملف عندكِ
-const { PlatformSettings } = require('../models')
+const adminOnly = require('../middleware/adminAuth') // تأكدي من مسارك الصحيح
+const { User, Post, Brand, Trend, PlatformSettings } = require('../models')
+const { sendPolicyWarningEmail, sendTrialUpdateEmail } = require('../services/emailService')
+
 // ── GET /api/admin/stats ──────────────────────────────────────────────────────
 router.get('/stats', adminOnly, async (req, res) => {
   try {
@@ -13,25 +13,33 @@ router.get('/stats', adminOnly, async (req, res) => {
     const lastWeek = new Date(now - 7  * 24 * 60 * 60 * 1000)
     const prevWeek = new Date(now - 14 * 24 * 60 * 60 * 1000)
 
-    const totalUsers      = await User.countDocuments()
-    const blockedCount    = await User.countDocuments({ isBlocked: true })
-    const warnedCount     = await User.countDocuments({ isDeleted: { $ne: true }, isBlocked: { $ne: true }, blockStatus: 'warning' })
-    const isAskToDeleteCount = await User.countDocuments({ isAskToDelete: true, isDeleted: { $ne: true } })
-    const deletedCount    = await User.countDocuments({ isDeleted: true })
-    const adminCount      = await User.countDocuments({ isAdmin: true })
-    const activeCount     = await User.countDocuments({
+    // base filter: مستخدمين حقيقيين (مش ادمن، مش soft deleted)
+    const realUsers = { isAdmin: { $ne: true }, 'deletionRequest.isDeleted': { $ne: true } }
+
+    const totalUsers         = await User.countDocuments({ 'deletionRequest.isDeleted': { $ne: true } }) // كل الناس ماعدا الـ soft deleted
+    const blockedCount       = await User.countDocuments({ ...realUsers, isBlocked: true })
+    const warnedCount        = await User.countDocuments({ ...realUsers, isBlocked: { $ne: true }, 'moderation.blockStatus': 'warning' })
+    const isAskToDeleteCount = await User.countDocuments({ ...realUsers, 'deletionRequest.isAsked': true })
+    const deletedCount       = await User.countDocuments({ isAdmin: { $ne: true }, 'deletionRequest.isDeleted': true })
+    const adminCount         = await User.countDocuments({ isAdmin: true })
+
+    const activeCount        = await User.countDocuments({
+      ...realUsers,
       isVerified: true,
       isBlocked: false,
-      isDeleted: { $ne: true },
-      isAdmin: { $ne: true },
-      isAskToDelete: { $ne: true },
-      blockStatus: { $ne: 'warning' }
+      planEndsAt: { $gt: now },          // لازم الاشتراك أو التجربة لسه شغالة
+      'deletionRequest.isAsked': { $ne: true },
+      'moderation.blockStatus': { $ne: 'warning' }
     })
 
-    const activeTrialUsers     = await User.countDocuments({ isTrial: true, trialEndsAt: { $gt: now }, isBlocked: false, isDeleted: { $ne: true } })
-    const pendingVerifications = await User.countDocuments({ isVerified: false, isDeleted: { $ne: true } })
-    const newUsersThisWeek     = await User.countDocuments({ createdAt: { $gte: lastWeek }, isDeleted: { $ne: true } })
-    const newUsersPrevWeek     = await User.countDocuments({ createdAt: { $gte: prevWeek, $lt: lastWeek }, isDeleted: { $ne: true } })
+    // الـ Expired: plan انتهى ومش admin
+    const expiredCount         = await User.countDocuments({ ...realUsers, planEndsAt: { $lte: now } })
+
+    // الـ Trial النشط: free plan + planEndsAt لسه جاي (بغض النظر عن isTrial flag)
+    const activeTrialUsers     = await User.countDocuments({ ...realUsers, plan: 'free', planEndsAt: { $gt: now } })
+    const pendingVerifications = await User.countDocuments({ ...realUsers, isVerified: false })
+    const newUsersThisWeek     = await User.countDocuments({ ...realUsers, createdAt: { $gte: lastWeek } })
+    const newUsersPrevWeek     = await User.countDocuments({ ...realUsers, createdAt: { $gte: prevWeek, $lt: lastWeek } })
 
     const registrationGrowth = newUsersPrevWeek > 0
       ? Math.round(((newUsersThisWeek - newUsersPrevWeek) / newUsersPrevWeek) * 100)
@@ -39,7 +47,7 @@ router.get('/stats', adminOnly, async (req, res) => {
 
     res.json({
       totalUsers,
-      newUsers24h: await User.countDocuments({ createdAt: { $gte: last24h }, isDeleted: { $ne: true } }),
+      newUsers24h: await User.countDocuments({ ...realUsers, createdAt: { $gte: last24h } }),
       pendingVerifications,
       activeTrialUsers,
       newPostsLast24h: await Post?.countDocuments({ createdAt: { $gte: last24h } }).catch(() => 0),
@@ -51,6 +59,7 @@ router.get('/stats', adminOnly, async (req, res) => {
       blockedCount,
       deletedCount,
       adminCount,
+      expiredCount,
       serverUptime: Math.floor(process.uptime()),
     })
 
@@ -59,11 +68,10 @@ router.get('/stats', adminOnly, async (req, res) => {
     res.status(500).json({ message: 'Server error', error: err.message })
   }
 })
-// ── GET routes/admin.js ──────────────────────────────────────────────────────
-// جيب الـ settings الحالية
+
+// ── GET /api/admin/settings ───────────────────────────────────────────────────
 router.get('/settings', adminOnly, async (req, res) => {
   try {
-    // لو مفيش settings اعمل واحدة بالـ defaults
     let settings = await PlatformSettings.findOne()
     if (!settings) settings = await PlatformSettings.create({})
     res.json({ settings })
@@ -72,7 +80,7 @@ router.get('/settings', adminOnly, async (req, res) => {
   }
 })
 
-// احفظ الـ settings
+// ── PUT /api/admin/settings ───────────────────────────────────────────────────
 router.put('/settings', adminOnly, async (req, res) => {
   try {
     const { trialDays, blockByPhone, otpExpiryMinutes, sendExpiryWarning } = req.body
@@ -81,26 +89,26 @@ router.put('/settings', adminOnly, async (req, res) => {
     if (!settings) settings = await PlatformSettings.create({})
 
     const trialDaysChanged = settings.trialDays !== trialDays
-    // const sendExpiryWarningChanged = settings.sendExpiryWarning !== sendExpiryWarning
 
     settings.trialDays         = trialDays
     settings.blockByPhone      = blockByPhone
-    settings.otpExpiryMinutes  = otpExpiryMinutes  // ← minutes بس، من غير حسابات
+    settings.otpExpiryMinutes  = otpExpiryMinutes  
     settings.sendExpiryWarning = sendExpiryWarning
     await settings.save()
 
     let updatedUsers = 0
 
-    // ← بس لو trialDays اتغير فعلاً
+    // التعديل السحري: الاعتماد على createdAt والتحديث في planEndsAt الموحد
     if (trialDaysChanged) {
-      const trialUsers = await User.find({ isTrial: true })
+      const trialUsers = await User.find({ isTrial: true, plan: 'free' })
       const updates = trialUsers.map(async (user) => {
-        const start  = new Date(user.trialStartDate)
+        const start  = new Date(user.createdAt) 
         const newEnd = new Date(start)
         newEnd.setDate(newEnd.getDate() + trialDays)
-        user.trialEndsAt       = newEnd
-        user.trialDurationDays = trialDays
+        
+        user.planEndsAt = newEnd
         await user.save()
+        
         sendTrialUpdateEmail(user.email, user.name, trialDays, newEnd)
           .catch(err => console.error(`Email error:`, err.message))
       })
@@ -108,20 +116,19 @@ router.put('/settings', adminOnly, async (req, res) => {
       updatedUsers = trialUsers.length
     }
     
-
     res.json({ message: 'Settings saved', updatedUsers })
   } catch (err) {
     res.status(500).json({ message: err.message })
   }
 })
+
 // ── GET /api/admin/users ──────────────────────────────────────────────────────
 router.get('/users', adminOnly, async (req, res) => {
   try {
     const { page = 1, limit = 20, search = '', plan } = req.query
 
-    // 🌟 التعديل السحري: بنجيب فقط الناس اللي الـ isDeleted بتاعهم مش بـ true
     const query = {
-      isDeleted: { $ne: true }
+      'deletionRequest.isDeleted': { $ne: true }
     }
 
     if (search) {
@@ -147,40 +154,39 @@ router.get('/users', adminOnly, async (req, res) => {
   }
 })
 
+// ── PUT /api/admin/users/:id/block ───────────────────────────────────────────
 router.put('/users/:id/block', adminOnly, async (req, res) => {
   try {
     const user = await User.findById(req.params.id);
     if (!user) return res.status(404).json({ message: 'User not found' });
     if (user.isAdmin) return res.status(403).json({ message: 'Cannot block an admin' });
 
-    // === فك الحظر أو فك التحذير ===
-    if (user.isBlocked || user.blockStatus === 'warning') {
+    // فك الحظر باستخدام كائن moderation الجديد
+    if (user.isBlocked || user.moderation.blockStatus === 'warning') {
       user.isBlocked = false;
-      user.blockStatus = 'none';
-      user.restrictionReason = null;
-      user.gracePeriodExpiresAt = null;
-      user.actionTriggeredBy = null;
+      user.moderation.blockStatus = 'none';
+      user.moderation.restrictionReason = null;
+      user.moderation.gracePeriodExpiresAt = null;
+      user.moderation.actionTriggeredBy = null;
       await user.save();
       return res.json({ message: 'User is now active', isBlocked: false, blockStatus: 'none' });
     }
 
-    // === عمل تحذير ===
+    // عمل تحذير
     const { reason } = req.body;
     if (!reason) return res.status(400).json({ message: 'Please provide a reason' });
 
     const gracePeriod = new Date();
     gracePeriod.setHours(gracePeriod.getHours() + 24);
 
-    user.blockStatus = 'warning';
-    user.restrictionReason = reason;
-    user.gracePeriodExpiresAt = gracePeriod;
-    user.actionTriggeredBy = req.user?._id || null;
+    user.moderation.blockStatus = 'warning';
+    user.moderation.restrictionReason = reason;
+    user.moderation.gracePeriodExpiresAt = gracePeriod;
+    user.moderation.actionTriggeredBy = req.user?._id || null;
     await user.save();
 
-    // ✅ ارد فوراً — الإيميل في الـ background
     res.json({ message: 'Warning issued.', isBlocked: false, blockStatus: 'warning', gracePeriodExpiresAt: gracePeriod });
 
-    // ✅ بعد الـ response — من غير await
     sendPolicyWarningEmail(user.email, user.name, reason, gracePeriod)
       .then(() => console.log(`[Email] تم الإرسال إلى: ${user.email}`))
       .catch(err => console.error('خطأ في الإيميل:', err.message));
@@ -194,12 +200,12 @@ router.put('/users/:id/block', adminOnly, async (req, res) => {
 // ── PUT /api/admin/users/:id ──────────────────────────────────────────────────
 router.put('/users/:id', adminOnly, async (req, res) => {
   try {
-    // 1. أضفنا isAdmin هنا عشان السيرفر يتعرف عليها وميجيبش Not Defined
-    const { plan, isTrial, trialEndsAt, isVerified, isAdmin } = req.body
+    // التعديل: استبدال الحقول القديمة بالـ الموحدة الجديدة كلياً
+    const { plan, isTrial, planEndsAt, isVerified, isAdmin, subscriptionType } = req.body
     
     const user = await User.findByIdAndUpdate(
       req.params.id,
-      { plan, isTrial, trialEndsAt, isVerified, isAdmin }, // كدا بقت متباصية صح وموجودة فوق
+      { plan, isTrial, planEndsAt, isVerified, isAdmin, subscriptionType }, 
       { new: true, select: '-password' }
     )
     
@@ -228,20 +234,33 @@ router.delete('/users/:id', adminOnly, async (req, res) => {
 router.get('/plans', adminOnly, async (req, res) => {
   try {
     const now = new Date()
-    const [free, trial, pro, enterprise, expiredTrials] = await Promise.all([
-      User.countDocuments({ plan: 'free',       isTrial: { $ne: true } }),
-      User.countDocuments({ isTrial: true,       trialEndsAt: { $gt: now } }),
-      User.countDocuments({ plan: 'pro' }),
-      User.countDocuments({ plan: 'enterprise' }),
-      // User.countDocuments({ isTrial: true,       trialEndsAt: { $lt: now } }),
+
+    const [freeActive, proActive, enterpriseActive, expiredUsers] = await Promise.all([
+      User.countDocuments({ isAdmin: { $ne: true }, plan: 'free', planEndsAt: { $gt: now }, 'deletionRequest.isDeleted': { $ne: true } }),
+      User.countDocuments({ isAdmin: { $ne: true }, plan: 'pro', planEndsAt: { $gt: now }, 'deletionRequest.isDeleted': { $ne: true } }),
+      User.countDocuments({ isAdmin: { $ne: true }, plan: 'enterprise', planEndsAt: { $gt: now }, 'deletionRequest.isDeleted': { $ne: true } }),
+      User.countDocuments({ isAdmin: { $ne: true }, planEndsAt: { $lt: now }, 'deletionRequest.isDeleted': { $ne: true } })
     ])
 
-    const trialUsers = await User.find({ isTrial: true })
-      .select('name email trialEndsAt plan isBlocked createdAt isDeleted')
-      .sort({ trialEndsAt: 1 })
-      .limit(50)
+    // كل الـ free users (active + expired) عشان الـ frontend يفلتر
+    const trialUsersList = await User.find({ 
+        isAdmin: { $ne: true },
+        'deletionRequest.isDeleted': { $ne: true }
+      })
+      .select('name email plan planEndsAt isTrial isBlocked createdAt')
+      .sort({ planEndsAt: -1 })
+      .limit(100)
 
-    res.json({ counts: { free, trial, pro, enterprise, expiredTrials }, trialUsers })
+    res.json({ 
+      counts: { 
+        free: freeActive, 
+        pro: proActive, 
+        enterprise: enterpriseActive, 
+        expired: expiredUsers 
+      }, 
+      trialUsersList
+    })
+
   } catch (err) {
     res.status(500).json({ message: 'Server error', error: err.message })
   }
@@ -250,16 +269,9 @@ router.get('/plans', adminOnly, async (req, res) => {
 // ── GET /api/admin/trends ─────────────────────────────────────────────────────
 router.get('/trends', adminOnly, async (req, res) => {
   try {
-    // Pull from your existing trends collection
-    
-    // The Trend model uses `tag`, `change`, `velocity`, `region`, `source`.
-    // Sort by `velocity` (most relevant) and return latest 20.
     const trends = await Trend.find().sort({ velocity: -1 }).limit(20)
-    console.log('✅ التريندز اللي جت من الداتا بيز:', trends)
     return res.json({ trends })
   } catch (err) {
-    // Fallback mock if Trend model doesn't exist yet
-    console.log("❌ الإيرور الحقيقي هو:", err);
     return res.json({
       trends: [
         { tag: '#رمضان_2026', velocity: 95, change: 'up', region: 'EG', source: 'fallback' },
@@ -270,52 +282,44 @@ router.get('/trends', adminOnly, async (req, res) => {
     })
   }
 })
-// ── PUT /api/admin/users/:id/approve-deletion ───────────────────────────────
-// 🌟 ضيفي السطر ده فوق خالص في أول الملف مع الـ Requires
-const { sendTrialUpdateEmail } = require('../services/emailService')
 
-// الـ Route المعدل بالملي عشان يقلب true بجد في الـ DB
+// ── PUT /api/admin/users/:id/approve-deletion ───────────────────────────────
 router.put('/users/:id/approve-deletion', adminOnly, async (req, res) => {
   try {
     const user = await User.findByIdAndUpdate(
       req.params.id,
       { 
-        isAskToDelete: false,  // خلاص شيلناه من قائمة الطلبات
-        isDeleted: true        // 🌟 التعديل السحري: كدا اتمسح كدا وكدا بجد في الـ DB ولما تعملي ريفريش مش هيرجع!
+        'deletionRequest.isAsked': false,  
+        'deletionRequest.isDeleted': true        
       },
       { new: true }
     )
     
     if (!user) return res.status(404).json({ message: 'User not found' })
-    
     res.json({ message: 'Approved & Soft Deleted Successfully', user })
   } catch (err) {
     res.status(500).json({ message: err.message })
   }
 })
-// PUT /api/admin/settings/trial-days
+
+// ── PUT /api/admin/settings/trial-days ───────────────────────────────────────
 router.put('/settings/trial-days', adminOnly, async (req, res) => {
   try {
     const { trialDays } = req.body
 
-    // تأكد إن الرقم صح
     if (!trialDays || trialDays < 1 || trialDays > 90)
       return res.status(400).json({ message: 'trialDays must be between 1 and 90' })
 
-    // جيب كل الـ users اللي لسه في التجربة
-    const trialUsers = await User.find({ isTrial: true })
+    const trialUsers = await User.find({ isTrial: true, plan: 'free' })
 
-    // لكل user احسب trialEndsAt جديد بناءً على trialStartDate + العدد الجديد
     const updates = trialUsers.map(async (user) => {
-      const start = new Date(user.trialStartDate)
+      const start = new Date(user.createdAt) // التعديل للاعتماد على createdAt
       const newEnd = new Date(start)
       newEnd.setDate(newEnd.getDate() + trialDays)
 
-      user.trialEndsAt = newEnd
-      user.trialDurationDays = trialDays
+      user.planEndsAt = newEnd
       await user.save()
 
-      // بعت إيميل في الـ background من غير await
       sendTrialUpdateEmail(user.email, user.name, trialDays, newEnd)
         .catch(err => console.error(`Email error for ${user.email}:`, err.message))
     })

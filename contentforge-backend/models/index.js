@@ -20,90 +20,85 @@ const contactMessageSchema = new mongoose.Schema({
 
 
 // ── User ──────────────────────────────────────────────────────────────────────
-const userSchema = new mongoose.Schema({
-  name:       { type: String, required: true, trim: true },
-  email:      { type: String, required: true, unique: true, lowercase: true },
-  password:   { type: String, required: true, minlength: 6 },
- // الخانات الجديدة لفترة التجربة
-  plan: { type: String, enum: ['free','pro','enterprise'], default: 'free' },
-  isVerified: { type: Boolean, default: false },// الميل حقيقي
-  verificationCode: String,
-  verificationCodeExpires: Date,
 
-  // التعديل والتحسين هنا:
-  phone: {
-    type: String,
-    required: [true, 'Phone number is required'], // رسالة واضحة لو متبعتش
-    unique: true // يمنع تكرار الرقم نهائياً في الداتا بيز
-  },
-  isTrial: { 
-    type: Boolean, 
-    default: true // بنخليها true تلقائيًا لأن أي مستخدم جديد هيبدأ كـ Trial
-  }, 
-  trialStartDate: { 
-    type: Date, 
-    default: Date.now // الداتا بيز هتحط تاريخ النهاردة تلقائياً أول ما الحساب يتكريت
-  },            
-  trialDurationDays: { 
-    type: Number, 
-    default: 14 
-  }, 
-  trialEndsAt: {
-    type: Date,
-    required: true // بنحسبه في الـ controller وبنبعته
-  },
-  hasUsedTrial: {
-    type: Boolean,
-    default: false
-  },
-  stripeCustomerId: { type: String },         // Stripe customer ID
+const userSchema = new mongoose.Schema({
+  // 1. البيانات الأساسية للمستخدم
+  name:     { type: String, required: true, trim: true },
+  email:    { type: String, required: true, unique: true, lowercase: true },
+  password: { type: String, required: true, minlength: 6 },
+  phone:    { type: String, required: [true, 'Phone number is required'], unique: true },
+  
+  // 2. صلاحيات الحساب وحالته العامة
   isAdmin:   { type: Boolean, default: false },
   isBlocked: { type: Boolean, default: false },
   lastLoginAt: { type: Date },
-  // ==================== الحقول الجديدة لفترة السماح ====================
-  blockStatus: { 
-    type: String, 
-    enum: ['none', 'warning', 'blocked'], 
-    default: 'none' 
+
+  // 3. نظام التحقق وتفعيل الإيميل (OTP)
+  isVerified:              { type: Boolean, default: false },
+  verificationCode:        String,
+  verificationCodeExpires: Date,
+
+  // 4. نظام الاشتراكات والباقات الموحد
+  plan:             { type: String, enum: ['free', 'pro', 'enterprise'], default: 'free' },
+  subscriptionType: { type: String, enum: ['monthly', 'yearly', 'none'], default: 'none' },
+  planEndsAt:       { type: Date, required: true }, // التاريخ الموحد لانتهاء الصلاحية (Trial أو اشتراك مدفوع)//trialEndsAt
+  stripeCustomerId: { type: String },
+  
+  // حقول تتبع الـ Trial لمنع تكرار الاستخدام المجاني
+  isTrial:          { type: Boolean, default: true }, 
+  hasUsedTrial:     { type: Boolean, default: false },
+
+  // 5. نظام الرقابة وفترة السماح (Moderation & Grace Period)
+  moderation: {
+    blockStatus:          { type: String, enum: ['none', 'warning', 'blocked'], default: 'none' },
+    restrictionReason:    { type: String, default: null },
+    gracePeriodExpiresAt: { type: Date, default: null },
+    actionTriggeredBy:    { type: mongoose.Schema.Types.ObjectId, ref: 'User', default: null } // الآدمن المسؤول
   },
-  restrictionReason: { 
-    type: String, 
-    default: null 
-  }, // سبب التحذير عشان يتبعت في الميل ويظهر للأدمن
-  gracePeriodExpiresAt: { 
-    type: Date, 
-    default: null 
-  }, // ميعاد القفل النهائي (الوقت الحالي + 24 ساعة)
-  actionTriggeredBy: { 
-    type: mongoose.Schema.Types.ObjectId, 
-    ref: 'User', 
-    default: null 
-  },// الـ ID بتاع الآدمن اللي خاد الأكشن (عشان الـ Logs)
-  isAskToDelete:     { type: Boolean, default: false },
-  deletionReason:    { type: String,  default: null },
-  isDeleted:         { type: Boolean, default: false }
-}, { timestamps: true })
-//ttd index on createdAt to auto-delete unverified users after 10 minutes
+
+  // 6. طلبات حذف الحساب
+  deletionRequest: {
+    isAsked:   { type: Boolean, default: false },
+    reason:    { type: String, default: null },
+    isDeleted: { type: Boolean, default: false }
+  }
+}, { timestamps: true }); // لإنشاء createdAt و updatedAt تلقائياً
+
+// ==========================================
+// 🛠️ الـ Indexes وقوانين الـ Database
+// ==========================================
+
+// حذف الحسابات غير المفعلة تلقائياً بعد 10 دقائق (600 ثانية) من وقت إنشائها
 userSchema.index(
-  { createdAt: 1 }, 
+  { createdAt: 1 }, //trialStartDate
   { 
     expireAfterSeconds: 600, 
     partialFilterExpression: { isVerified: false } 
   }
-)
+);
 
+// ==========================================
+//  تشفير وحماية الباسورد (Security Middleware)
+// ==========================================
+
+// 1. تشفير الباسورد تلقائياً قبل الحفظ في الـ DB (في حالة التسجيل أو التغيير فقط)
 userSchema.pre('save', async function(next) {
-  if (!this.isModified('password')) return next()
-  this.password = await bcrypt.hash(this.password, 10)
-  next()
-})
+  if (!this.isModified('password')) return next();
+  this.password = await bcrypt.hash(this.password, 10);
+  next();
+});
 
-userSchema.methods.matchPassword = async function(entered) {
-  return await bcrypt.compare(entered, this.password)
-}
+// 2. دالة مخصصة للمقارنة والتحقق من صحة الباسورد عند تسجيل الدخول (Login)
+userSchema.methods.matchPassword = async function(enteredPassword) {
+  return await bcrypt.compare(enteredPassword, this.password);
+};
 
-const User = mongoose.model('User', userSchema)
-module.exports = User
+// ==========================================
+// تصدير الموديل (Export)
+// ==========================================
+const User = mongoose.model('User', userSchema);
+module.exports = User;
+
 
 // models/Settings.js─────────────────────────────────────────────────────────────────────
 const platformSettingsSchema = new mongoose.Schema({

@@ -96,7 +96,24 @@
     "feature3": "Brand vault - your voice, always consistent",
     "tryDemo": "Try demo account",
     "backHome": "Back",
-    "errorPasswordMismatch": "Passwords do not match!"
+    "errorPasswordMismatch": "Passwords do not match!",
+    "forgotTitle": "Reset your password",
+    "forgotSubtitle": "Enter your email and we'll send you a reset code.",
+    "sendResetCode": "Send Reset Code",
+    "sending": "Sending…",
+    "backToLogin": "Back to sign in",
+    "didntReceive": "Didn't receive it?",
+    "resendCode": "Resend code",
+    "resendIn": "Resend in",
+    "newPasswordTitle": "Set new password",
+    "newPasswordSubtitle": "Choose a strong password for your account.",
+    "resetPassword": "Reset Password",
+    "resetting": "Resetting…",
+    "confirmPasswordPlaceholder": "Re-enter your password",
+    "copyright": "© 2026 ContentForge",
+    "seconds": "s",
+    "otpResent": "A new verification code has been sent to your email",
+    "passwordResetSuccess": "Password reset successfully! Please log in with your new password."
   },
   "trial": {
     "badge": "Trial Expired",
@@ -108,6 +125,7 @@
     "choosePlan": "Choose Your Plan",
     "mostPopular": "Most Popular",
     "perMonth": "/ month",
+    "perYear": "/ year",
     "annualNote": "billed annually",
     "upgradeNow": "Upgrade Now",
     "contactSales": "Contact Sales",
@@ -736,48 +754,38 @@
     "annual": "Annual",
     "save20": "Save 20%",
     "mostPopular": "✦ Most Popular",
-    "perMonth": "/mo",
+    "perMonth": "/month",
+    "perYear": "/year",
     "wasPrice": "was ${price}",
     "bottomNote": "All plans include Arabic dialect support, cultural trend injection, and a free trial. No credit card required to start.",
     "plans": {
-      "starter": {
-        "name": "Starter",
-        "tagline": "For freelancers & solo creators",
-        "cta": "Start Free Trial",
-        "f1": "1 Brand Profile",
-        "f2": "2 calendars/month",
-        "f3": "Egyptian Arabic dialect",
-        "f4": "Basic brand voice upload",
-        "f5": "Instagram & Facebook publish",
-        "f6": "A/B Critic Agent",
-        "f7": "AI Image Generation",
-        "f8": "Multi-dialect support"
+      "free": {
+        "name": "Free",
+        "tagline": "Explore the essential capabilities of our platform",
+        "cta": "Get Started Free",
+        "f1": "AI image generation for up to 3 posts",
+        "f2": "Standard feature set (Top Posts excluded)",
+        "f3": "Core Arabic dialects support",
+        "f4": "Instagram & Facebook publishing only"
       },
-      "growth": {
-        "name": "Growth",
-        "tagline": "For SME marketing teams",
-        "cta": "Start Free Trial",
-        "f1": "3 Brand Profiles",
-        "f2": "Unlimited calendars",
-        "f3": "All 3 Arabic dialects",
-        "f4": "Full RAG brand voice memory",
-        "f5": "All platforms + LinkedIn",
-        "f6": "A/B Critic Agent",
-        "f7": "AI Image Generation (50/mo)",
-        "f8": "Priority support"
+      "pro": {
+        "name": "Pro",
+        "tagline": "Perfect for growing creators and marketing teams",
+        "cta": "Start Premium Trial",
+        "f1": "Generate 1 tailored image per post",
+        "f2": "Advanced Top Posts performance analytics",
+        "f3": "Expanded multi-dialect Arabic support",
+        "f4": "Additional publishing platforms coming soon"
       },
-      "agency": {
-        "name": "Agency",
-        "tagline": "For regional marketing agencies",
+      "enterprise": {
+        "name": "Enterprise",
+        "tagline": "Maximum production value and custom toolsets for scale",
         "cta": "Contact Sales",
-        "f1": "Unlimited Brand Profiles",
-        "f2": "Unlimited calendars",
-        "f3": "All dialects + custom voices",
-        "f4": "White-label dashboard",
-        "f5": "12-platform publishing",
-        "f6": "A/B Critic Agent",
-        "f7": "Unlimited AI Image Generation",
-        "f8": "Dedicated account manager"
+        "f1": "Generate multiple AI images per post",
+        "f2": "Advanced Top Posts performance analytics",
+        "f3": "Comprehensive Arabic dialect coverage",
+        "f4": "Additional publishing platforms coming soon",
+        "f5": "Automated AI Reels generation per post"
       }
     }
   },
@@ -790,7 +798,7 @@
       "pricing": "Pricing",
       "contact": "Contact Us",
       "language": "Language",
-    "theme": "Theme"
+      "theme": "Theme"
     },
     "closeMenu": "Close menu",
     "openMenu": "Open menu"
@@ -1200,9 +1208,10 @@
     "deleteSuccess": "Deletion request submitted successfully. You will receive a confirmation email.",
     "deleteFailed": "Failed to submit deletion request",
     "currentPasswordRequired": "Please enter your current password",
-  "currentPasswordIncorrect": "Current password is incorrect"
+    "currentPasswordIncorrect": "Current password is incorrect"
   },
   "admin": {
+    "expired": "Expired",
     "administrator": "Administrator",
     "logout": "Logout",
     "switchLight": "Switch to Light Mode",
@@ -1371,7 +1380,11 @@
       "issueWarning": "Issue Policy Violation Warning",
       "warningDesc": "Please provide a reason. The user will receive an email and a 24-hour grace period before final block.",
       "warningPlaceholder": "e.g., Using abusive language in content generation...",
-      "confirmWarning": "Confirm & Send Alert"
+      "confirmWarning": "Confirm & Send Alert",
+      "warningIssuedSuccess": "Warning issued and saved successfully",
+      "warningSyncFailed": "Failed to sync with database",
+      "timeExpired": "Expired",
+      "timeRemaining": "{hours}h {mins}m"
     }
   }
 }

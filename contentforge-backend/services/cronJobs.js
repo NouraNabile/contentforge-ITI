@@ -1,6 +1,5 @@
-
 const { User, PlatformSettings } = require('../models');
-// هنا بنستدعي الدالة اللي هتبعت الإيميل (هنعملها في الخطوة 2)
+// هنا بنستدعي الدالة اللي هتبعت الإيميل
 const { sendTrialExpiryWarningEmail } = require('./emailService'); 
 
 async function checkAndSendExpiryWarnings() {
@@ -8,11 +7,11 @@ async function checkAndSendExpiryWarnings() {
     // 1. نشيك الأول: هل الأدمن مفعّل الزرار من الشاشة؟
     const settings = await PlatformSettings.findOne();
     if (!settings || !settings.sendExpiryWarning) {
-      console.log('⛔ ميزة إرسال تحذيرات انتهاء فترة التجربة معطلة من لوحة التحكم.');
-      return; // لو مقفول (false)، السكريبت يقف هنا وما يعملش حاجة
+      console.log('⛔ ميزة إرسال تحذيرات انتهاء الاشتراكات معطلة من لوحة التحكم.');
+      return; 
     }
 
-    // 2. لو مفتوح (true)، نحسب تاريخ "بعد 3 أيام من دلوقتي" بالظبط
+    // 2. نحسب تاريخ "بعد 3 أيام من دلوقتي" بالظبط
     const now = new Date();
     const threeDaysFromNowStart = new Date(now.getTime() + 3 * 24 * 60 * 60 * 1000);
     threeDaysFromNowStart.setHours(0, 0, 0, 0); // أول اليوم بعد 3 أيام
@@ -20,55 +19,33 @@ async function checkAndSendExpiryWarnings() {
     const threeDaysFromNowEnd = new Date(now.getTime() + 3 * 24 * 60 * 60 * 1000);
     threeDaysFromNowEnd.setHours(23, 59, 59, 999); // آخر اليوم بعد 3 أيام
 
-    // 3. ندور في الـ DB على المستخدمين اللي فترتهم التجريبية تخلص في اليوم ده بالظبط
+    // 3. التعديل السحري: ندور في الـ DB بموجب حقل planEndsAt الجديد
     const usersToWarn = await User.find({
-      isTrial: true,
+      plan: 'free',                     // بنجيب باقات الفري اللي في التجربة حالياً
       isBlocked: { $ne: true },
-      isDeleted: { $ne: true },
-      trialEndsAt: { $gte: threeDaysFromNowStart, $lte: threeDaysFromNowEnd }
+      'deletionRequest.isDeleted': { $ne: true }, // متوافق مع كائن الـ Soft Delete الجديد
+      planEndsAt: { $gte: threeDaysFromNowStart, $lte: threeDaysFromNowEnd } // 🌟 التعديل هنا
     });
 
-    console.log(`📢 جاري إرسال إيميلات تنبيهية لـ ${usersToWarn.length} مستخدم...`);
+    if (usersToWarn.length === 0) {
+      console.log('[Cron Job] فحص التحذيرات: لا يوجد مستخدمين تنتهي باقاتهم بعد 3 أيام.');
+      return;
+    }
+
+    console.log(`📢 [Cron Job] جاري إرسال إيميلات تنبيهية لـ ${usersToWarn.length} مستخدم...`);
 
     // 4. نلف عليهم ونبعت لكل واحد الإيميل التنبيهي
     for (const user of usersToWarn) {
-      await sendTrialExpiryWarningEmail(user.email, user.name, user.trialEndsAt)
+      // باصينا الحقل الجديد planEndsAt للدالة عشان يتبعت التاريخ صح جوه الإيميل
+      await sendTrialExpiryWarningEmail(user.email, user.name, user.planEndsAt)
         .catch(err => console.error(`خطأ أثناء الإرسال لـ ${user.email}:`, err.message));
     }
 
+    console.log(`[Cron Job] تم إنهاء إرسال التحذيرات بنجاح.`);
+
   } catch (error) {
-    console.error('خطأ في سكريبت فحص فترات التجربة:', error.message);
+    console.error('خطأ في سكريبت فحص فترات التجربة والاشتراكات:', error.message);
   }
 }
 
 module.exports = { checkAndSendExpiryWarnings };
-
-// cronJobs.js
-// services/cronJobs.js
-// const User = require('../models/User');
-// const { sendTrialExpiryWarningEmail } = require('./emailService');
-
-// async function checkAndSendExpiryWarnings() {
-//   try {
-//     const threeDaysFromNow = new Date();
-//     threeDaysFromNow.setDate(threeDaysFromNow.getDate() + 3);
-//     const start = new Date(threeDaysFromNow.setHours(0, 0, 0, 0));
-//     const end   = new Date(threeDaysFromNow.setHours(23, 59, 59, 999));
-
-//     const users = await User.find({
-//       isTrial: true,
-//       trialEndsAt: { $gte: start, $lte: end }
-//     });
-
-//     for (const user of users) {
-//       await sendTrialExpiryWarningEmail(user.email, user.name, user.trialEndsAt)
-//         .catch(err => console.error(`Expiry warning error for ${user.email}:`, err.message));
-//     }
-
-//     console.log(`[cronJobs] Sent expiry warnings to ${users.length} users`);
-//   } catch (err) {
-//     console.error('[cronJobs] checkAndSendExpiryWarnings error:', err.message);
-//   }
-// }
-
-// module.exports = { checkAndSendExpiryWarnings };

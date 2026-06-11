@@ -9,10 +9,12 @@ const stripe = Stripe(process.env.STRIPE_SECRET_KEY)
 
 // ── Plan config (priceId من Stripe Dashboard) ─────────────────────────────────
 const PLANS = {
-  pro_monthly: { priceId: process.env.STRIPE_Pro_MONTHLY, plan: 'pro' },
-  pro_annual: { priceId: process.env.STRIPE_Pro_ANNUAL, plan: 'pro' },
-  enterprise_monthly: { priceId: process.env.STRIPE_Enterprise_MONTHLY, plan: 'enterprise' },
-  enterprise_annual: { priceId: process.env.STRIPE_Enterprise_ANNUAL, plan: 'enterprise' },
+  starter_monthly: { priceId: process.env.STRIPE_STARTER_MONTHLY, plan: 'starter' },
+  starter_annual: { priceId: process.env.STRIPE_STARTER_ANNUAL, plan: 'starter' },
+  growth_monthly: { priceId: process.env.STRIPE_GROWTH_MONTHLY, plan: 'growth' },
+  growth_annual: { priceId: process.env.STRIPE_GROWTH_ANNUAL, plan: 'growth' },
+  agency_monthly: { priceId: process.env.STRIPE_AGENCY_MONTHLY, plan: 'agency' },
+  agency_annual: { priceId: process.env.STRIPE_AGENCY_ANNUAL, plan: 'agency' },
 }
 
 // ── POST /api/payment/checkout — create Stripe Checkout session ───────────────
@@ -114,38 +116,38 @@ router.post('/webhook', express.raw({ type: 'application/json' }), async (req, r
   const data = event.data.object
 
   switch (event.type) {
-      // ── اشتراك جديد أو تجديد ──────────────────────────────────────────────────
-      case 'customer.subscription.created':
-      case 'customer.subscription.updated': {
-        const userId = data.metadata?.userId
-        const planKey = data.metadata?.planKey
-        const planName = PLANS[planKey]?.plan
-        if (userId && planName && data.status === 'active') {
-          await User.findByIdAndUpdate(userId, {
-            plan: planName,
-            isTrial: false,
-          })
-          console.log(`✅ User ${userId} upgraded to ${planName}`)
-        }
-        break
+    // ── اشتراك جديد أو تجديد ──────────────────────────────────────────────────
+    case 'customer.subscription.created':
+    case 'customer.subscription.updated': {
+      const userId = data.metadata?.userId
+      const planKey = data.metadata?.planKey
+      const planName = PLANS[planKey]?.plan
+      if (userId && planName && data.status === 'active') {
+        await User.findByIdAndUpdate(userId, {
+          plan: planName,
+          isTrial: false,
+        })
+        console.log(`✅ User ${userId} upgraded to ${planName}`)
       }
-      // ── إلغاء الاشتراك ────────────────────────────────────────────────────────
-      case 'customer.subscription.deleted': {
-        const userId = data.metadata?.userId
-        if (userId) {
-          await User.findByIdAndUpdate(userId, { plan: 'free' })
-          console.log(`🔴 User ${userId} subscription canceled → free`)
-        }
-        break
-      }
-      // ── فشل الدفع ─────────────────────────────────────────────────────────────
-      case 'invoice.payment_failed': {
-        console.warn(`⚠️ Payment failed for customer: ${data.customer}`)
-        break
-      }
+      break
     }
-  
-    res.json({ received: true })
-  })
-  
-  module.exports = router
+    // ── إلغاء الاشتراك ────────────────────────────────────────────────────────
+    case 'customer.subscription.deleted': {
+      const userId = data.metadata?.userId
+      if (userId) {
+        await User.findByIdAndUpdate(userId, { plan: 'free' })
+        console.log(`🔴 User ${userId} subscription canceled → free`)
+      }
+      break
+    }
+    // ── فشل الدفع ─────────────────────────────────────────────────────────────
+    case 'invoice.payment_failed': {
+      console.warn(`⚠️ Payment failed for customer: ${data.customer}`)
+      break
+    }
+  }
+
+  res.json({ received: true })
+})
+
+module.exports = router

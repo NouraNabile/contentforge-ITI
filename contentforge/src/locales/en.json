@@ -125,6 +125,7 @@
     "choosePlan": "Choose Your Plan",
     "mostPopular": "Most Popular",
     "perMonth": "/ month",
+    "perYear": "/ year",
     "annualNote": "billed annually",
     "upgradeNow": "Upgrade Now",
     "contactSales": "Contact Sales",
@@ -753,7 +754,8 @@
     "annual": "Annual",
     "save20": "Save 20%",
     "mostPopular": "✦ Most Popular",
-    "perMonth": "/mo",
+    "perMonth": "/month",
+    "perYear": "/year",
     "wasPrice": "was ${price}",
     "bottomNote": "All plans include Arabic dialect support, cultural trend injection, and a free trial. No credit card required to start.",
     "plans": {
@@ -1209,6 +1211,7 @@
     "currentPasswordIncorrect": "Current password is incorrect"
   },
   "admin": {
+    "expired": "Expired",
     "administrator": "Administrator",
     "logout": "Logout",
     "switchLight": "Switch to Light Mode",
@@ -1377,7 +1380,11 @@
       "issueWarning": "Issue Policy Violation Warning",
       "warningDesc": "Please provide a reason. The user will receive an email and a 24-hour grace period before final block.",
       "warningPlaceholder": "e.g., Using abusive language in content generation...",
-      "confirmWarning": "Confirm & Send Alert"
+      "confirmWarning": "Confirm & Send Alert",
+      "warningIssuedSuccess": "Warning issued and saved successfully",
+      "warningSyncFailed": "Failed to sync with database",
+      "timeExpired": "Expired",
+      "timeRemaining": "{hours}h {mins}m"
     }
   }
 }

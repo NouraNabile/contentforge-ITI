@@ -125,6 +125,7 @@
     "choosePlan": "اختر خطتك",
     "mostPopular": "الأكثر شيوعاً",
     "perMonth": "/شهر",
+    "perYear": "/سنة",
     "annualNote": "يُحسب سنوياً",
     "upgradeNow": "ترقية الآن",
     "contactSales": "تواصل مع المبيعات",
@@ -745,6 +746,7 @@
     "save20": "وفّر 20%",
     "mostPopular": "✦ الأكثر شيوعاً",
     "perMonth": "/شهر",
+    "perYear": "/سنة",
     "wasPrice": "كان ${price}$",
     "bottomNote": "تشمل جميع الخطط دعم اللهجات العربية وحقن التوجهات الثقافية وتجربة مجانية. لا حاجة لبطاقة ائتمان للبدء.",
     "plans": {
@@ -1201,6 +1203,7 @@
     "currentPasswordIncorrect": "كلمة المرور الحالية غير صحيحة"
   },
   "admin": {
+    "expired": "منتهي",
     "administrator": "مدير النظام",
     "logout": "تسجيل الخروج",
     "switchLight": "التبديل للوضع الفاتح",
@@ -1369,7 +1372,11 @@
       "issueWarning": "إصدار تحذير مخالفة سياسة",
       "warningDesc": "يرجى تقديم السبب. سيتلقى المستخدم بريداً إلكترونياً وفترة سماح 24 ساعة قبل الحظر النهائي.",
       "warningPlaceholder": "مثال: استخدام لغة مسيئة في توليد المحتوى...",
-      "confirmWarning": "تأكيد وإرسال تنبيه"
+      "confirmWarning": "تأكيد وإرسال تنبيه",
+      "warningIssuedSuccess": "تم إصدار التحذير وحفظه بنجاح",
+      "warningSyncFailed": "فشل في المزامنة مع قاعدة البيانات",
+      "timeExpired": "منتهي",
+      "timeRemaining": "{hours}س {mins}د"
     }
   }
 }

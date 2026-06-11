@@ -12,7 +12,9 @@ const postStatuses = ['draft', 'approved', 'scheduled', 'published'];
 async function seedDB() {
   try {
     // 1. الاتصال بقاعدة البيانات (تم الحفاظ على الـ URI الخاص بكِ)
-    await mongoose.connect('mongodb://userManar:Itigp26@ac-4rg3pwg-shard-00-00.sbhfcps.mongodb.net:27017,ac-4rg3pwg-shard-00-01.sbhfcps.mongodb.net:27017,ac-4rg3pwg-shard-00-02.sbhfcps.mongodb.net:27017/?ssl=true&replicaSet=atlas-fbgdmp-shard-0&authSource=admin&appName=Cluster0');
+    await mongoose.connect(
+      "mongodb://abdoaeed48_db_user:sA8q0oeYNkcqM0bj@ac-gg0zisk-shard-00-00.fse77ao.mongodb.net:27017,ac-gg0zisk-shard-00-01.fse77ao.mongodb.net:27017,ac-gg0zisk-shard-00-02.fse77ao.mongodb.net:27017/?ssl=true&replicaSet=atlas-qxmfxf-shard-0&authSource=admin&appName=Cluster0",
+    );
     console.log('🔌 Connected to MongoDB successfully...');
 
     // 2. تنظيف الداتا القديمة بالكامل

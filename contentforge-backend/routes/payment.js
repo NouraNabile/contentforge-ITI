@@ -9,12 +9,10 @@ const stripe = Stripe(process.env.STRIPE_SECRET_KEY)
 
 // ── Plan config (priceId من Stripe Dashboard) ─────────────────────────────────
 const PLANS = {
-  starter_monthly: { priceId: process.env.STRIPE_STARTER_MONTHLY, plan: 'starter' },
-  starter_annual: { priceId: process.env.STRIPE_STARTER_ANNUAL, plan: 'starter' },
-  growth_monthly: { priceId: process.env.STRIPE_GROWTH_MONTHLY, plan: 'growth' },
-  growth_annual: { priceId: process.env.STRIPE_GROWTH_ANNUAL, plan: 'growth' },
-  agency_monthly: { priceId: process.env.STRIPE_AGENCY_MONTHLY, plan: 'agency' },
-  agency_annual: { priceId: process.env.STRIPE_AGENCY_ANNUAL, plan: 'agency' },
+  pro_monthly: { priceId: process.env.STRIPE_Pro_MONTHLY, plan: 'pro' },
+  pro_annual: { priceId: process.env.STRIPE_Pro_ANNUAL, plan: 'pro' },
+  enterprise_monthly: { priceId: process.env.STRIPE_Enterprise_MONTHLY, plan: 'enterprise' },
+  enterprise_annual: { priceId: process.env.STRIPE_Enterprise_ANNUAL, plan: 'enterprise' },
 }
 
 // ── POST /api/payment/checkout — create Stripe Checkout session ───────────────

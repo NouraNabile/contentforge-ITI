@@ -185,6 +185,33 @@
             </span>
           </button>
 
+          <!-- Add Post button — يظهر بس لو في calendar ومتناسق مع باقي الزراير في الهوفر -->
+          <button
+            v-if="currentCalendar"
+            @click="showAddPostModal = true"
+            class="group px-2.5 py-2 rounded-xl theme-card theme-border theme-sub hover:theme-text transition-all duration-200 flex items-center overflow-hidden"
+          >
+            <svg
+              class="w-3.5 h-3.5 shrink-0"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M12 4v16m8-8H4"
+              />
+            </svg>
+
+            <span
+              class="max-w-0 group-hover:max-w-[7rem] overflow-hidden transition-all duration-200 whitespace-nowrap text-xs font-medium group-hover:ml-1.5"
+            >
+              {{ t("branding.addPost") }}
+            </span>
+          </button>
+
           <!-- Trends toggle — mobile/tablet only -->
           <button
             @click="trendsOpen = !trendsOpen"
@@ -1270,14 +1297,198 @@
       </div>
     </div>
 
-    <!-- Approve toast -->
+      <!-- Approve toast -->
     <div
       v-if="approveMsg"
       class="fixed bottom-6 right-6 z-50 px-4 py-3 rounded-xl bg-green-600 text-white text-sm font-medium shadow-lg"
     >
       ✓ {{ approveMsg }}
     </div>
-  
+
+     <!-- Add Post Modal -->
+    <div
+      v-if="showAddPostModal"
+      class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-end sm:items-center justify-center p-0 sm:p-6"
+    >
+      <div
+        class="theme-surface w-full sm:max-w-lg sm:rounded-2xl rounded-t-2xl theme-border max-h-[90vh] overflow-y-auto theme-shadow"
+      >
+        <!-- Header -->
+        <div
+          class="sticky top-0 theme-surface z-10 flex items-center justify-between px-6 py-4 border-b"
+          style="border-color: var(--border)"
+        >
+          <h2 class="font-display text-lg font-600 theme-text">
+            {{ t("dashboard.addPostTitle") }}
+          </h2>
+          <button
+            @click="
+              showAddPostModal = false;
+              resetNewPost();
+            "
+            class="theme-muted hover:theme-text"
+          >
+            <svg
+              class="w-5 h-5"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M6 18L18 6M6 6l12 12"
+              />
+            </svg>
+          </button>
+        </div>
+
+        <div class="p-6 space-y-4">
+          <!-- Platform + Status row -->
+          <div class="grid grid-cols-2 gap-3">
+            <div>
+              <label class="text-xs theme-sub mb-1.5 block">
+                {{$t("drafts.platformLabel")}}
+                </label>
+              <select
+                v-model="newPost.platform"
+                class="w-full theme-input rounded-xl px-3 py-2.5 text-sm theme-text border focus:outline-none focus:border-blue-500/40"
+                style="border-color: var(--border)"
+              >
+                <option v-for="p in platforms" :key="p.name" :value="p.name">
+                  {{$t(p.labelKey)}}
+                </option>
+              </select>
+            </div>
+            <div>
+              <label class="text-xs theme-sub mb-1.5 block">{{
+                t("dashboard.dialectLabel")
+              }}</label>
+              <select
+                v-model="newPost.dialect"
+                class="w-full theme-input rounded-xl px-3 py-2.5 text-sm theme-text border focus:outline-none focus:border-blue-500/40"
+                style="border-color: var(--border)"
+              >
+                <option v-for="d in dialectOptions" :key="d.value" :value="d.value">
+                  {{ $t(d.labelKey) }}
+                </option>
+              </select>
+            </div>
+          </div>
+
+          <!-- Scheduled Date -->
+          <div>
+            <label class="text-xs theme-sub mb-1.5 block">{{
+              t("dashboard.startDate")
+            }}</label>
+            <input
+              type="date"
+              v-model="newPost.scheduledDate"
+              :min="todayStr()"
+              class="w-full theme-input rounded-xl px-3 py-2.5 text-sm theme-text border focus:outline-none focus:border-blue-500/40"
+              style="border-color: var(--border)"
+            />
+          </div>
+
+          <!-- Arabic Copy -->
+          <div>
+            <label class="text-xs theme-sub mb-1.5 block"
+              >{{ t("dashboard.arabic") }}
+              <span class="text-rose-400">*</span></label
+            >
+            <textarea
+              v-model="newPost.copyAR"
+              rows="3"
+              dir="rtl"
+              :placeholder="t('dashboard.briefPlaceholder')"
+              class="w-full theme-input rounded-xl p-3 text-sm theme-text border focus:outline-none focus:border-blue-500/40 resize-none text-right"
+              style="border-color: var(--border)"
+            ></textarea>
+          </div>
+
+          <!-- English Copy -->
+          <div>
+            <label class="text-xs theme-sub mb-1.5 block"
+              >{{ t("dashboard.editPost") }} (EN)</label
+            >
+            <textarea
+              v-model="newPost.copyEN"
+              rows="2"
+              class="w-full theme-input rounded-xl p-3 text-sm theme-text border focus:outline-none focus:border-blue-500/40 resize-none"
+              style="border-color: var(--border)"
+            ></textarea>
+          </div>
+
+          <!-- Hashtags -->
+          <div>
+            <label class="text-xs theme-sub mb-1.5 block">{{
+              t("dashboard.hashtags")
+            }}</label>
+            <input
+              type="text"
+              v-model="newPost.hashtagsInput"
+              placeholder="#hashtag1 #hashtag2"
+              class="w-full theme-input rounded-xl px-3 py-2.5 text-sm theme-text border focus:outline-none focus:border-blue-500/40"
+              style="border-color: var(--border)"
+            />
+            <p class="text-[10px] theme-muted mt-1">
+              {{ t("dashboard.addPostHashtagHint") }}
+            </p>
+          </div>
+
+          <!-- Status -->
+          <div>
+            <label class="text-xs theme-sub mb-1.5 block">{{
+              t("dashboard.statusName")
+            }}</label>
+            <div class="flex gap-2 flex-wrap">
+              <button
+                v-for="s in statuses"
+                :key="s.value"
+                @click="newPost.status = s.value"
+                class="px-3 py-1.5 rounded-lg text-xs border transition-all"
+                :class="
+                  newPost.status === s.value
+                    ? 'bg-blue-600/20 text-blue-400 border-blue-500/30'
+                    : 'theme-border theme-muted hover:theme-text'
+                "
+              >
+                {{ t(`${s.labelKey}`) }}
+              </button>
+            </div>
+          </div>
+
+          <p v-if="addPostError" class="text-xs text-rose-400">
+            {{ addPostError }}
+          </p>
+        </div>
+
+        <!-- Footer -->
+        <div
+          class="sticky bottom-0 theme-surface border-t px-6 py-4 flex gap-3"
+          style="border-color: var(--border)"
+        >
+          <button
+            @click="
+              showAddPostModal = false;
+              resetNewPost();
+            "
+            class="flex-1 py-2.5 rounded-xl theme-card theme-border theme-sub text-sm hover:theme-text transition-colors"
+          >
+            {{ t("common.cancel") }}
+          </button>
+          <button
+            @click="createPost"
+            :disabled="addingPost || !newPost.copyAR || !newPost.scheduledDate"
+            class="flex-1 py-2.5 rounded-xl bg-blue-600 text-white text-sm font-medium hover:bg-blue-500 transition-colors disabled:opacity-50"
+          >
+            {{ addingPost ? t("dashboard.saving") : t("dashboard.addPostBtn") }}
+          </button>
+        </div>
+      </div>
+    </div>
+
 <!-- Publish Date Confirm Modal -->
 <Teleport to="body">
   <Transition name="modal-fade">
@@ -1322,6 +1533,7 @@ import { ref, computed, onMounted, watch } from "vue";
 import AppLayout from "../components/AppLayout.vue";
 import calendarApi from "../api/calendarApi";
 import postsApi from "../api/postsApi";
+import brandApi from "../api/brandApi";
 import api from "../api/client";
 import { useI18n } from "vue-i18n";
 import { useCalendarStore } from "../stores/calendarStore";
@@ -1356,6 +1568,7 @@ const modalTabs = computed(() => [
 ]);
 
 const showModal = ref(false);
+const showAddPostModal = ref(false);
 const showDeleteConfirm = ref(false);
 const showResetConfirm = ref(false);
 const isRegenerate = ref(false);
@@ -1391,6 +1604,8 @@ const store = useCalendarStore();
 const planApproved = ref(false);
 const trendsOpen = ref(false);
 const isTrendsAlwaysVisible = ref(window.innerWidth >= 1024);
+const addingPost = ref(false);
+const addPostError = ref("");
 
 // ── Drag & Drop state ─────────────────────────────────────────────────────
 const draggedCell = ref(null);
@@ -1601,32 +1816,53 @@ watch(
 
 // ── Load on mount ─────────────────────────────────────────────────────────────
 onMounted(async () => {
+  // 1️⃣ تعيين مستمع لحجم الشاشة (كودك الحالي)
   window.addEventListener("resize", () => {
     isTrendsAlwaysVisible.value = window.innerWidth >= 1024;
   });
+
+  // 2️⃣ جلب الـ Trends (كودك الحالي)
   try {
     const data = await api.get("/trends");
     trends.value = data.trends.map((t) => ({
       ...t,
       color: t.velocity > 200 ? "text-green-400" : "text-teal-400",
     }));
-    trendsLastUpdated.value = new Date(data.lastUpdated).toLocaleTimeString(
-      "ar-EG",
-    );
+    trendsLastUpdated.value = new Date(data.lastUpdated).toLocaleTimeString("ar-EG");
   } catch (err) {
-    console.error(err);
+    console.error("Trends Fetch Error:", err);
   }
 
-  if (!brandId.value) return;
+  // 3️⃣ 🔥 الحل الجديد: جلب براندات اليوزر المسجل أولاً واستخراج الـ ID
   try {
-    const calendars = await calendarApi.getBrandCalendars(brandId.value);
-    if (calendars?.length) {
-      const latest = await calendarApi.getCalendar(calendars[0]._id);
-      currentCalendar.value = latest;
-      store.posts = latest.posts || [];
+    console.log("[Dashboard] Fetching user brands...");
+    const brands = await brandApi.getMyBrands();
+    
+    // نتحقق من أن اليوزر يمتلك براند واحد على الأقل مسجل باسمه
+    if (brands && brands.length > 0) {
+      const activeBrand = brands[0]; // نأخذ البراند الأول المتاح له
+      brandId.value = activeBrand._id; // حفظ الـ ID في الـ ref الخاص بالصفحة
+      
+      console.log(`[Dashboard] Found Active Brand: ${activeBrand.name} (ID: ${activeBrand._id})`);
+
+      // 4️⃣ الآن نقوم بجلب الكالندر الخاص بهذا البراند بأمان
+      const calendars = await calendarApi.getBrandCalendars(brandId.value);
+      console.log("Fetched Calendars for this Brand:", calendars);
+      
+      if (calendars?.length) {
+        const latest = await calendarApi.getCalendar(calendars[0]._id);
+        currentCalendar.value = latest;
+        store.posts = latest.posts || [];
+      } else {
+        console.warn("[Dashboard] This brand has no calendars created yet.");
+      }
+
+    } else {
+      console.warn("[Dashboard] No brands associated with this logged-in user.");
+      // هنا يمكنك توجيه المستخدم لصفحة إنشاء براند إذا كان النظام يتطلب ذلك أولاً
     }
   } catch (err) {
-    console.error(err);
+    console.error("[Dashboard Setup Error]:", err);
   }
 });
 
@@ -1735,6 +1971,94 @@ async function resetCalendar() {
   } finally {
     resetting.value = false;
   }
+}
+
+// ── Create Post manually ──────────────────────────────────────────────────────────
+function todayStr() {
+  const today = new Date();
+  return today.toISOString().split("T")[0];
+}
+
+const newPost = ref({
+  platform: "Instagram",
+  dialect: "Egyptian Arabic",
+  scheduledDate: "",
+  copyAR: "",
+  copyEN: "",
+  hashtagsInput: "",
+  status: "Draft",
+});
+
+async function createPost() {
+  if (!newPost.value.copyAR || !newPost.value.scheduledDate) return;
+  addingPost.value = true;
+  addPostError.value = "";  
+  try {
+    const hashtags = newPost.value.hashtagsInput
+      .split(/\s+/)
+      .map((h) => h.replace("#", ""))
+      .filter(Boolean);
+    console.log("Current Calendar ID:", currentCalendar.value?._id || currentCalendar.value?.id);
+    const payload = {
+      brand: brandId.value,
+      calendar: currentCalendar.value?._id || currentCalendar.value?.id, // نضمن إرسال الـ ID صح
+      dialect: newPost.value.dialect,
+      platform: newPost.value.platform,
+      dialect: newPost.value.dialect,
+      scheduledDate: new Date(newPost.value.scheduledDate).toISOString(),
+      copyAR: newPost.value.copyAR,
+      copyEN: newPost.value.copyEN || "",
+      hashtags,
+      status: newPost.value.status.toLowerCase(),
+    };
+
+    const created = await postsApi.createPost(payload);
+
+    // نضمن إن الـ created object عنده date string بصيغة YYYY-MM-DD
+    if (!created.date && (created.scheduledAt || created.scheduledDate || payload.scheduledDate)) {
+      const raw = created.scheduledAt || created.scheduledDate || payload.scheduledDate;
+      created.date = new Date(raw).toISOString().split("T")[0];
+    }
+
+    // ✅ الحل الصحيح 1: تحديث الـ Store الرئيسي المسؤول عن عرض الكالندر بالـ Spread Operator
+    if (store.posts) {
+      store.posts = [...store.posts, created];
+    } else {
+      store.posts = [created];
+    }
+
+    // ✅ الحل الصحيح 2: تحديث مصفوفة الـ posts داخل الـ currentCalendar لضمان المزامنة
+    if (currentCalendar.value) {
+      if (!currentCalendar.value.posts) currentCalendar.value.posts = [];
+      currentCalendar.value.posts.push(created);
+    }
+
+    // ✅ الحل الصحيح 3: إعادة بناء الأسابيع بناءً على الـ Store المحدث بالكامل
+    if (typeof buildWeeks === "function") {
+      calendarWeeks.value = buildWeeks(store.posts);
+    }
+
+    showAddPostModal.value = false;
+    resetNewPost();
+    showToast(t("dashboard.postAdded"));
+  } catch (err) {
+    addPostError.value = err.message || t("dashboard.addPostError");
+  } finally {
+    addingPost.value = false;
+  }
+}
+
+function resetNewPost() {
+  newPost.value = {
+    platform: "Instagram",
+    dialect: "Egyptian Arabic",
+    scheduledDate: "",
+    copyAR: "",
+    copyEN: "",
+    hashtagsInput: "",
+    status: "Draft",
+  };
+  addPostError.value = "";
 }
 
 // ── Build weeks grid ──────────────────────────────────────────────────────────

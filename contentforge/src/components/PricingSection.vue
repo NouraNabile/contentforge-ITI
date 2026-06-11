@@ -78,13 +78,17 @@
             </span>
           </div>
 
-          <a href="#get-started"
-            class="block text-center py-3 rounded-xl text-sm font-medium mb-6 md:mb-8 transition-all duration-200"
+          <button @click="handlePlanClick(plan)" :disabled="checkoutLoading === plan.key"
+            class="w-full text-center py-3 rounded-xl text-sm font-medium mb-6 md:mb-8 transition-all duration-200 flex items-center justify-center gap-2"
             :class="plan.featured
-              ? 'bg-blue-600 text-white hover:bg-blue-500 hover:shadow-lg hover:shadow-blue-500/25'
-              : (isDark ? 'border border-white/15 text-slate-300 hover:border-white/30 hover:text-white' : 'border border-slate-300 text-slate-700 hover:border-slate-400 hover:bg-slate-50')">
+              ? 'bg-blue-600 text-white hover:bg-blue-500 hover:shadow-lg hover:shadow-blue-500/25 disabled:opacity-50'
+              : (isDark ? 'border border-white/15 text-slate-300 hover:border-white/30 hover:text-white disabled:opacity-50' : 'border border-slate-300 text-slate-700 hover:border-slate-400 hover:bg-slate-50 disabled:opacity-50')">
+            <svg v-if="checkoutLoading === plan.key" class="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
+              <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" />
+              <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+            </svg>
             {{ t(`pricing.plans.${plan.key}.cta`) }}
-          </a>
+          </button>
 
           <ul class="space-y-3 flex-1">
             <li v-for="feature in plan.features" :key="feature.textKey" class="flex items-start gap-2.5 text-sm"
@@ -107,6 +111,10 @@
         </div>
       </div>
 
+      <p v-if="errorMsg" class="text-sm text-rose-400 text-center mt-6">
+        {{ errorMsg }}
+      </p>
+
       <p class="text-center text-sm mt-10"
         :class="isDark ? 'text-slate-600' : 'text-slate-400'">
         {{ t('pricing.bottomNote') }}
@@ -117,13 +125,80 @@
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { ref, onMounted, onUnmounted } from 'vue' // 1️⃣ أضفنا onMounted و onUnmounted
 import { useI18n } from 'vue-i18n'
+import { useRouter } from 'vue-router'
 import { useTheme } from '../composables/useTheme.js'
+import paymentApi from '../api/paymentApi.js'
 
 const { t, locale } = useI18n()
 const { isDark } = useTheme()
-const annual = ref(false)
+const router  = useRouter()
+const annual  = ref(false)
+
+const checkoutLoading = ref(null)
+const errorMsg = ref("")
+
+// 2️⃣ دالة لتصفير حالات التحميل والأخطاء عند العودة للصفحة
+function resetCheckoutState(event) {
+  // event.persisted تكون true إذا تمت استعادة الصفحة من ذاكرة المتصفح (زر الرجوع)
+  if (event.persisted || !checkoutLoading.value) {
+    console.log("[Pricing] Page restored from cache or refreshed. Resetting loading state.");
+    checkoutLoading.value = null;
+    errorMsg.value = "";
+  }
+}
+
+// 3️⃣ تسجيل الحدث عند تحميل المكون وحذفه عند الخروج منه
+onMounted(() => {
+  window.addEventListener('pageshow', resetCheckoutState);
+})
+
+onUnmounted(() => {
+  window.removeEventListener('pageshow', resetCheckoutState);
+})
+
+async function handlePlanClick(plan) {
+  const token = localStorage.getItem('cf_token')
+  
+  if (!token) {
+    router.push({ 
+      path: '/login', 
+      query: { 
+        redirect: router.currentRoute.value.fullPath, 
+        plan: plan.key, 
+        billing: annual.value ? 'annual' : 'monthly' 
+      } 
+    })
+    return
+  }
+
+  // إذا كان هناك عملية تحميل جارية لباقة أخرى، نمنع الضغط
+  if (checkoutLoading.value) return;
+
+  checkoutLoading.value = plan.key
+  errorMsg.value = ""
+  
+  try {
+    const billingSuffix = annual.value ? 'annual' : 'monthly'
+    const planKey = `${plan.key}_${billingSuffix}`
+    
+    console.log(`[Pricing] Initiating checkout API for: ${planKey}`);
+    
+    const url = await paymentApi.checkout(planKey)
+    
+    if (url) {
+      window.location.href = url
+    } else {
+      throw new Error("تأخر استجابة بوابة الدفع، يرجى المحاولة مرة أخرى.");
+    }
+    
+  } catch (e) {
+    console.error("[Pricing Checkout Error]:", e);
+    errorMsg.value = e.message || t("payment.errorGeneric")
+    checkoutLoading.value = null // تصفير التحميل في حالة الخطأ المباشر
+  }
+}
 
 const plans = [
   {

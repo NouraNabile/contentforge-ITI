@@ -437,6 +437,7 @@
     "deleting": "Deleting…",
     "deleteBtn": "Delete",
     "dateError": "⚠️ End date must be after start date",
+    "addPostBtn": "Add Post",
     "pastDateError": "You cannot pick a date before today.",
     "durationLabel": "{days} days · ~{posts} posts expected",
     "allApproved": "All posts approved!",

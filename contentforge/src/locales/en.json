@@ -189,8 +189,9 @@
     }
   },
   "drafts": {
+
+    "subtitle": "{count} posts pending review or approval",
     "title": "Drafts",
-    "subtitle": "Posts pending review or approval",
     "empty": "No drafts yet",
     "emptyHint": "Generated posts that haven't been approved will appear here.",
     "filterAll": "All",

@@ -17,12 +17,12 @@ const passport = require('passport');
 router.get('/google', passport.authenticate('google', { scope: ['profile', 'email'] }));
 
 // المسار الثاني: كول باك (Callback) يعود إليه المستخدم بعد الموافقة في جوجل
-router.get('/google/callback', 
+router.get('/google/callback',
   passport.authenticate('google', { session: false }),
   (req, res) => {
     // ننشئ الـ Token الخاص بنا
     const token = jwt.sign({ id: req.user._id }, process.env.JWT_SECRET, { expiresIn: '1h' });
-    
+
     // نوجه المستخدم لصفحة في الفرونت إند ومعها الـ Token
     res.redirect(`http://localhost:5173/login-success?token=${token}`);
   }
@@ -46,21 +46,21 @@ router.post("/register", async (req, res) => {
       return res.status(400).json({ message: 'This phone has already been used for a trial.' })
 
     const verificationCode = Math.floor(100000 + Math.random() * 900000).toString()
-    
+
     // حساب تاريخ انتهاء الباقة/التجربة بناءً على إعدادات المنصة
     const trialDays = settings.trialDays ?? 14
-    const calculatedExpiry =new Date(Date.now() + 14 * 24 * 60 * 60 * 1000)
-    
+    const calculatedExpiry = new Date(Date.now() + 14 * 24 * 60 * 60 * 1000)
+
     // الـ User.create المظبوط بناءً على الـ Schema الجديدة
     const user = await User.create({
-      name, 
-      email, 
-      password, 
+      name,
+      email,
+      password,
       phone,
       verificationCode,
       verificationCodeExpires: Date.now() + otpExpiryMinutes * 60 * 1000,
       isVerified: false,
-      
+
       // إعدادات الاشتراك الموحدة الجديدة 💎
       plan: 'free',                     // بيبدأ مجاني (تجريبي)
       subscriptionType: 'none',          // ملوش نوع دفع شهري/سنوي حالياً
@@ -135,6 +135,9 @@ router.post("/login", async (req, res) => {
       email: user.email,
       plan: user.plan,
       isAdmin: user.isAdmin,
+      isTrial: user.isTrial,
+      planEndsAt: user.planEndsAt,
+      trialExpired: user.isTrial && user.planEndsAt && new Date() > new Date(user.planEndsAt),
     },
   });
 });
@@ -490,13 +493,13 @@ router.post("/test-notification", protect, async (req, res) => {
 // POST /api/auth/test-email — sends scheduled post email immediately
 // router.post('/test-email', protect, async (req, res) => {
 //   const { sendScheduledPostReminderEmail } = require('../services/emailService')
-  
+
 //   // Fake posts data for testing
 //   const fakePosts = [
 //     { platform: 'Instagram', copyAR: 'منشور تجريبي ١' },
 //     { platform: 'Facebook', copyAR: 'منشور تجريبي ٢' },
 //   ]
-  
+
 //   try {
 //     await sendScheduledPostReminderEmail(req.user.email, req.user.name, fakePosts)
 //     res.json({ message: 'Email sent! Check your inbox.' })
@@ -508,7 +511,7 @@ router.post("/test-notification", protect, async (req, res) => {
 // backend/routes/auth.js
 router.post('/test-email-simple', protect, async (req, res) => {
   const { transporter } = require('../services/emailService')  // ← export transporter too
-  
+
   try {
     await transporter.sendMail({
       from: process.env.EMAIL_USER,

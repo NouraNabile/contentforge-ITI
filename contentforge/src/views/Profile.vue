@@ -15,12 +15,12 @@
             {{ authStore.userInitial }}
           </div>
           <div class="flex-1 text-center sm:text-start">
-            <h2 class="font-display text-xl font-600 theme-text">{{ authStore.user?.name || 'User' }}</h2>
+            <h2 class="font-display text-xl font-600 theme-text">{{ authStore.user?.name || t('profile.defaultUser') }}</h2>
             <p class="text-sm theme-sub mt-1">{{ authStore.user?.email }}</p>
             <div class="mt-3 flex flex-wrap justify-center sm:justify-start gap-2">
               <span class="text-[11px] px-2.5 py-1 rounded-full bg-blue-600/15 text-blue-400 border border-blue-500/20 font-medium">
-                {{ authStore.userPlan || 'Free Plan' }}
-              </span>
+  {{ authStore.userPlan || t('profile.freePlan') }}
+</span>
               <span class="text-[11px] px-2.5 py-1 rounded-full bg-green-600/15 text-green-400 border border-green-500/20 font-medium">
                 ✓ {{ t('profile.activeAccount') }}
               </span>

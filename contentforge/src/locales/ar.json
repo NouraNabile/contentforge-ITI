@@ -1186,6 +1186,8 @@
     "errorMessage": "فشل النشر"
   },
   "profile": {
+    "defaultUser": "مستخدم",
+    "freePlan": "خطة مجانية",
     "title": "ملفي الشخصي",
     "subtitle": "إدارة معلومات حسابك وإعدادات الأمان.",
     "activeAccount": "حساب نشط",

@@ -1188,6 +1188,8 @@
     "errorMessage": "Failed to publish"
   },
   "profile": {
+    "defaultUser": "User",
+    "freePlan": "Free Plan",
     "title": "My Profile",
     "subtitle": "Manage your account information and security settings.",
     "activeAccount": "Active Account",

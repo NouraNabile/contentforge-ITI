@@ -70,22 +70,37 @@
 
 <script setup>
 import { useRouter } from 'vue-router'
-import { useI18n }   from 'vue-i18n'
-import { useLang }   from '@/composables/useLang'
-import { useTheme }  from '@/composables/useTheme'
+import { useI18n } from 'vue-i18n'
+import { useLang } from '@/composables/useLang'
+import { useTheme } from '@/composables/useTheme'
 
 const { t, locale } = useI18n()
-const router        = useRouter()
+const router = useRouter()
 const { switchLang } = useLang()
 const { isDark, toggle: toggleTheme } = useTheme()
 
-// Navigates backward in history to jump completely over the Stripe session link
 const goBack = () => {
-  if (window.history.length > 2) {
-    window.history.go(-2)
+  const token = localStorage.getItem('cf_token')
+  const userStr = localStorage.getItem('cf_user')
+  const user = userStr ? JSON.parse(userStr) : {}
+
+  if (token) {
+    // 🌟 1. Admins have no expiration. Check this FIRST to guarantee correct routing.
+    if (user?.isAdmin) {
+      router.push('/admin')
+      return
+    }
+
+    // 🌟 2. If a regular user's trial is expired, send them back to the trial expired page
+    if (user?.trialExpired) {
+      router.push('/trial-expired')
+      return
+    }
+
+    // 🌟 3. Normal active logged-in user: send to payment page to view status or try again
+    router.push('/payment')
   } else {
-    // Fail-safe in case session history is missing/wiped
-    router.push('/dashboard') 
+    router.push('/login')
   }
 }
 </script>

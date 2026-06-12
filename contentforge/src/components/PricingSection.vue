@@ -189,10 +189,10 @@ const handlePaidPlanClick = async (event, planKey) => {
 
   try {
     const billingSuffix = annual.value ? 'annual' : 'monthly'
-    const planKey = `${plan.key}_${billingSuffix}`
+    const paymentKey = `${planKey}_${billingSuffix}`
 
     // Pass an origin identifier to your payment checkout API
-    const url = await paymentApi.checkout(planKey, { from: 'pricing' })
+    const url = await paymentApi.checkout(paymentKey, { from: 'pricing' })
 
     if (url) {
       window.location.href = url

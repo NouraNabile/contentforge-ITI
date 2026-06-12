@@ -39,9 +39,9 @@ const userSchema = new mongoose.Schema({
   verificationCodeExpires: Date,
 
   // 4. نظام الاشتراكات والباقات الموحد
-  plan:             { type: String, enum: ['free', 'pro', 'enterprise'], default: 'free' },
+  plan:             { type: String, enum: ['free', 'pro', 'enterprise',''], default: 'free' },
   subscriptionType: { type: String, enum: ['monthly', 'yearly', 'none'], default: 'none' },
-  planEndsAt:       { type: Date, required: true }, // التاريخ الموحد لانتهاء الصلاحية (Trial أو اشتراك مدفوع)//trialEndsAt
+  planEndsAt:       { type: Date, default: null }, // التاريخ الموحد لانتهاء الصلاحية (Trial أو اشتراك مدفوع)//trialEndsAt
   stripeCustomerId: { type: String },
   
   // حقول تتبع الـ Trial لمنع تكرار الاستخدام المجاني

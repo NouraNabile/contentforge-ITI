@@ -250,7 +250,7 @@
                 ✕
               </button>
             </div>
-           
+
             <div class="space-y-4">
               <!-- Plan -->
               <div>
@@ -267,38 +267,32 @@
                   <option value="enterprise">{{ t('admin.usersPage.enterprise') }}</option>
                 </select>
               </div>
-               <!-- /////اضافة تاريخ الانضمام نوران -->
-            <div>
-              <label class="text-xs font-medium mb-1.5 block" :class="isDark ? 'text-slate-400' : 'text-slate-600'">
-    StartDate
-  </label>
-  <input 
-    type="date" 
-    v-model="editForm.startDate"
-    :min="today" 
-    class="w-full px-3 py-2.5 rounded-xl text-sm border focus:outline-none focus:border-blue-500/40"
-    :class="isDark ? 'bg-slate-900 border-white/10 text-white' : 'bg-white border-slate-200 text-slate-900'" 
-  />
-</div>
-<div> 
-  <label class="text-xs font-medium mb-1.5 block" :class="isDark ? 'text-slate-400' : 'text-slate-600'">
-    Subscription Type
-  </label>
-  <div class="flex items-center gap-4">
-    <label class="flex items-center gap-2 cursor-pointer">
-      <input type="radio" v-model="editForm.subscriptionType" value="monthly" 
-             class="w-4 h-4 text-blue-600 focus:ring-blue-500" />
-      <span class="text-sm">{{ t('admin.usersPage.monthly') }}</span>
-    </label>
-    
-    <label class="flex items-center gap-2 cursor-pointer">
-      <input type="radio" v-model="editForm.subscriptionType" value="yearly" 
-             class="w-4 h-4 text-blue-600 focus:ring-blue-500" />
-      <span class="text-sm" :class="isDark ? 'text-slate-300' : 'text-slate-700'">{{ t('admin.usersPage.yearly') }}</span>
-    </label>
-  </div>
-</div>
-            
+
+              <!-- Trial Active -->
+              <div class="flex items-center justify-between">
+                <label class="text-xs font-medium" :class="isDark ? 'text-slate-400' : 'text-slate-600'">
+                  {{ t('admin.usersPage.trialActive') }}
+                </label>
+                <div class="flex items-center gap-2">
+                  <input type="checkbox" v-model="editForm.isTrial" id="isTrial" class="w-4 h-4 rounded" />
+                  <label for="isTrial" class="text-xs" :class="isDark ? 'text-slate-300' : 'text-slate-700'">
+                    {{ editForm.isTrial ? t('admin.usersPage.yes') : t('admin.usersPage.no') }}
+                  </label>
+                </div>
+              </div>
+
+              <!-- Trial Ends At -->
+              <div v-if="editForm.isTrial">
+                <label class="text-xs font-medium mb-1.5 block" :class="isDark ? 'text-slate-400' : 'text-slate-600'">
+                  {{ t('admin.usersPage.trialEndsAt') }}
+                </label>
+                <input type="date" v-model="editForm.planEndsAt"
+                  class="w-full px-3 py-2.5 rounded-xl text-sm border focus:outline-none focus:border-blue-500/40"
+                  :class="isDark
+                    ? 'bg-slate-900 border-white/10 text-white'
+                    : 'bg-white border-slate-200 text-slate-900'" />
+              </div>
+
               <!-- Email Verified -->
               <div class="flex items-center justify-between">
                 <label class="text-xs font-medium" :class="isDark ? 'text-slate-400' : 'text-slate-600'">
@@ -453,8 +447,6 @@ const blockReason = ref('')
 const selectedUser = ref(null)
 
 let searchTimer
-// ضيفي المتغير ده في الـ Data أو الـ Setup
-const today = new Date().toISOString().split('T')[0];
 
 function onSearch() {
   clearTimeout(searchTimer)
@@ -535,55 +527,30 @@ function openEdit(u) {
   editForm.value = {
     plan: u.plan || 'free',
     isTrial: !!u.isTrial,
-    planStart: u.planStart ? u.planStart.slice(0, 10) : '',
+    planEndsAt: u.planEndsAt ? u.planEndsAt.slice(0, 10) : '',
     isVerified: !!u.isVerified,
     isAdmin: !!u.isAdmin,
-    subscriptionType: u.subscriptionType || 'monthly',
   }
 }
-
 
 async function saveEdit() {
-  const todayDate = new Date();
-  todayDate.setHours(0, 0, 0, 0);
-
-  // التحقق من startDate
-  if (editForm.value.startDate && new Date(editForm.value.startDate) < todayDate) {
-    alert("عذراً، تاريخ البدء لا يمكن أن يكون في الماضي.");
-    return;
-  }
-
-  saving.value = true;
+  saving.value = true
   try {
-    const willBeAdmin = !!editForm.value.isAdmin;
-    const payload = {
+    const updated = await adminApi.updateUser(editUser.value._id, {
+      plan: editForm.value.plan,
+      isTrial: editForm.value.isTrial,
+      planEndsAt: editForm.value.planEndsAt ? new Date(editForm.value.planEndsAt) : null,
       isVerified: editForm.value.isVerified,
-      isAdmin: willBeAdmin,
-    };
-
-    if (!willBeAdmin) {
-      payload.plan = editForm.value.plan;
-      if(payload.plan=='free'){
-      payload.isTrial = true;
-      }
-      else{
-      payload.isTrial = false;
-      }
-      payload.startDate = editForm.value.startDate ? new Date(editForm.value.startDate) : null;
-      payload.subscriptionType = editForm.value.subscriptionType || 'monthly';
-      // لا ترسل planEndsAt هنا!
-    }
-
-    const updated = await adminApi.updateUser(editUser.value._id, payload);
-    const idx = users.value.findIndex(u => u._id === editUser.value._id);
-    if (idx !== -1) users.value[idx] = { ...users.value[idx], ...updated.user };
-    editUser.value = null;
-  } catch (error) {
-    alert("حدث خطأ أثناء الحفظ.");
+      isAdmin: editForm.value.isAdmin,
+    })
+    const idx = users.value.findIndex(u => u._id === editUser.value._id)
+    if (idx !== -1) users.value[idx] = { ...users.value[idx], ...updated.user }
+    editUser.value = null
   } finally {
-    saving.value = false;
+    saving.value = false
   }
 }
+
 function confirmDelete(u) {
   deleteTarget.value = u
 }

@@ -297,80 +297,16 @@ async function sendScheduledPostTomorrowEmail(email, name, posts) {
   })
 }
 
-// ─────────────────────────────────────────────────────────────
-// بيتبعت لما الأدمن يرفع صلاحيات user لـ admin
-async function sendAdminPromotionEmail(email, name) {
-  await transporter.sendMail({
-    from: process.env.ADMIN_EMAIL,
-    to: email,
-    subject: '🎉 تهانينا! تمت ترقيتك لمسؤول — ContentForge',
-    html: `
-      <div style="direction:rtl; text-align:right; font-family:sans-serif; max-width:600px; margin:0 auto; padding:24px; border:1px solid #e1e8ed; border-radius:12px;">
-        <h2 style="color:#7c3aed;">🎉 تهانينا ${name}!</h2>
-        <p>تم منحك صلاحيات <strong>مسؤول (Admin)</strong> على منصة ContentForge.</p>
-        <div style="background:#f5f3ff; padding:16px; border-radius:8px; margin:16px 0; border-right:4px solid #7c3aed;">
-          <p style="margin:0; color:#4c1d95;">أصبح بإمكانك الآن الوصول إلى لوحة التحكم الكاملة وإدارة المستخدمين والإعدادات.</p>
-        </div>
-        <p style="font-size:12px; color:#718096;">إذا كان لديك أي استفسار، تواصل مع فريق الدعم — ContentForge</p>
-      </div>
-    `,
-  });
-}
-
-// ─────────────────────────────────────────────────────────────
-// بيتبعت لما الأدمن يعدل plan أو trial الخاص بـ user
-const planPrices = { free: 'مجانية', pro: '99 جنيه / شهر', enterprise: '299 جنيه / شهر' }
-
-async function sendPlanUpdateByAdminEmail(email, name, plan, isTrial, planEndsAt) {
-  const formattedDate = planEndsAt
-    ? new Date(planEndsAt).toLocaleDateString('ar-EG', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })
-    : '—'
-
-  const planLabel = isTrial ? `تجربة مجانية (${plan})` : plan
-  const price     = planPrices[plan] || '—'
-  const color     = plan === 'pro' ? '#3b82f6' : plan === 'enterprise' ? '#7c3aed' : '#f59e0b'
-
-  await transporter.sendMail({
-    from: process.env.ADMIN_EMAIL,
-    to: email,
-    subject: `تحديث باقتك على ContentForge — ${planLabel}`,
-    html: `
-      <div style="direction:rtl; text-align:right; font-family:sans-serif; max-width:600px; margin:0 auto; padding:24px; border:1px solid #e1e8ed; border-radius:12px;">
-        <h2 style="color:${color};">تحديث على حسابك في ContentForge</h2>
-        <p>مرحباً ${name}،</p>
-        <p>تم تحديث باقتك من قِبل الإدارة، وفيما يلي تفاصيل حسابك الجديدة:</p>
-
-        <div style="background:#f8fafc; padding:16px; border-radius:8px; margin:16px 0; border-right:4px solid ${color};">
-          <p style="margin:0 0 8px;"><strong>الباقة:</strong> ${planLabel}</p>
-          <p style="margin:0 0 8px;"><strong>السعر:</strong> ${price}</p>
-          <p style="margin:0;"><strong>تاريخ الانتهاء:</strong> ${formattedDate}</p>
-        </div>
-
-        ${isTrial ? `<p style="color:#d97706;">⚠️ هذه فترة تجريبية مجانية — قم بالترقية قبل انتهائها للاستمرار في استخدام المنصة.</p>` : ''}
-
-        <a href="${process.env.CLIENT_URL || '#'}/dashboard" 
-          style="display:inline-block; margin-top:8px; padding:10px 24px; background:${color}; color:white; border-radius:8px; text-decoration:none; font-weight:bold;">
-          الذهاب للوحة التحكم
-        </a>
-
-        <p style="font-size:12px; color:#718096; margin-top:20px;">إذا كان لديك أي استفسار، تواصل مع فريق الدعم — ContentForge</p>
-      </div>
-    `,
-  });
-}
-
 module.exports = {
   sendVerificationEmail,
   sendPolicyWarningEmail,
   sendDeletionRequestEmail,
   sendTrialUpdateEmail,
   sendTrialExpiryWarningEmail,
-  sendContactNotificationEmail,
-  sendContactAutoReply,
-  sendContactReplyEmail,
-  sendScheduledPostTomorrowEmail,
-  sendScheduledPostReminderEmail,
-  sendAdminPromotionEmail,
-  sendPlanUpdateByAdminEmail,
+  sendContactNotificationEmail,   // ✅
+  sendContactAutoReply,           // ✅
+  sendContactReplyEmail, 
+  sendScheduledPostTomorrowEmail, // ✅
+  sendScheduledPostReminderEmail, // ✅
   transporter,
 };

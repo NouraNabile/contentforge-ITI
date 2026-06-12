@@ -3,7 +3,7 @@ const express   = require('express')
 const router    = express.Router()
 const adminOnly = require('../middleware/adminAuth') // تأكدي من مسارك الصحيح
 const { User, Post, Brand, Trend, PlatformSettings } = require('../models')
-const { sendPolicyWarningEmail, sendPlanUpdateByEmail } = require('../services/emailService')
+const { sendPolicyWarningEmail, sendTrialUpdateEmail } = require('../services/emailService')
 
 // ── GET /api/admin/stats ──────────────────────────────────────────────────────
 router.get('/stats', adminOnly, async (req, res) => {
@@ -33,7 +33,7 @@ router.get('/stats', adminOnly, async (req, res) => {
     })
 
     // الـ Expired: plan انتهى ومش admin
-    const expiredCount         = await User.countDocuments({ ...realUsers, planEndsAt: { $lte: now } })
+    const expiredCount         = await User.countDocuments({ ...realUsers, planEndsAt: { $lte: now, $ne: null } })
 
     // الـ Trial النشط: free plan + planEndsAt لسه جاي (بغض النظر عن isTrial flag)
     const activeTrialUsers     = await User.countDocuments({ ...realUsers, plan: 'free', planEndsAt: { $gt: now } })
@@ -196,40 +196,26 @@ router.put('/users/:id/block', adminOnly, async (req, res) => {
     res.status(500).json({ message: 'Server error', error: err.message });
   }
 });
-// ── PUT /api/admin/users/:id ───────────────────────────────────────────────
-// router.put('/users/:id', adminOnly, async (req, res) => {
-//   try {
-//     const { plan, isTrial, planEndsAt, isVerified, isAdmin, subscriptionType , startDate } = req.body
 
-//     const targetUser = await User.findById(req.params.id)
-//     if (!targetUser) return res.status(404).json({ message: 'User not found' })
-
-//     const updateData = { isVerified, isAdmin, subscriptionType }
-
-// // لو هو admin حالياً أو هيبقى admin بعد التعديل
-// if (targetUser.isAdmin || isAdmin === true) {
-//   updateData.plan           = 'enterprise' // الأدمن دايماً على باقة الـ enterprise
-//   updateData.isTrial        = false
-//   updateData.planEndsAt     = null
-//   updateData.subscriptionType = 'none'
-// } else {
-//   updateData.plan       = plan
-//   updateData.isTrial    = isTrial
-//   updateData.planEndsAt = planEndsAt ?? null
-// }
-
-//     const user = await User.findByIdAndUpdate(
-//       req.params.id,
-//       updateData,
-//       { new: true, select: '-password' }
-//     )
-
-//     res.json({ user })
-//   } catch (err) {
-//     console.error("=== خطأ في تعديل المستخدم ===", err.message)
-//     res.status(500).json({ message: 'Server error', error: err.message })
-//   }
-// })
+// ── PUT /api/admin/users/:id ──────────────────────────────────────────────────
+router.put('/users/:id', adminOnly, async (req, res) => {
+  try {
+    // التعديل: استبدال الحقول القديمة بالـ الموحدة الجديدة كلياً
+    const { plan, isTrial, planEndsAt, isVerified, isAdmin, subscriptionType } = req.body
+    
+    const user = await User.findByIdAndUpdate(
+      req.params.id,
+      { plan, isTrial, planEndsAt, isVerified, isAdmin, subscriptionType }, 
+      { new: true, select: '-password' }
+    )
+    
+    if (!user) return res.status(404).json({ message: 'User not found' })
+    res.json({ user })
+  } catch (err) {
+    console.error("=== خطأ في تعديل المستخدم ===", err.message)
+    res.status(500).json({ message: 'Server error', error: err.message })
+  }
+})
 
 // ── DELETE /api/admin/users/:id ───────────────────────────────────────────────
 router.delete('/users/:id', adminOnly, async (req, res) => {
@@ -256,12 +242,12 @@ router.get('/plans', adminOnly, async (req, res) => {
       User.countDocuments({ isAdmin: { $ne: true }, planEndsAt: { $lt: now }, 'deletionRequest.isDeleted': { $ne: true } })
     ])
 
-    // كل الـ free users (active + expired) عشان الـ frontend يفلتر
+    // كل الـ users (كل الـ plans) عشان الـ frontend يفلتر بـ active/expired
     const trialUsersList = await User.find({ 
         isAdmin: { $ne: true },
         'deletionRequest.isDeleted': { $ne: true }
       })
-      .select('name email plan planEndsAt isTrial isBlocked createdAt')
+      .select('name email plan subscriptionType planEndsAt isTrial isBlocked createdAt')
       .sort({ planEndsAt: -1 })
       .limit(100)
 
@@ -350,63 +336,5 @@ router.put('/settings/trial-days', adminOnly, async (req, res) => {
     res.status(500).json({ message: err.message })
   }
 })
-// ── PUT /api/admin/users/:id/approve-edit ───────────────────────────────
-// ── PUT /api/admin/users/:id ───────────────────────────────────────────────
-router.put('/api/admin/users/:id/approve-edit', adminOnly, async (req, res) => {
-  try {
-    const { plan, planEndsAt, isVerified, isAdmin, subscriptionType, startDate, isTrial } = req.body;
 
-    const targetUser = await User.findById(req.params.id);
-    if (!targetUser) return res.status(404).json({ message: 'User not found' });
-
-    const updateData = { isVerified, isAdmin, subscriptionType };
-
-    if (!isAdmin) {
-      updateData.plan = plan;
-      updateData.isTrial = (plan === 'free') ? true : (isTrial ?? false);
-      updateData.startDate = startDate;
-
-      // حساب تاريخ الانتهاء تلقائياً
-      if (plan !== 'free' && startDate && subscriptionType) {
-        const start = new Date(startDate);
-        const newEnd = new Date(start);
-        
-        if (subscriptionType === 'monthly') {
-          newEnd.setMonth(newEnd.getMonth() + 1);
-        } else if (subscriptionType === 'yearly') {
-          newEnd.setFullYear(newEnd.getFullYear() + 1);
-        }
-        updateData.planEndsAt = newEnd;
-      } else {
-        updateData.planEndsAt = planEndsAt ?? null;
-      }
-    } else {
-      updateData.planEndsAt = null;
-      updateData.isTrial = false;
-    }
-
-    // 1. تحديث البيانات أولاً
-    const user = await User.findByIdAndUpdate(
-      req.params.id,
-      updateData,
-      { new: true, select: '-password' }
-    );
-
-    // 2. إرسال الإيميل بعد التأكد من وجود المستخدم وبعد الحفظ
-    if (!isAdmin && plan) {
-      sendPlanUpdateByEmail(
-        user.email,
-        user.name,
-        user.plan,
-        user.isTrial,
-        user.planEndsAt
-      ).catch(err => console.error('[Email] Plan update error:', err.message));
-    }
-
-    res.json({ user });
-  } catch (err) {
-    console.error("=== خطأ في تعديل المستخدم ===", err.message);
-    res.status(500).json({ message: 'Server error', error: err.message });
-  }
-});
-module.exports = router;
+module.exports = router

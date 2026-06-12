@@ -13,7 +13,7 @@ async function seedDB() {
   try {
     // 1. الاتصال بقاعدة البيانات (تم الحفاظ على الـ URI الخاص بكِ)
     await mongoose.connect(
-      "mongodb://abdoaeed48_db_user:sA8q0oeYNkcqM0bj@ac-gg0zisk-shard-00-00.fse77ao.mongodb.net:27017,ac-gg0zisk-shard-00-01.fse77ao.mongodb.net:27017,ac-gg0zisk-shard-00-02.fse77ao.mongodb.net:27017/?ssl=true&replicaSet=atlas-qxmfxf-shard-0&authSource=admin&appName=Cluster0",
+      "mongodb://Noura:jnkZSqcX2bJ3LLitit2026@ac-vmdhgeq-shard-00-00.diacuvs.mongodb.net:27017,ac-vmdhgeq-shard-00-01.diacuvs.mongodb.net:27017,ac-vmdhgeq-shard-00-02.diacuvs.mongodb.net:27017/?ssl=true&replicaSet=atlas-usupgm-shard-0&authSource=admin&appName=Cluster0",
     );
     console.log('🔌 Connected to MongoDB successfully...');
 
@@ -62,7 +62,7 @@ async function seedDB() {
       isVerified: true,
       phone: '+201000000000',
       isTrial: false,
-      planEndsAt: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000), // سنة كاملة
+      planEndsAt: null, // الأدمن مش بيحتاج تاريخ انتهاء
       hasUsedTrial: true,
       isAdmin: true,
     });

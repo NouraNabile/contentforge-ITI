@@ -329,7 +329,7 @@ import { useI18n } from 'vue-i18n'
 import { useTheme } from '../../composables/useTheme.js'
 import adminApi from '../../api/adminApi'
 
-const { t } = useI18n()
+const { t, locale } = useI18n()
 const { isDark } = useTheme()
 
 const loading = ref(true)
@@ -411,9 +411,11 @@ function obfuscate(email) {
 function planLabel(u) {
   if (u.isTrial) {
     const days = Math.ceil((new Date(u.planEndsAt) - Date.now()) / 86400000)
-    return days > 0 ? `${t('admin.trial')} (${days}${t('admin.daysLeft')})` : t('admin.trialExpired')
+    return days > 0 
+      ? `${t('admin.trial')} (${t('admin.plans.daysLeft', { days })})` 
+      : t('admin.trialExpired')
   }
-  return u.plan || 'free'
+  return u.plan ? t(`auth.plan.${u.plan}`) : t('auth.plan.free')
 }
 
 function planClass(u) {
@@ -424,7 +426,8 @@ function planClass(u) {
 }
 
 function formatDate(d) {
-  return d ? new Date(d).toLocaleDateString('en-GB', { day: '2-digit', month: 'short' }) : '—'
+  const dateLocale = locale.value === 'ar' ? 'ar-EG' : 'en-GB'
+  return d ? new Date(d).toLocaleDateString(dateLocale, { day: '2-digit', month: 'short' }) : '—'
 }
 
 async function submitBlockWarning() {

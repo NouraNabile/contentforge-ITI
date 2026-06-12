@@ -270,7 +270,7 @@
                <!-- /////اضافة تاريخ الانضمام نوران -->
             <div>
               <label class="text-xs font-medium mb-1.5 block" :class="isDark ? 'text-slate-400' : 'text-slate-600'">
-    StartDate
+    {{ t('admin.usersPage.startDate') }}
   </label>
   <input 
     type="date" 
@@ -282,7 +282,7 @@
 </div>
 <div> 
   <label class="text-xs font-medium mb-1.5 block" :class="isDark ? 'text-slate-400' : 'text-slate-600'">
-    Subscription Type
+    {{ t('admin.usersPage.subscriptionType') }}
   </label>
   <div class="flex items-center gap-4">
     <label class="flex items-center gap-2 cursor-pointer">
@@ -549,7 +549,7 @@ async function saveEdit() {
 
   // التحقق من startDate
   if (editForm.value.startDate && new Date(editForm.value.startDate) < todayDate) {
-    alert("عذراً، تاريخ البدء لا يمكن أن يكون في الماضي.");
+    alert(t('admin.usersPage.startDatePastError'));
     return;
   }
 
@@ -579,7 +579,7 @@ async function saveEdit() {
     if (idx !== -1) users.value[idx] = { ...users.value[idx], ...updated.user };
     editUser.value = null;
   } catch (error) {
-    alert("حدث خطأ أثناء الحفظ.");
+    alert(t('admin.usersPage.saveError'));
   } finally {
     saving.value = false;
   }

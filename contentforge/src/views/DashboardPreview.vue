@@ -458,17 +458,16 @@
                   </p>
                   <div v-if="variantB" class="space-y-3 mb-5">
                     <div v-if="variantB.copyAR" class="p-4 rounded-xl theme-card theme-border">
-                      <p class="text-[10px] text-amber-400/70 mb-2 uppercase tracking-wider">
-                        Variant B — Arabic
-                      </p>
+                      <p class="text-[10px] text-amber-400/70 mb-2 uppercase tracking-wider">{{
+                        t("dashboard.variantBArabic") }}</p>
+
                       <p class="text-sm theme-text leading-relaxed text-right font-arabic" dir="rtl">
                         {{ variantB.copyAR }}
                       </p>
                     </div>
                     <div v-if="variantB.copyEN" class="p-4 rounded-xl theme-card theme-border">
-                      <p class="text-[10px] text-amber-400/70 mb-2 uppercase tracking-wider">
-                        Variant B — English
-                      </p>
+                      <p class="text-[10px] text-amber-400/70 mb-2 uppercase tracking-wider">{{
+                        t("dashboard.variantBEnglish") }}</p>
                       <p class="text-sm theme-text leading-relaxed">
                         {{ variantB.copyEN }}
                       </p>
@@ -608,10 +607,10 @@
                     </svg>
                     {{
                       publishing
-                        ? "Publishing..."
+                        ? t("dashboard.publishing")
                         : selectedPost?.status === "published"
-                          ? "✓ Published"
-                          : "🚀 Publish"
+                          ? t("dashboard.published")
+                          : t("dashboard.publish")
                     }}
                   </button>
                 </div>
@@ -861,7 +860,7 @@
 
           <!-- English Copy -->
           <div>
-            <label class="text-xs theme-sub mb-1.5 block">{{ t("dashboard.editPost") }} (EN)</label>
+            <label class="text-xs theme-sub mb-1.5 block">{{ t("dashboard.editPostEN") }}</label>
             <textarea v-model="newPost.copyEN" rows="2"
               class="w-full theme-input rounded-xl p-3 text-sm theme-text border focus:outline-none focus:border-blue-500/40 resize-none"
               style="border-color: var(--border)"></textarea>
@@ -889,9 +888,7 @@
 
           <!-- Status -->
           <div>
-            <label class="text-xs theme-sub mb-1.5 block">{{
-              t("dashboard.statusName")
-            }}</label>
+            <label class="text-xs theme-sub mb-1.5 block">{{ t("dashboard.status") }}</label>
             <div class="flex gap-2 flex-wrap">
               <button v-for="s in statuses" :key="s.value" @click="newPost.status = s.value"
                 class="px-3 py-1.5 rounded-lg text-xs border transition-all" :class="newPost.status === s.value
@@ -936,23 +933,23 @@
                 ⚠️
               </div>
               <div>
-                <h3 class="font-semibold theme-text text-sm">Wrong publish date</h3>
-                <p class="text-xs theme-sub mt-0.5">This post is scheduled for a different day</p>
+                <h3 class="font-semibold theme-text text-sm">{{ t("dashboard.wrongPublishDate") }}</h3>
+                <p class="text-xs theme-sub mt-0.5">{{ t("dashboard.scheduledDifferentDay") }}</p>
               </div>
             </div>
             <p class="text-sm theme-sub leading-relaxed">
-              This post is scheduled for
+              {{ t("dashboard.postScheduledFor") }}
               <span class="text-amber-400 font-medium">{{ publishConfirmDate }}</span>.
-              Do you still want to publish it today?
+              {{ t("dashboard.publishTodayConfirm") }}
             </p>
             <div class="flex gap-3 pt-1">
               <button @click="cancelPublish"
                 class="flex-1 py-2.5 rounded-xl theme-card theme-border theme-sub text-sm hover:theme-text transition-colors">
-                Cancel
+                {{ t("common.cancel") }}
               </button>
               <button @click="confirmPublishAnyway"
                 class="flex-1 py-2.5 rounded-xl bg-amber-500 text-white text-sm font-medium hover:bg-amber-400 transition-colors">
-                Publish Anyway
+                {{ t("dashboard.publishAnyway") }}
               </button>
             </div>
           </div>

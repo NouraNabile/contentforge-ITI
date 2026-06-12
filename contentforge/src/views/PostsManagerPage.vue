@@ -475,7 +475,7 @@
               type="text"
               class="w-full theme-input rounded-xl px-3 py-2.5 text-sm theme-text border focus:outline-none focus:border-blue-500/50"
               style="border-color: var(--border)"
-              :placeholder="t('posts.hashtagsPlaceholder')"
+              placeholder="#hashtag1 #hashtag2"
             />
           </div>
 

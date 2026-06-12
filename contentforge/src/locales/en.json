@@ -997,9 +997,11 @@
       "Instagram": "Instagram",
       "Facebook": "Facebook",
       "LinkedIn": "LinkedIn",
+      "Twitter/X": "Twitter/X",
       "TwitterX": "Twitter/X",
       "TikTok": "TikTok"
     },
+    
     "status": {
       "Draft": "Draft",
       "Pending": "Pending",
@@ -1168,7 +1170,8 @@
       "invalidType": "Invalid file type. Please use JPEG, PNG, or WebP.",
       "fileTooLarge": "File too large. Maximum size is 10MB.",
       "generationFailed": "Generation failed",
-      "generate": "Failed to generate poster. Please try again."
+      "generate": "Failed to generate poster. Please try again.",
+      "download": "Failed to download the image. Please try again."
     }
   },
   "publish": {

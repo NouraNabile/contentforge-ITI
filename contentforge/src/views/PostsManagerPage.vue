@@ -168,11 +168,11 @@
                   <!-- Meta row -->
                   <div class="flex items-center gap-2 mb-2 flex-wrap">
                     <span
-                      class="text-[10px] px-2 py-0.5 rounded-full font-medium"
-                      :class="platformClass(post.platform)"
-                    >
-                      {{ post.platform }}
-                    </span>
+  class="text-[10px] px-2 py-0.5 rounded-full font-medium"
+  :class="platformClass(post.platform)"
+>
+  {{ t(`posts.platform.${post.platform}`, post.platform) }}
+</span>
                     <span
                       class="text-[10px] px-2 py-0.5 rounded-full theme-card theme-border theme-muted"
                     >
@@ -389,11 +389,11 @@
           <!-- Status badge -->
           <div class="flex items-center gap-2">
             <span
-              class="text-[10px] px-2 py-0.5 rounded-full font-medium"
-              :class="platformClass(editingPost.platform)"
-            >
-              {{ editingPost.platform }}
-            </span>
+  class="text-[10px] px-2 py-0.5 rounded-full font-medium"
+  :class="platformClass(editingPost.platform)"
+>
+  {{ t(`posts.platform.${editingPost.platform}`, editingPost.platform) }}
+</span>
             <span
               class="text-[10px] px-2 py-0.5 rounded-full font-medium"
               :class="statusClass(editingPost.status)"

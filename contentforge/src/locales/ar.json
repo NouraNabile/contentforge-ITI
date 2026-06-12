@@ -359,6 +359,7 @@
     }
   },
   "dashboard": {
+    "addPostTitle": "إضافة منشور جديد",
     "addPostHashtagHint": "افصل بين الوسوم بمسافات",
     "variantBArabic": "النسخة B — العربية",
     "variantBEnglish": "النسخة B — الإنجليزية",
@@ -754,6 +755,7 @@
     }
   },
   "pricing": {
+    "tryNow": "جرب الآن",
     "eyebrow": "الأسعار",
     "heading": "أسعار بسيطة لـ",
     "headingAccent": "فرق التسويق العربية",
@@ -798,7 +800,7 @@
     }
   },
   "navbar": {
-    "getStarted": "ابدأ مجاناً",
+    "getStarted": "تسجيل الدخول",
     "links": {
       "features": "المميزات",
       "howItWorks": "كيف يعمل",

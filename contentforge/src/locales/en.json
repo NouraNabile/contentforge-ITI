@@ -381,6 +381,7 @@
     }
   },
   "dashboard": {
+    "addPostTitle": "Add New Post",
     "addPostHashtagHint": "Separate hashtags with spaces",
     "variantBArabic": "Variant B — Arabic",
     "variantBEnglish": "Variant B — English",
@@ -756,6 +757,7 @@
     }
   },
   "pricing": {
+    "tryNow": "Try Now",
     "eyebrow": "Pricing",
     "heading": "Simple pricing for",
     "headingAccent": "Arab marketing teams",
@@ -800,7 +802,7 @@
     }
   },
   "navbar": {
-    "getStarted": "Get Started Free",
+    "getStarted": "Login",
     "links": {
       "features": "Features",
       "howItWorks": "How it Works",

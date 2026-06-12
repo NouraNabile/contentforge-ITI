@@ -49,14 +49,10 @@
           <p class="text-sm sm:text-base theme-muted leading-relaxed max-w-sm mx-auto">{{ t('payment.cancelMsg') }}</p>
         </div>        
 
-        <div class="flex flex-col sm:flex-row gap-3">
-          <button @click="router.push('/payment')"
-            class="flex-1 px-6 py-3 rounded-xl bg-blue-600 text-white text-sm font-semibold hover:bg-blue-500 transition-colors">
-            {{ t('payment.tryAgain') }}
-          </button>
-          <button @click="router.push('/dashboard')"
-            class="flex-1 px-6 py-3 rounded-xl theme-bg theme-border theme-sub text-sm font-medium hover:theme-text transition-colors">
-            {{ t('payment.goToDashboard') }}
+        <div class="flex flex-col">
+          <button @click="goBack"
+            class="w-full px-6 py-3 rounded-xl bg-blue-600 text-white text-sm font-semibold hover:bg-blue-500 transition-colors shadow-lg shadow-blue-600/20">
+            {{ t('common.back') || 'Back' }}
           </button>
         </div>
 
@@ -82,4 +78,14 @@ const { t, locale } = useI18n()
 const router        = useRouter()
 const { switchLang } = useLang()
 const { isDark, toggle: toggleTheme } = useTheme()
+
+// Navigates backward in history to jump completely over the Stripe session link
+const goBack = () => {
+  if (window.history.length > 2) {
+    window.history.go(-2)
+  } else {
+    // Fail-safe in case session history is missing/wiped
+    router.push('/dashboard') 
+  }
+}
 </script>

@@ -189,8 +189,9 @@
     }
   },
   "drafts": {
+
+    "subtitle": "{count} posts pending review or approval",
     "title": "Drafts",
-    "subtitle": "Posts pending review or approval",
     "empty": "No drafts yet",
     "emptyHint": "Generated posts that haven't been approved will appear here.",
     "filterAll": "All",
@@ -300,7 +301,8 @@
     "search": "Search",
     "noResults": "No results found",
     "saving": "Saving...",
-    "updating": "Updating..."
+    "updating": "Updating...",
+    "done" : "Done"
   },
   "connections": {
     "title": "Connections",
@@ -380,6 +382,7 @@
     }
   },
   "dashboard": {
+    "addPostTitle": "Add New Post",
     "addPostHashtagHint": "Separate hashtags with spaces",
     "variantBArabic": "Variant B — Arabic",
     "variantBEnglish": "Variant B — English",
@@ -755,6 +758,7 @@
     }
   },
   "pricing": {
+    "tryNow": "Try Now",
     "eyebrow": "Pricing",
     "heading": "Simple pricing for",
     "headingAccent": "Arab marketing teams",
@@ -771,7 +775,7 @@
       "free": {
         "name": "Free",
         "tagline": "Explore the essential capabilities of our platform",
-        "cta": "Get Started Free",
+        "cta": "Try Now",
         "f1": "AI image generation for up to 3 posts",
         "f2": "Standard feature set (Top Posts excluded)",
         "f3": "Core Arabic dialects support",
@@ -780,7 +784,7 @@
       "pro": {
         "name": "Pro",
         "tagline": "Perfect for growing creators and marketing teams",
-        "cta": "Start Premium Trial",
+        "cta": "Try Now",
         "f1": "Generate 1 tailored image per post",
         "f2": "Advanced Top Posts performance analytics",
         "f3": "Expanded multi-dialect Arabic support",
@@ -789,7 +793,7 @@
       "enterprise": {
         "name": "Enterprise",
         "tagline": "Maximum production value and custom toolsets for scale",
-        "cta": "Contact Sales",
+        "cta": "Try Now",
         "f1": "Generate multiple AI images per post",
         "f2": "Advanced Top Posts performance analytics",
         "f3": "Comprehensive Arabic dialect coverage",
@@ -799,7 +803,7 @@
     }
   },
   "navbar": {
-    "getStarted": "Get Started Free",
+    "getStarted": "Get Started",
     "links": {
       "features": "Features",
       "howItWorks": "How it Works",
@@ -996,9 +1000,11 @@
       "Instagram": "Instagram",
       "Facebook": "Facebook",
       "LinkedIn": "LinkedIn",
+      "Twitter/X": "Twitter/X",
       "TwitterX": "Twitter/X",
       "TikTok": "TikTok"
     },
+    
     "status": {
       "Draft": "Draft",
       "Pending": "Pending",
@@ -1167,7 +1173,8 @@
       "invalidType": "Invalid file type. Please use JPEG, PNG, or WebP.",
       "fileTooLarge": "File too large. Maximum size is 10MB.",
       "generationFailed": "Generation failed",
-      "generate": "Failed to generate poster. Please try again."
+      "generate": "Failed to generate poster. Please try again.",
+      "download": "Failed to download the image. Please try again."
     }
   },
   "publish": {
@@ -1184,6 +1191,8 @@
     "errorMessage": "Failed to publish"
   },
   "profile": {
+    "defaultUser": "User",
+    "freePlan": "Free Plan",
     "title": "My Profile",
     "subtitle": "Manage your account information and security settings.",
     "activeAccount": "Active Account",

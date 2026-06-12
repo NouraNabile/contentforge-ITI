@@ -357,7 +357,7 @@ async function downloadPoster() {
     window.URL.revokeObjectURL(url);
   } catch (err) {
     console.error("[PosterGenerator] Download failed:", err);
-    error.value = "فشل في تحميل الصورة. حاول مرة أخرى.";
+   error.value = t('poster.error.download');
   }
 }
 

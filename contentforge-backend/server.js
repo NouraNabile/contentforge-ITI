@@ -21,7 +21,9 @@ const {
   sendScheduledPostTomorrowEmail,
 } = require("./services/emailService");
 const contactRouter = require("./routes/contact");
-
+// ---------------------------------
+const passport = require('passport');
+require('./config/passport'); // استدعاء ملف الإعدادات
 // السكريبت ده هيشتغل تلقائياً لوحده كل يوم الساعة 12 بالليل بتوقيت السيرفر
 cron.schedule('0 0 * * *', () => {
   console.log('⏰ جاري تشغيل فحص انتهاء فترات التجربة للمستخدمين...');
@@ -186,6 +188,7 @@ app.use("/api/posts", require("./routes/posts"));
 app.use("/api/trends", require("./routes/trends"));
 app.use("/api/chat", chatRoutes);
 app.use("/api/admin", require("./routes/admin"));
+// app.use("/", require("./routes/admin"));
 app.use("/api/stats", require("./routes/stats"));
 app.use("/api/connections", require("./routes/connections"));
 app.use("/api/payment", require("./routes/payment"));
@@ -198,7 +201,8 @@ app.use(
   "/uploads/generated",
   express.static(path.join(__dirname, "uploads", "generated")),
 );
-
+app.use(passport.initialize());
+app.use('/api/auth', require('./routes/auth'));
 // ── Health check — frontend pings this to check if server is up ───────────────
 app.get("/api/health", (req, res) => {
   res.json({

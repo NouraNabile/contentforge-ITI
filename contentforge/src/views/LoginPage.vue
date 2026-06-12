@@ -40,7 +40,7 @@
         <p class="left-footer">{{ t('auth.copyright') }}</p>
       </div>
     </div>
-
+    <!-- <a href="http://localhost:3000/api/auth/google">سجل دخولك عبر جوجل</a> -->
     <!-- Right panel -->
     <div class="login-right">
 
@@ -397,7 +397,7 @@
             </button>
           </p>
         </div>
-
+<a href="http://localhost:3000/api/auth/google">سجل دخولك عبر جوجل</a>
       </div>
     </div>
 

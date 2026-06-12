@@ -3,7 +3,7 @@ const express   = require('express')
 const router    = express.Router()
 const adminOnly = require('../middleware/adminAuth') // تأكدي من مسارك الصحيح
 const { User, Post, Brand, Trend, PlatformSettings } = require('../models')
-const { sendPolicyWarningEmail, sendPlanUpdateByEmail } = require('../services/emailService')
+const { sendPolicyWarningEmail, sendAdminPromotionEmail, sendPlanUpdateByEmail } = require('../services/emailService');
 
 // ── GET /api/admin/stats ──────────────────────────────────────────────────────
 router.get('/stats', adminOnly, async (req, res) => {
@@ -351,10 +351,77 @@ router.put('/settings/trial-days', adminOnly, async (req, res) => {
   }
 })
 // ── PUT /api/admin/users/:id/approve-edit ───────────────────────────────
-// ── PUT /api/admin/users/:id ───────────────────────────────────────────────
-router.put('/api/admin/users/:id/approve-edit', adminOnly, async (req, res) => {
+// router.put('/users/:id', adminOnly, async (req, res) => {
+//   try {
+//     const { plan, planEndsAt, isVerified, isAdmin, subscriptionType, startDate, isTrial } = req.body;
+
+//     const settings = await PlatformSettings.findOne();
+//     const defaultTrialDays = settings?.trialDays || 14; 
+
+//     const targetUser = await User.findById(req.params.id);
+//     if (!targetUser) return res.status(404).json({ message: 'User not found' });
+
+//     const updateData = { isVerified, isAdmin, subscriptionType };
+
+//     if (!isAdmin) {
+//       updateData.plan = plan;
+//       updateData.isTrial = (plan === 'free') ? true : (isTrial ?? false);
+//       updateData.startDate = startDate;
+
+//       if (plan !== 'free' && startDate && subscriptionType) {
+//         // منطق الباقات المدفوعة
+//         const start = new Date(startDate);
+//         const newEnd = new Date(start);
+        
+//         if (subscriptionType === 'monthly') {
+//           newEnd.setMonth(newEnd.getMonth() + 1);
+//         } else if (subscriptionType === 'yearly') {
+//           newEnd.setFullYear(newEnd.getFullYear() + 1);
+//         }
+//         updateData.planEndsAt = newEnd;
+//       } else {
+//         // منطق الباقة المجانية (Free) أو في حال غياب البيانات
+//         const start = new Date(startDate || Date.now());
+//         const newEnd = new Date(start);
+//         newEnd.setDate(newEnd.getDate() + defaultTrialDays);
+//         updateData.planEndsAt = newEnd; 
+//       }
+//     } else {
+//       updateData.planEndsAt = null;
+//       updateData.isTrial = false;
+//     }
+
+//     // بعد تحديث المستخدم:
+// const user = await User.findByIdAndUpdate(req.params.id, updateData, { new: true, select: '-password' });
+
+// // إرسال الإيميل (بدون انتظار الإرسال لكي لا يتأخر رد السيرفر للمستخدم)
+// if (user) {
+//     sendPlanUpdateByEmail(
+//         user.email,
+//         user.name,
+//         user.plan,
+//         user.isTrial,
+//         user.planEndsAt
+//     ).catch(err => console.error('[Email] Error:', err.message));
+// }
+
+// res.json({ user });
+
+//     res.json({ user });
+//   } catch (err) {
+//     console.error("=== خطأ في تعديل المستخدم ===", err.message);
+//     res.status(500).json({ message: 'Server error', error: err.message });
+//   }
+// });
+// 1. التأكد من الاستيراد في أعلى الملف
+
+// 2. داخل مسار التحديث
+router.put('/users/:id', adminOnly, async (req, res) => {
   try {
-    const { plan, planEndsAt, isVerified, isAdmin, subscriptionType, startDate, isTrial } = req.body;
+    const { plan, isVerified, isAdmin, subscriptionType, startDate, isTrial } = req.body;
+
+    const settings = await PlatformSettings.findOne();
+    const defaultTrialDays = settings?.trialDays || 14; 
 
     const targetUser = await User.findById(req.params.id);
     if (!targetUser) return res.status(404).json({ message: 'User not found' });
@@ -366,47 +433,55 @@ router.put('/api/admin/users/:id/approve-edit', adminOnly, async (req, res) => {
       updateData.isTrial = (plan === 'free') ? true : (isTrial ?? false);
       updateData.startDate = startDate;
 
-      // حساب تاريخ الانتهاء تلقائياً
       if (plan !== 'free' && startDate && subscriptionType) {
         const start = new Date(startDate);
         const newEnd = new Date(start);
-        
-        if (subscriptionType === 'monthly') {
-          newEnd.setMonth(newEnd.getMonth() + 1);
-        } else if (subscriptionType === 'yearly') {
-          newEnd.setFullYear(newEnd.getFullYear() + 1);
-        }
+        if (subscriptionType === 'monthly') newEnd.setMonth(newEnd.getMonth() + 1);
+        else if (subscriptionType === 'yearly') newEnd.setFullYear(newEnd.getFullYear() + 1);
         updateData.planEndsAt = newEnd;
       } else {
-        updateData.planEndsAt = planEndsAt ?? null;
+        const start = new Date(startDate || Date.now());
+        const newEnd = new Date(start);
+        newEnd.setDate(newEnd.getDate() + defaultTrialDays);
+        updateData.planEndsAt = newEnd; 
       }
     } else {
       updateData.planEndsAt = null;
       updateData.isTrial = false;
     }
 
-    // 1. تحديث البيانات أولاً
-    const user = await User.findByIdAndUpdate(
-      req.params.id,
-      updateData,
-      { new: true, select: '-password' }
-    );
+    // تحديث المستخدم في قاعدة البيانات
+    const user = await User.findByIdAndUpdate(req.params.id, updateData, { new: true, select: '-password' });
 
-    // 2. إرسال الإيميل بعد التأكد من وجود المستخدم وبعد الحفظ
-    if (!isAdmin && plan) {
-      sendPlanUpdateByEmail(
-        user.email,
-        user.name,
-        user.plan,
-        user.isTrial,
-        user.planEndsAt
-      ).catch(err => console.error('[Email] Plan update error:', err.message));
+    // إرسال الرد للمتصفح (يتم إرساله مرة واحدة فقط)
+    res.json({ user });
+
+    // منطق الإيميل الذكي (يعمل في الخلفية ولا يؤخر رد السيرفر)
+    if (user) {
+        if (user.isAdmin && !targetUser.isAdmin) {
+            // حالة الترقية لـ Admin
+            sendAdminPromotionEmail(user.email, user.name).catch(err => 
+                console.error('[Admin Promotion Email Error]:', err.message)
+            );
+        } else {
+            // حالة تحديث الباقة (لا نرسل إيميل إذا كان مجرد تغيير بسيط غير مؤثر)
+            sendPlanUpdateByEmail(
+                user.email, 
+                user.name, 
+                user.plan, 
+                user.isTrial, 
+                user.planEndsAt
+            ).catch(err => 
+                console.error('[Plan Update Email Error]:', err.message)
+            );
+        }
     }
 
-    res.json({ user });
   } catch (err) {
     console.error("=== خطأ في تعديل المستخدم ===", err.message);
-    res.status(500).json({ message: 'Server error', error: err.message });
+    if (!res.headersSent) {
+      res.status(500).json({ message: 'Server error', error: err.message });
+    }
   }
 });
 module.exports = router;

@@ -523,12 +523,21 @@ function handleBlockAction(u) {
   }
 }
 
-function getRemainingTime(expiry) {
-  if (!expiry) return '24h'
-  const diff = new Date(expiry) - Date.now()
-  if (diff <= 0) return t('admin.usersPage.timeExpired')
-  return t('admin.usersPage.timeRemaining', { hours, mins })
-}
+// في الـ Script الخاص بالـ Vue
+const getRemainingTime = (date) => {
+  if (!date) return "—";
+  
+  const targetDate = new Date(date);
+  const now = new Date();
+  const diff = targetDate - now;
+
+  if (diff <= 0) return "انتهت المدة";
+
+  const hours = Math.floor(diff / (1000 * 60 * 60));
+  const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+
+  return `${hours} H : ${minutes} M`;
+};
 
 function openEdit(u) {
   editUser.value = u

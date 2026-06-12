@@ -292,6 +292,7 @@
     "connecting": "جارٍ الاتصال...",
     "connectConfirm": "تأكيد الربط ✓",
     "comingSoon": "OAuth لـ {name} قادم قريباً!",
+    "comingSoonHeader": "قريباً",
     "connectFailed": "فشل الاتصال بـ {name}. يرجى المحاولة مرة أخرى.",
     "fieldRequired": "يرجى ملء حقل {field}.",
     "modalTitle": "ربط {name}",
@@ -337,6 +338,7 @@
       "emailPlaceholder": "you@email.com",
       "username": "اسم المستخدم",
       "usernamePlaceholder": "@yourhandle",
+      "tiktokUsernamePlaceholder": "@اسم_المستخدم_في_تيك_توك",
       "channelName": "اسم القناة",
       "channelNamePlaceholder": "اسم قناتك"
     },
@@ -553,6 +555,10 @@
     "updating": "جاري التحديث..."
   },
   "branding": {
+    "platformsActive": "نشط",
+    "platformsComingSoon": "قريباً",
+    "soon": "قريباً",
+    "logoSizeError": "يجب أن يكون حجم الشعار أقل من 2MB",
     "title": "خزينة العلامة التجارية",
     "subtitle": "هوية علامتك وصوتها وذاكرتها - محفوظة بشكل دائم في RAG.",
     "saveAndEmbed": "حفظ التغييرات",

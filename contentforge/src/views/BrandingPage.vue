@@ -296,7 +296,7 @@
               <p
                 class="text-[10px] font-semibold text-teal-400 uppercase tracking-wide mb-2"
               >
-                Active
+                {{  t("branding.platformsActive")  }}
               </p>
               <div class="flex flex-wrap gap-2">
                 <button
@@ -324,7 +324,7 @@
               <p
                 class="text-[10px] font-semibold text-slate-500 uppercase tracking-wide mb-2"
               >
-                Coming Soon
+                {{ t("branding.platformsComingSoon") }}
               </p>
               <div class="flex flex-wrap gap-2">
                 <div
@@ -339,7 +339,7 @@
                   {{ t(p.labelKey) }}
                   <span
                     class="text-[9px] bg-slate-500/20 text-slate-400 px-1.5 py-0.5 rounded-full font-semibold"
-                    >Soon</span
+                    >{{ t("branding.soon") }}</span
                   >
                 </div>
               </div>
@@ -1361,7 +1361,7 @@ async function uploadPdf(file) {
     if (!currentBrandId.value) {
       pdfMsg.value = {
         type: "info",
-        text: t("branding.savingBrandFirst") || "Saving brand info first…",
+        text: t("branding.savingBrandFirst"),
       };
       const result = await brandApi.saveBrand(brand.value);
       currentBrandId.value = result.brand._id;
@@ -1389,7 +1389,7 @@ function handleLogo(e) {
   const file = e.target.files[0];
   if (!file) return;
   if (file.size > 2 * 1024 * 1024) {
-    alert("Logo must be under 2MB");
+    alert(t("branding.logoSizeError"));
     e.target.value = "";
     return;
   }

@@ -313,6 +313,7 @@
     "connecting": "Connecting...",
     "connectConfirm": "Connect ✓",
     "comingSoon": "{name} OAuth is coming soon!",
+    "comingSoonHeader": "Coming Soon",
     "connectFailed": "Failed to connect {name}. Please try again.",
     "fieldRequired": "Please fill in the {field} field.",
     "modalTitle": "Connect {name}",
@@ -352,24 +353,17 @@
       "insights": "Insights"
     },
     "fields": {
-      "profileUrl": {
-        "label": "Profile URL",
-        "placeholder": "https://linkedin.com/in/..."
-      },
-      "email": {
-        "label": "Email",
-        "placeholder": "you@email.com"
-      },
-      "username": {
-        "label": "Username",
-        "placeholder": "@yourhandle"
-      },
-      "channelName": {
-        "label": "Channel Name",
-        "placeholder": "Your Channel"
-      }
+      "profileUrl": "Profile URL",
+      "profileUrlPlaceholder": "https://linkedin.com/in/...",
+      "email": "Email",
+      "emailPlaceholder": "you@email.com",
+      "username": "Username",
+      "usernamePlaceholder": "@yourhandle",
+      "tiktokUsernamePlaceholder": "@yourtiktokhandle",
+      "channelName": "Channel Name",
+      "channelNamePlaceholder": "Your Channel"
     },
-    "integrationInDev ": "Integration in development",
+    "integrationInDev  ": "Integration in development",
     "platforms": {
       "instagram": "Instagram",
       "facebook": "Facebook",
@@ -562,6 +556,10 @@
     "scrollHint": "Swipe to compare"
   },
   "branding": {
+    "platformsActive": "Active",
+    "platformsComingSoon": "Coming Soon",
+    "soon": "Soon",
+    "logoSizeError": "Logo must be under 2MB",
     "title": "Brand Vault",
     "subtitle": "Your brand's identity, voice, and memory - stored permanently in RAG.",
     "saveAndEmbed": "Save Changes",

@@ -515,7 +515,7 @@ async function sendMessage() {
       role: "ai",
       time: now(),
       content: t('chat.errorNoResponse'),
-      error: err.message || "Backend offline?",
+      error: err.message || t('chat.errorBackendOffline'),
     });
   } finally {
     isTyping.value = false;

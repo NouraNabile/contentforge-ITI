@@ -11,9 +11,7 @@
 
       <!-- ACTIVE PLATFORMS -->
       <div class="mb-8">
-        <h2
-          class="text-xs font-semibold theme-muted uppercase tracking-wider mb-3"
-        >
+        <h2 class="text-xs font-semibold theme-muted uppercase tracking-wider mb-3">
           {{ t("connections.activePlatforms") }}
         </h2>
         <div class="grid md:grid-cols-2 gap-4">
@@ -43,15 +41,11 @@
                 <div class="flex items-center gap-1.5">
                   <div
                     class="w-1.5 h-1.5 rounded-full"
-                    :class="
-                      platform.connected ? 'bg-green-400' : 'bg-slate-600'
-                    "
+                    :class="platform.connected ? 'bg-green-400' : 'bg-slate-600'"
                   ></div>
                   <span
                     class="text-[11px]"
-                    :class="
-                      platform.connected ? 'text-green-400' : 'theme-muted'
-                    "
+                    :class="platform.connected ? 'text-green-400' : 'theme-muted'"
                   >
                     {{
                       platform.connected
@@ -96,9 +90,8 @@
                 <div>
                   <p class="text-sm font-semibold theme-text">
                     {{
-                      platformStats[
-                        platform.name
-                      ]?.followers?.toLocaleString() ?? "—"
+                      platformStats[platform.name]?.followers?.toLocaleString() ??
+                      "—"
                     }}
                   </p>
                   <p class="text-[10px] theme-muted">
@@ -108,23 +101,19 @@
                 <div>
                   <p class="text-sm font-semibold theme-text">
                     {{
-                      platformStats[
-                        platform.name
-                      ]?.totalPosts?.toLocaleString() ?? "—"
+                      platformStats[platform.name]?.totalPosts?.toLocaleString() ??
+                      "—"
                     }}
                   </p>
                   <p class="text-[10px] theme-muted">
                     {{ t("connections.posts") }}
                   </p>
                 </div>
-                <div
-                  v-if="platformStats[platform.name]?.following !== undefined"
-                >
+                <div v-if="platformStats[platform.name]?.following !== undefined">
                   <p class="text-sm font-semibold theme-text">
                     {{
-                      platformStats[
-                        platform.name
-                      ]?.following?.toLocaleString() ?? "—"
+                      platformStats[platform.name]?.following?.toLocaleString() ??
+                      "—"
                     }}
                   </p>
                   <p class="text-[10px] theme-muted">
@@ -134,8 +123,7 @@
                 <div v-if="platformStats[platform.name]?.likes !== undefined">
                   <p class="text-sm font-semibold theme-text">
                     {{
-                      platformStats[platform.name]?.likes?.toLocaleString() ??
-                      "—"
+                      platformStats[platform.name]?.likes?.toLocaleString() ?? "—"
                     }}
                   </p>
                   <p class="text-[10px] theme-muted">
@@ -145,8 +133,7 @@
                 <div v-if="platformStats[platform.name]?.reach !== undefined">
                   <p class="text-sm font-semibold theme-text">
                     {{
-                      platformStats[platform.name]?.reach?.toLocaleString() ??
-                      "—"
+                      platformStats[platform.name]?.reach?.toLocaleString() ?? "—"
                     }}
                   </p>
                   <p class="text-[10px] theme-muted">
@@ -175,10 +162,8 @@
 
       <!-- COMING SOON -->
       <div>
-        <h2
-          class="text-xs font-semibold theme-muted uppercase tracking-wider mb-3"
-        >
-          {{ t("connections.comingSoon") }}
+        <h2 class="text-xs font-semibold theme-muted uppercase tracking-wider mb-3">
+          {{ t("connections.comingSoonHeader") }}
         </h2>
         <div class="grid grid-cols-2 md:grid-cols-2 gap-4">
           <div
@@ -237,7 +222,7 @@
                 <p class="font-medium theme-text text-sm">
                   {{
                     t("connections.modalTitle", {
-                      name: t(activePlatform?.nameKey ?? ""),
+                      name: t(activePlatform?.nameKey ?? " "),
                     })
                   }}
                 </p>
@@ -255,10 +240,7 @@
           </div>
 
           <!-- Dynamic Form Fields -->
-          <div
-            class="flex flex-col gap-3 overflow-y-auto"
-            style="max-height: 55vh"
-          >
+          <div class="flex flex-col gap-3 overflow-y-auto" style="max-height: 55vh">
             <div v-for="field in currentFields" :key="field.key">
               <label class="text-xs theme-sub mb-1.5 block">{{
                 t(field.labelKey)
@@ -274,10 +256,7 @@
           </div>
 
           <!-- Modal Actions -->
-          <div
-            class="flex gap-3 pt-2 border-t"
-            style="border-color: var(--border)"
-          >
+          <div class="flex gap-3 pt-2 border-t" style="border-color: var(--border)">
             <button
               @click="closeModal"
               :disabled="isSubmitting"
@@ -285,7 +264,7 @@
             >
               {{ t("common.cancel") }}
             </button>
-            <button
+B            <button
               @click="submitForm"
               :disabled="isSubmitting"
               class="flex-1 py-2.5 rounded-xl bg-blue-600 text-white text-sm font-medium hover:bg-blue-500 transition-all disabled:opacity-70 flex items-center justify-center gap-2"

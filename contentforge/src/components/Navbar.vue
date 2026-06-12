@@ -115,7 +115,7 @@
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                   d="M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18zm0 0c-4.97 0-9-4.03-9-9m9 9c4.97 0 9-4.03 9-9M3 12h18M12 3c-2.5 2.5-4 5.5-4 9s1.5 6.5 4 9M12 3c2.5 2.5 4 5.5 4 9s-1.5 6.5-4 9" />
               </svg>
-              {{ t('navbar.links.language') || (locale === 'en' ? 'Language' : 'اللغة') }}
+              {{ t('navbar.links.language') }}
             </span>
             <span class="text-xs font-medium px-2 py-0.5 rounded-md"
               :class="isDark ? 'bg-white/5 text-slate-300' : 'bg-slate-100 text-slate-700'">
@@ -137,11 +137,11 @@
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                   d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
               </svg>
-              {{ t('navbar.links.theme') || (isDark ? 'Light Mode' : 'Dark Mode') }}
+              {{ t('navbar.links.theme') }}
             </span>
             <span class="text-xs font-medium px-2 py-0.5 rounded-md"
               :class="isDark ? 'bg-white/5 text-slate-300' : 'bg-slate-100 text-slate-700'">
-              {{ isDark ? (t('layout.switchLight') || 'Light') : (t('layout.switchDark') || 'Dark') }}
+              {{ isDark ? t('layout.switchLight') : t('layout.switchDark') }}
             </span>
           </button>
         </div>

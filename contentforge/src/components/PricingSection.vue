@@ -78,20 +78,33 @@
             <span class="font-display text-4xl font-700" :class="isDark ? 'text-white' : 'text-slate-900'">
               {{ annual ? plan.annualPrice : plan.monthlyPrice }}
             </span>
-            <span class="text-sm" :class="isDark ? 'text-slate-500' : 'text-slate-500'">{{ t('pricing.perMonth') }}</span>
+            <span class="text-sm" :class="isDark ? 'text-slate-500' : 'text-slate-500'">{{ t('pricing.perMonth')
+              }}</span>
             <span v-if="annual && plan.monthlyPrice > 0"
               class="ml-2 text-[11px] text-green-600 dark:text-green-400 font-medium">
               {{ t('pricing.wasPrice', { price: plan.monthlyPrice }) }}
             </span>
           </div>
 
-          <RouterLink to="/dashboard"
-            class="w-full text-center py-3 rounded-xl text-sm font-medium mb-6 md:mb-8 transition-all duration-200 flex items-center justify-center gap-2"
+          <RouterLink v-if="plan.key === 'free'" to="/dashboard"
+            class="w-full text-center py-3 rounded-xl text-sm font-medium mb-6 md:mb-8 transition-all duration-200 flex items-center justify-center gap-2 underline"
             :class="plan.popular
               ? 'bg-blue-600 text-white hover:bg-blue-500 hover:shadow-lg hover:shadow-blue-500/25'
               : (isDark ? 'border border-white/15 text-slate-300 hover:border-white/30 hover:text-white' : 'border border-slate-300 text-slate-700 hover:border-slate-400 hover:bg-slate-50')">
             {{ t('pricing.tryNow', 'Try Now') }}
           </RouterLink>
+
+          <button v-else @click="handlePaidPlanClick($event, plan.key)" :disabled="checkoutLoading === plan.key"
+            class="w-full text-center py-3 rounded-xl text-sm font-medium mb-6 md:mb-8 transition-all duration-200 flex items-center justify-center gap-2"
+            :class="plan.popular
+              ? 'bg-blue-600 text-white hover:bg-blue-500 hover:shadow-lg hover:shadow-blue-500/25 disabled:opacity-50'
+              : (isDark ? 'border border-white/15 text-slate-300 hover:border-white/30 hover:text-white disabled:opacity-50' : 'border border-slate-300 text-slate-700 hover:border-slate-400 hover:bg-slate-50 disabled:opacity-50')">
+            <svg v-if="checkoutLoading === plan.key" class="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
+              <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" />
+              <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+            </svg>
+            {{ t('pricing.tryNow', 'Try Now') }}
+          </button>
 
           <ul class="space-y-3 flex-1">
             <li v-for="f in plan.features" :key="f" class="flex items-start gap-2.5 text-sm"
@@ -106,6 +119,10 @@
         </div>
       </div>
 
+      <p v-if="errorMsg" class="text-center text-sm text-rose-400 mt-6">
+        {{ errorMsg }}
+      </p>
+
       <p class="text-center text-sm mt-10" :class="isDark ? 'text-slate-600' : 'text-slate-400'">
         {{ t('pricing.bottomNote') }}
       </p>
@@ -115,17 +132,25 @@
 </template>
 
 <script setup>
-import { computed, ref } from 'vue'
+import { computed, ref, onMounted } from 'vue'
+import { RouterLink, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
-import { RouterLink } from 'vue-router'
 import { useTheme } from '../composables/useTheme.js'
+import paymentApi from '../api/paymentApi.js'
 
 const { t, locale } = useI18n()
 const { isDark } = useTheme()
+const router = useRouter()
 
 const annual = ref(false)
+const isLoggedIn = ref(false)
+const checkoutLoading = ref(null)
+const errorMsg = ref("")
 
-// RTL Localization support logic
+onMounted(() => {
+  isLoggedIn.value = !!localStorage.getItem('cf_token')
+})
+
 const isRtl = computed(() => {
   return locale.value === "ar";
 });
@@ -137,7 +162,50 @@ const toggleKnobClass = computed(() => {
   return "translate-x-0";
 });
 
-// Plans Configuration
+/**
+ * Handles clicks on paid plan buttons.
+ * If not logged in -> redirect to /login (like the free plan flow).
+ * If logged in -> call the payment API and redirect to checkout.
+ */
+const handlePaidPlanClick = async (event, planKey) => {
+  const token = localStorage.getItem('cf_token')
+
+  if (!token) {
+    router.push({
+      path: '/login',
+      query: {
+        redirect: router.currentRoute.value.fullPath,
+        plan: planKey,
+        billing: annual.value ? 'annual' : 'monthly'
+      }
+    })
+    return
+  }
+
+  if (checkoutLoading.value) return
+
+  checkoutLoading.value = planKey
+  errorMsg.value = ""
+
+  try {
+    const billingSuffix = annual.value ? 'annual' : 'monthly'
+    const planKey = `${plan.key}_${billingSuffix}`
+
+    // Pass an origin identifier to your payment checkout API
+    const url = await paymentApi.checkout(planKey, { from: 'pricing' })
+
+    if (url) {
+      window.location.href = url
+    } else {
+      throw new Error(t("payment.errorGeneric", "تأخر استجابة بوابة الدفع، يرجى المحاولة مرة أخرى."));
+    }
+  } catch (e) {
+    errorMsg.value = e.message || t("payment.errorGeneric")
+    checkoutLoading.value = null
+  }
+}
+
+
 const plans = computed(() => [
   {
     key: "free",

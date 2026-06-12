@@ -286,15 +286,16 @@ async function handlePlanClick(plan) {
 
   try {
     const billingSuffix = annual.value ? 'annual' : 'monthly'
-    const planKey = `${plan.key}_${billingSuffix}`
+  const planKey = `${plan.key}_${billingSuffix}`
 
-    const url = await paymentApi.checkout(planKey)
+  // Tag origin parameter context
+  const url = await paymentApi.checkout(planKey, { from: 'trial' })
 
-    if (url) {
-      window.location.href = url
-    } else {
-      throw new Error(t("payment.errorGeneric", "تأخر استجابة بوابة الدفع، يرجى المحاولة مرة أخرى."));
-    }
+  if (url) {
+    window.location.href = url
+  } else {
+    throw new Error(t("payment.errorGeneric", "تأخر استجابة بوابة الدفع، يرجى المحاولة مرة أخرى."));
+  }
 
   } catch (e) {
     errorMsg.value = e.message || t("payment.errorGeneric")

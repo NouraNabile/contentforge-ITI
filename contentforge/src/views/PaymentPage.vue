@@ -21,7 +21,7 @@
               {{ t("payment.renewsOn") }}
               {{ formatDate(subscription.currentPeriodEnd) }}
               <span v-if="subscription.cancelAtPeriodEnd" class="text-rose-400 ml-1">({{ t("payment.cancelAtEnd")
-                }})</span>
+              }})</span>
             </p>
           </div>
           <div v-if="subscription?.card" class="flex items-center gap-3 px-4 py-3 rounded-xl theme-card theme-border">
@@ -142,6 +142,7 @@
 <script setup>
 import { ref, computed, onMounted } from "vue";
 import { useI18n } from "vue-i18n";
+import { useRouter } from "vue-router";
 import AppLayout from "../components/AppLayout.vue";
 import paymentApi from "../api/paymentApi";
 import { useAuthStore } from "../stores/authStore";
@@ -150,6 +151,7 @@ import { useLang } from "../composables/useLang.js";
 const { t, locale } = useI18n();
 const authStore = useAuthStore();
 const { locale: langLocale } = useLang();
+const router = useRouter();
 
 // ── State ──────────────────────────────────────────────────────────────────────
 const annual = ref(false);
@@ -183,7 +185,7 @@ const plans = computed(() => [
     tagline: t("pricing.plans.pro.tagline"),
     cta: t("pricing.plans.pro.cta"),
     monthlyPrice: 19,
-    annualPrice: 15, // Calculated: 19 - 20% discount = 15.2 -> 15 rounded
+    annualPrice: 15,
     popular: true,
     features: [
       t("pricing.plans.pro.f1"),
@@ -198,7 +200,7 @@ const plans = computed(() => [
     tagline: t("pricing.plans.enterprise.tagline"),
     cta: t("pricing.plans.enterprise.cta"),
     monthlyPrice: 49,
-    annualPrice: 39, // Calculated: 49 - 20% discount = 39.2 -> 39 rounded
+    annualPrice: 39,
     popular: false,
     features: [
       t("pricing.plans.enterprise.f1"),
@@ -264,12 +266,21 @@ function formatDate(iso) {
 }
 
 async function subscribe(planKey) {
+  // If clicking the free plan card, re-route to login instead of checkout
+  if (planKey === 'free') {
+    router.push('/login'); // Adjust route destination if your login path differs
+    return;
+  }
+
   if (currentPlan.value === planKey) return;
   checkoutLoading.value = planKey;
   errorMsg.value = "";
   try {
     const key = annual.value ? `${planKey}_annual` : `${planKey}_monthly`;
-    const url = await paymentApi.checkout(key);
+
+    // Tag origin parameter context
+    const url = await paymentApi.checkout(key, { from: 'payment' });
+
     window.location.href = url;
   } catch (e) {
     errorMsg.value = e.message || t("payment.errorGeneric");

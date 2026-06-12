@@ -451,6 +451,16 @@ const deleteLoading = ref(false)
 const deleteError = ref(null)
 const deleteSuccess = ref(false)
 
+const toasts = ref([])
+let toastId = 0
+function showToast(message, type = 'success') {
+  const id = ++toastId
+  toasts.value.push({ id, message, type })
+  setTimeout(() => {
+    toasts.value = toasts.value.filter(t => t.id !== id)
+  }, 3000)
+}
+
 onMounted(async () => {
   if (authStore.user) {
     profileForm.value.name = authStore.user.name || ''
@@ -488,7 +498,7 @@ async function deleteBrand() {
     deleteBrandTarget.value = null
   } catch (err) {
     console.error('Failed to delete brand:', err)
-    alert(t('profile.deleteBrandFailed'))
+    showToast(t('profile.deleteBrandFailed'), 'error')
   } finally {
     brandDeleting.value = false
   }

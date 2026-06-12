@@ -359,6 +359,12 @@
     }
   },
   "dashboard": {
+    "deleteSuccess": "تم حذف التقويم بنجاح",
+  "resetSuccess": "تمت إعادة تعيين التقويم بنجاح",
+  "postAdded": "تمت إضافة المنشور بنجاح",
+  "unsupportedPlatform": "يدعم Instagram و Facebook فقط",
+  "publishedSuccess": "تم النشر بنجاح!",
+  "publishFailed": "فشل النشر",
     "addPostTitle": "إضافة منشور جديد",
     "addPostHashtagHint": "افصل بين الوسوم بمسافات",
     "variantBArabic": "النسخة B — العربية",
@@ -1357,8 +1363,10 @@
       "noTrends": "لا توجد بيانات اتجاهات بعد"
     },
     "usersPage": {
+      "annually": "سنوي",
+      "saveSuccess": "تم تحديث المستخدم بنجاح",
+      "saveError": "فشل حفظ التغييرات",
       "startDatePastError": "عذراً، تاريخ البدء لا يمكن أن يكون في الماضي.",
-      "saveError": "حدث خطأ أثناء الحفظ.",
       "startDate": "تاريخ البدء",
       "subscriptionType": "نوع الاشتراك",
       "monthly": "شهري",

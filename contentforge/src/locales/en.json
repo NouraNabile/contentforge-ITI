@@ -382,6 +382,11 @@
     }
   },
   "dashboard": {
+    "deleteSuccess": "Calendar deleted successfully",
+  "resetSuccess": "Calendar reset successfully",
+  "unsupportedPlatform": "Only Instagram and Facebook are supported",
+  "publishedSuccess": "Published successfully!",
+  "publishFailed": "Failed to publish",
     "addPostTitle": "Add New Post",
     "addPostHashtagHint": "Separate hashtags with spaces",
     "variantBArabic": "Variant B — Arabic",
@@ -1359,12 +1364,13 @@
       "noTrends": "No trends data yet"
     },
     "usersPage": {
+      "saveSuccess": "User updated successfully",
+      "saveError": "Failed to save changes",
       "startDatePastError": "Start date cannot be in the past.",
-      "saveError": "Something went wrong while saving.",
       "startDate": "Start Date",
       "subscriptionType": "Subscription Type",
       "monthly": "Monthly",
-      "yearly": "Yearly",
+      "annually": "Annually",
       "perMonth": "/m",
       "perYear": "/y",
       "searchPlaceholder": "Search by name or email…",

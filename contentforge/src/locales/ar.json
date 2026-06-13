@@ -4,7 +4,7 @@
     "logout": "تسجيل الخروج",
     "switchLight": "التبديل إلى الوضع الفاتح",
     "switchDark": "التبديل إلى الوضع الداكن",
-     "comingSoon": "قريباً",
+    "comingSoon": "قريباً",
     "nav": {
       "calendar": "التقويم",
       "drafts": "إدارة المنشورات",
@@ -14,7 +14,7 @@
       "payment": "الفواتير",
       "poster": "إنشاء الملصقات الإعلانية",
       "profile": "الملف الشخصي",
-       "aiReels": "ريلز بالذكاء الاصطناعي"
+      "aiReels": "ريلز بالذكاء الاصطناعي"
     },
     "pageTitle": {
       "dashboard": "التقويم",
@@ -48,6 +48,10 @@
     }
   },
   "auth": {
+    "connecting": "جاري الاتصال",
+    "googleSignIn": "تسجيل الدخول باستخدام جوجل",
+    "facebookSignIn": "تسجيل الدخول باستخدام فيسبوك",
+    "orContinueWith": "أو المتابعة باستخدام",
     "welcomeBack": "مرحباً بعودتك",
     "subtitle": "سجّل دخولك إلى حساب ContentForge",
     "email": "البريد الإلكتروني",
@@ -362,11 +366,11 @@
   },
   "dashboard": {
     "deleteSuccess": "تم حذف التقويم بنجاح",
-  "resetSuccess": "تمت إعادة تعيين التقويم بنجاح",
-  "postAdded": "تمت إضافة المنشور بنجاح",
-  "unsupportedPlatform": "يدعم Instagram و Facebook فقط",
-  "publishedSuccess": "تم النشر بنجاح!",
-  "publishFailed": "فشل النشر",
+    "resetSuccess": "تمت إعادة تعيين التقويم بنجاح",
+    "postAdded": "تمت إضافة المنشور بنجاح",
+    "unsupportedPlatform": "يدعم Instagram و Facebook فقط",
+    "publishedSuccess": "تم النشر بنجاح!",
+    "publishFailed": "فشل النشر",
     "addPostTitle": "إضافة منشور جديد",
     "addPostHashtagHint": "افصل بين الوسوم بمسافات",
     "variantBArabic": "النسخة B — العربية",
@@ -1444,5 +1448,24 @@
       "timeExpired": "منتهي",
       "timeRemaining": "{hours}س {mins}د"
     }
-  }
+  },
+  "aiReels": {
+  "title": "مولد الريلز بالذكاء الاصطناعي",
+  "subtitle": "قريباً",
+  "comingSoonBadge": "قريباً",
+  "description": "نحن نبني أداة ذكية تعمل بالذكاء الاصطناعي ستساعدك في إنشاء مقاطع ريلز قصيرة مذهلة مع كتابة السيناريو التلقائية، وتوليد المشاهد، والتحرير الذكي. ترقبوا مستقبل إنشاء المحتوى!",
+  "feature1": "كتابة السيناريو بالذكاء الاصطناعي",
+  "feature2": "توليد المشاهد التلقائي",
+  "feature3": "انتقالات ذكية",
+  "feature4": "مزامنة الصوت والموسيقى",
+  "notifyText": "هل تريد أن تكون أول من يعرف عند الإطلاق؟",
+  "emailPlaceholder": "أدخل بريدك الإلكتروني",
+  "notifyBtn": "أخطرني",
+  "sending": "جاري الإرسال...",
+  "notifySuccess": "شكراً! سنخطرك عندما يكون جاهزاً.",
+  "invalidEmail": "الرجاء إدخال بريد إلكتروني صحيح",
+  "errorGeneric": "حدث خطأ ما. الرجاء المحاولة مرة أخرى.",
+  "timeline": "متوقع: الربع الرابع 2026",
+  "backToDashboard": "العودة إلى لوحة التحكم"
+}
 }

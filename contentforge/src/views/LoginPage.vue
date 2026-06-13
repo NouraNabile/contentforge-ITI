@@ -397,7 +397,8 @@
             </button>
           </p>
         </div>
-        <a href="http://localhost:3000/api/auth/google">سجل دخولك عبر جوجل</a>
+        <SocialLoginButtons v-if="!showOTP && !forgotStep" />
+
       </div>
     </div>
 
@@ -414,6 +415,7 @@ import { useTheme } from '../composables/useTheme.js'
 import api from '../api/client'
 import authApi from '../api/authApi'
 import paymentApi from '../api/paymentApi.js'
+import SocialLoginButtons from '../components/SocialLoginButtons.vue'
 
 const { t } = useI18n()
 const { locale, switchLang } = useLang()

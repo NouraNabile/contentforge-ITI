@@ -13,21 +13,71 @@ const signToken = (id) =>
   });
 
 const { PlatformSettings } = require("../models");
-const passport = require('passport');
+
 ///////////////////////////////////////// Google OAuth Routes ───────────────────────────────
-router.get('/google', passport.authenticate('google', { scope: ['profile', 'email'] }));
 
-// المسار الثاني: كول باك (Callback) يعود إليه المستخدم بعد الموافقة في جوجل
+const passport = require('passport');
+require('../config/passport'); // Initialize strategies
+
+// ── Google OAuth ─────────────────────────────────────────────────────────────
+router.get('/google', passport.authenticate('google', { 
+  scope: ['profile', 'email'],
+  session: false 
+}));
+
 router.get('/google/callback',
-  passport.authenticate('google', { session: false }),
+  passport.authenticate('google', { session: false, failureRedirect: '/login?error=google_auth_failed' }),
   (req, res) => {
-    // ننشئ الـ Token الخاص بنا
-    const token = jwt.sign({ id: req.user._id }, process.env.JWT_SECRET, { expiresIn: '1h' });
-
-    // نوجه المستخدم لصفحة في الفرونت إند ومعها الـ Token
-    res.redirect(`http://localhost:5173/login-success?token=${token}`);
+    const token = signToken(req.user._id);
+    // Redirect to frontend with token
+    const redirectUrl = `${process.env.FRONTEND_URL || 'http://localhost:5173'}/login-success?token=${token}&provider=google`;
+    res.redirect(redirectUrl);
   }
 );
+
+// ── Facebook OAuth ─────────────────────────────────────────────────────────────
+// router.get('/facebook', passport.authenticate('facebook', { 
+//   scope: ['email', 'public_profile'],
+//   session: false 
+// }));
+
+// router.get('/facebook/callback',
+//   passport.authenticate('facebook', { session: false, failureRedirect: '/login?error=facebook_auth_failed' }),
+//   (req, res) => {
+//     const token = signToken(req.user._id);
+//     const redirectUrl = `${process.env.FRONTEND_URL || 'http://localhost:5173'}/login-success?token=${token}&provider=facebook`;
+//     res.redirect(redirectUrl);
+//   }
+// );
+
+// ── Social Login Success Handler (optional API endpoint) ──────────────────────
+router.post('/social-login', async (req, res) => {
+  // Alternative: if you prefer popup flow with token exchange
+  const { token } = req.body;
+  try {
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    const user = await User.findById(decoded.id).select('-password');
+    if (!user) return res.status(404).json({ message: 'User not found' });
+    
+    res.json({
+      token,
+      user: {
+        id: user._id,
+        name: user.name,
+        email: user.email,
+        plan: user.plan,
+        isAdmin: user.isAdmin,
+        isTrial: user.isTrial,
+        planEndsAt: user.planEndsAt,
+        trialExpired: user.isTrial && user.planEndsAt && new Date() > new Date(user.planEndsAt),
+        avatar: user.avatar,
+      },
+    });
+  } catch (err) {
+    res.status(401).json({ message: 'Invalid token' });
+  }
+});
+
 router.post("/register", async (req, res) => {
   try {
     const { name, email, password, phone } = req.body;

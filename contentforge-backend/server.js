@@ -9,10 +9,11 @@ const path = require("path");
 const connectDB = require("./config/db");
 const { startTrendScheduler } = require("./services/trendService");
 const chatRoutes = require("./routes/chat");
-// يحسب 24h
 const cron = require("node-cron");
-const { User, PlatformSettings } = require("./models");
+const { User, PlatformSettings, Notification } = require("./models");
 const posterRoutes = require("./routes/posterRouter");
+const { checkAndSendExpiryWarnings } = require("./services/cronJobs");
+const { createNotification } = require("./services/notificationHelper");
 
 const app = express();
 const {
@@ -22,23 +23,23 @@ const {
 } = require("./services/emailService");
 const contactRouter = require("./routes/contact");
 
-// السكريبت ده هيشتغل تلقائياً لوحده كل يوم الساعة 12 بالليل بتوقيت السيرفر
-cron.schedule('0 0 * * *', () => {
-  console.log('⏰ جاري تشغيل فحص انتهاء فترات التجربة للمستخدمين...');
+// ── Cron: Check trial expiry warnings at midnight ────────────────────────────
+cron.schedule("0 0 * * *", () => {
+  console.log("⏰ جاري تشغيل فحص انتهاء فترات التجربة للمستخدمين...");
   checkAndSendExpiryWarnings();
 });
-// بيشتغل كل يوم الساعة 9 الصبح
+
+// ── Cron: Send expiry warning emails at 9 AM ─────────────────────────────────
 cron.schedule("0 9 * * *", async () => {
   try {
     const settings = await PlatformSettings.findOne();
-    if (!settings?.sendExpiryWarning) return; // لو الـ feature متوقف
+    if (!settings?.sendExpiryWarning) return;
 
     const threeDaysFromNow = new Date();
     threeDaysFromNow.setDate(threeDaysFromNow.getDate() + 3);
     const startOfDay = new Date(threeDaysFromNow.setHours(0, 0, 0, 0));
     const endOfDay = new Date(threeDaysFromNow.setHours(23, 59, 59, 999));
 
-    // جيب الـ users اللي trial بتاعهم هينتهي بعد 3 أيام بالظبط
     const users = await User.find({
       isTrial: true,
       trialEndsAt: { $gte: startOfDay, $lte: endOfDay },
@@ -60,10 +61,10 @@ cron.schedule("0 9 * * *", async () => {
   }
 });
 
-/// ── Scheduled Post Reminders — runs every day at 8:00 AM ─────────────────────
+// ── Cron: Scheduled Post Reminders at 8:00 AM ────────────────────────────────
 cron.schedule("0 8 * * *", async () => {
   try {
-    const { Post, User, Notification } = require("./models");
+    const { Post } = require("./models");
 
     const todayStart = new Date();
     todayStart.setHours(0, 0, 0, 0);
@@ -113,14 +114,17 @@ cron.schedule("0 8 * * *", async () => {
             err.message,
           ),
       );
+
       await Notification.create({
-        user: user._id,
+        recipient: user._id,
+        recipientRole: "user",
         title: "📅 منشورات مجدولة اليوم",
         message: `لديك ${posts.length} منشور مجدول اليوم. لا تنسَ نشرها!`,
         type: "scheduled_today",
         read: false,
-        postId: posts[0]._id
+        postId: posts[0]._id,
       });
+
       console.log(
         `[Cron] Today reminder → ${user.email} (${posts.length} posts)`,
       );
@@ -134,12 +138,16 @@ cron.schedule("0 8 * * *", async () => {
             err.message,
           ),
       );
+
       await Notification.create({
-        user: user._id,
+        recipient: user._id,
+        recipientRole: "user",
         title: "⏰ منشورات مجدولة غداً",
         message: `لديك ${posts.length} منشور مجدول غداً. استعد لنشرها!`,
         type: "scheduled_tomorrow",
+        read: false,
       });
+
       console.log(
         `[Cron] Tomorrow reminder → ${user.email} (${posts.length} posts)`,
       );
@@ -148,6 +156,7 @@ cron.schedule("0 8 * * *", async () => {
     console.error("[Cron] Scheduled post reminder error:", err.message);
   }
 });
+
 // ── Connect to MongoDB Atlas ──────────────────────────────────────────────────
 mongoose
   .connect(process.env.MONGODB_URI)
@@ -169,13 +178,13 @@ app.use(
   }),
 );
 
-// ── Stripe webhook needs raw body — MUST be before express.json ──────────────
+// Stripe webhook needs raw body — MUST be before express.json
 app.use("/api/payment/webhook", express.raw({ type: "application/json" }));
 
 app.use(express.json({ limit: "20mb" }));
 app.use(express.urlencoded({ extended: true }));
 
-// Serve uploaded files publicly (brand guidelines PDFs, images)
+// Serve uploaded files publicly
 app.use("/uploads", express.static("uploads"));
 
 // ── API Routes ────────────────────────────────────────────────────────────────
@@ -191,22 +200,21 @@ app.use("/api/connections", require("./routes/connections"));
 app.use("/api/payment", require("./routes/payment"));
 app.use("/api/contact", require("./routes/contact"));
 app.use("/api/top-posts", require("./routes/topPosts"));
-// Mount poster routes at /api/posters
 app.use("/api/posters", posterRoutes);
-// Serve generated images statically
 app.use(
   "/uploads/generated",
   express.static(path.join(__dirname, "uploads", "generated")),
 );
+app.use("/api/notifications", require("./routes/notifications"));
 
-// ── Health check — frontend pings this to check if server is up ───────────────
+// ── Health check ───────────────────────────────────────────────────────────────
 app.get("/api/health", (req, res) => {
   res.json({
     status: "OK",
     service: "ContentForge API",
     timestamp: new Date().toISOString(),
     mongo: "connected",
-  }); // Serve generated images statically
+  });
 });
 
 // ── 404 handler ───────────────────────────────────────────────────────────────
@@ -227,8 +235,8 @@ const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
   console.log(`\n🚀 ContentForge API running on http://localhost:${PORT}`);
   console.log(`📋 Health check: http://localhost:${PORT}/api/health\n`);
-  // ==================== الـ Cron Job الخاص بالحظر التلقائي ====================
-  // '*/5 * * * *' تعني أن الكود سيشتغل تلقائياً كل 5 دقائق ليفحص الداتا بيز
+
+  // ── Auto-block cron job (every 5 minutes) ─────────────────────────────────
   cron.schedule("*/5 * * * *", async () => {
     try {
       console.log(
@@ -236,27 +244,41 @@ app.listen(PORT, () => {
       );
       const now = new Date();
 
-      // 1. بندور على المستخدمين اللي حالتهم warning وفترة السماح بتاعتهم خلصت
       const usersToBlock = await User.find({
-        blockStatus: "warning",
-        gracePeriodExpiresAt: { $lte: now }, // $lte تعني أصغر من أو يساوي الوقت الحالي
-        // الداتا بيز بترجع لنا "قائمة" (Array) فيها كل المستخدمين اللي انطبقت عليهم الشروط دي
+        "moderation.blockStatus": "warning",
+        "moderation.gracePeriodExpiresAt": { $lte: now },
+        isBlocked: { $ne: true },
       });
 
       if (usersToBlock.length > 0) {
         const userIds = usersToBlock.map((user) => user._id);
 
-        // 2. بنحولهم كلهم لـ blocked وبنخلي الـ isBlocked بـ true في خطوة واحدة
         await User.updateMany(
           { _id: { $in: userIds } },
           {
             $set: {
-              blockStatus: "blocked",
+              "moderation.blockStatus": "blocked",
               isBlocked: true,
-              gracePeriodExpiresAt: null, // بنصفر الوقت لأنه خلاص اتقفل
+              "moderation.gracePeriodExpiresAt": null,
             },
           },
         );
+
+        // Notify blocked users
+        for (const user of usersToBlock) {
+          try {
+            await createNotification({
+              recipientId: user._id,
+              recipientRole: "user",
+              type: "account_blocked",
+              title: "Account Blocked",
+              message: "Your account has been automatically blocked due to policy violation. Please contact support.",
+              meta: { blockedAt: new Date(), reason: user.moderation.restrictionReason },
+            });
+          } catch (err) {
+            console.error("[Notify] Auto-block notification failed:", err.message);
+          }
+        }
 
         console.log(
           `[Cron Job] تم حظر ${usersToBlock.length} مستخدمين تلقائياً.`,
@@ -266,12 +288,13 @@ app.listen(PORT, () => {
       console.error("خطأ في الـ Cron Job:", error.message);
     }
   });
-  // ============================================================================
-});
-cron.schedule("0 * * * *", async () => {
-  await User.deleteMany({
-    isVerified: false,
-    verificationCodeExpires: { $lt: new Date() },
+
+  // ── Clean unverified expired users (hourly) ───────────────────────────────
+  cron.schedule("0 * * * *", async () => {
+    await User.deleteMany({
+      isVerified: false,
+      verificationCodeExpires: { $lt: new Date() },
+    });
+    console.log("[Cron] Cleaned unverified expired users");
   });
-  console.log("[Cron] Cleaned unverified expired users");
 });

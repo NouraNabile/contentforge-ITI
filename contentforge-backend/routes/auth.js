@@ -4,6 +4,7 @@ const router = express.Router();
 const jwt = require("jsonwebtoken");
 const { User, DeletionRequest } = require("../models");
 const protect = require("../middleware/auth");
+const { createNotification } = require("../services/notificationHelper");
 const { sendVerificationEmail } = require("../services/emailService");
 const { sendDeletionRequestEmail } = require("../services/emailService");
 const signToken = (id) =>
@@ -19,7 +20,6 @@ router.post("/register", async (req, res) => {
     if (!name || !email || !password || !phone)
       return res.status(400).json({ message: "All fields required" });
 
-    // جيب الـ settings من DB
     const settings = (await PlatformSettings.findOne()) || {};
     const blockByPhone = settings.blockByPhone ?? true;
     const otpExpiryMinutes = settings.otpExpiryMinutes ?? 10;
@@ -27,41 +27,42 @@ router.post("/register", async (req, res) => {
     if (await User.findOne({ email }))
       return res.status(400).json({ message: "Email already registered" });
 
-    // بيشوف blockByPhone من الـ settings مش hardcoded
-    if (blockByPhone && await User.findOne({ phone }))
-      return res.status(400).json({ message: 'This phone has already been used for a trial.' })
+    if (blockByPhone && (await User.findOne({ phone })))
+      return res
+        .status(400)
+        .json({ message: "This phone has already been used for a trial." });
 
-    const verificationCode = Math.floor(100000 + Math.random() * 900000).toString()
-    
-    // حساب تاريخ انتهاء الباقة/التجربة بناءً على إعدادات المنصة
-    const trialDays = settings.trialDays ?? 14
-    const calculatedExpiry =new Date(Date.now() + 14 * 24 * 60 * 60 * 1000)
-    
-    // الـ User.create المظبوط بناءً على الـ Schema الجديدة
+    const verificationCode = Math.floor(
+      100000 + Math.random() * 900000,
+    ).toString();
+
+    const trialDays = settings.trialDays ?? 14;
+    const calculatedExpiry = new Date(Date.now() + 14 * 24 * 60 * 60 * 1000);
+
     const user = await User.create({
-      name, 
-      email, 
-      password, 
+      name,
+      email,
+      password,
       phone,
       verificationCode,
       verificationCodeExpires: Date.now() + otpExpiryMinutes * 60 * 1000,
       isVerified: false,
-      
-      // إعدادات الاشتراك الموحدة الجديدة 💎
-      plan: 'free',                     // بيبدأ مجاني (تجريبي)
-      subscriptionType: 'none',          // ملوش نوع دفع شهري/سنوي حالياً
-      planEndsAt: calculatedExpiry,      // حطينا التاريخ الديناميكي هنا في الحقل الموحد
-      isTrial: true,                     // هو حالياً في فترة تجربة
-      hasUsedTrial: true,                // بنعلم عليه إنه استهلك فرصته عشان blockByPhone
+      plan: "free",
+      subscriptionType: "none",
+      planEndsAt: calculatedExpiry,
+      isTrial: true,
+      hasUsedTrial: true,
     });
 
-    await sendVerificationEmail(email, verificationCode)
-    res.status(201).json({ message: 'User created. Please verify your email.' })
+    await sendVerificationEmail(email, verificationCode);
+    res
+      .status(201)
+      .json({ message: "User created. Please verify your email." });
   } catch (err) {
     console.error("REGISTER ERROR:", err);
     res.status(500).json({ message: err.message });
   }
-})
+});
 
 router.post("/verify-email", async (req, res) => {
   const { email, code } = req.body;
@@ -84,7 +85,6 @@ router.post("/verify-email", async (req, res) => {
   await user.save();
 
   res.json({ message: "Email verified successfully" });
-  // router.push('/dashboard')
 });
 
 router.post("/login", async (req, res) => {
@@ -98,19 +98,17 @@ router.post("/login", async (req, res) => {
   if (!user || !(await user.matchPassword(password)))
     return res.status(401).json({ message: "Invalid email or password" });
 
-  // ❗ مهم جدًا
   if (!user.isVerified)
     return res.status(403).json({ message: "Please verify your email first" });
 
   if (user.isBlocked)
-    return res
-      .status(403)
-      .json({
-        message: "Your account has been blocked. Please contact support.",
-      });
+    return res.status(403).json({
+      message: "Your account has been blocked. Please contact support.",
+    });
 
-  user.lastLoginAt = new Date(); // ← add this
+  user.lastLoginAt = new Date();
   await user.save();
+
   const token = signToken(user._id);
 
   res.json({
@@ -124,92 +122,39 @@ router.post("/login", async (req, res) => {
     },
   });
 });
-// GET /api/auth/me — get current user profile
+
 router.get("/me", protect, async (req, res) => {
-  res.json({ user: req.user });
+  res.json({ recipient: req.user._id, });
 });
 
-// طريق الديمو الجديد
-// طريق الديمو الجديد
-// طريق الديمو الجديد والمؤمن بالكامل
-// router.post("/demo", async (req, res) => {
-//   try {
-//     const settings = await PlatformSettings.findOne();
-//     if (settings && !settings.demoEnabled)
-//       return res
-//         .status(403)
-//         .json({ message: "Demo account is currently disabled." });
-
-//     const demoEmail = "demo@arabycoffee.com";
-//     let user = await User.findOne({ email: demoEmail });
-
-//     if (!user) {
-//       const trialEndsAt = new Date();
-//       trialEndsAt.setDate(trialEndsAt.getDate() + 14);
-//       user = await User.create({
-//         name: "Demo User",
-//         email: demoEmail,
-//         password: "secure_demo_password_123",
-//         phone: "00000000000",
-//         plan: "free",
-//         isVerified: true,
-//         isTrial: true,
-//         trialEndsAt,
-//         hasUsedTrial: true,
-//       });
-//     }
-
-//     if (Date.now() > new Date(user.trialEndsAt))
-//       return res
-//         .status(403)
-//         .json({ message: "Your 14-day free trial has expired." });
-
-//     const token = signToken(user._id);
-//     return res.status(200).json({
-//       success: true,
-//       token,
-//       user: {
-//         id: user._id,
-//         name: user.name,
-//         email: user.email,
-//         plan: user.plan,
-//       },
-//     });
-//   } catch (err) {
-//     res.status(500).json({ message: err.message });
-//   }
-// });
-
-// backend/routes/auth.js
 router.get("/notifications", protect, async (req, res) => {
   const user = await User.findById(req.user._id).select(
-    "blockStatus restrictionReason gracePeriodExpiresAt",
+    "moderation.blockStatus moderation.restrictionReason moderation.gracePeriodExpiresAt",
   );
 
   const notifs = [];
 
-  if (user.blockStatus === "warning") {
+  if (user.moderation?.blockStatus === "warning") {
     notifs.push({
       id: "warning-1",
       type: "warning",
       icon: "⚠️",
       title: "تحذير: مخالفة سياسة الاستخدام",
-      message: `سبب التحذير: ${user.restrictionReason}. لديك حتى ${new Date(user.gracePeriodExpiresAt).toLocaleString("ar-EG", { dateStyle: "short", timeStyle: "short" })} قبل الحظر النهائي.`,
+      message: `سبب التحذير: ${user.moderation.restrictionReason}. لديك حتى ${new Date(user.moderation.gracePeriodExpiresAt).toLocaleString("ar-EG", { dateStyle: "short", timeStyle: "short" })} قبل الحظر النهائي.`,
       time: "Just now",
       read: false,
     });
   }
-  // ── Fetch DB notifications ─────────────────────────
+
   try {
     const { Notification } = require("../models");
-    const dbNotifs = await Notification.find({ user: req.user._id })
+    const dbNotifs = await Notification.find({ recipient: req.user._id })
       .sort({ createdAt: -1 })
       .limit(50);
 
     dbNotifs.forEach((n) => {
-      // Convert UTC to local time string
       const localTime = new Date(n.createdAt).toLocaleString("ar-EG", {
-        timeZone: "Asia/Dubai", // ← Change to your timezone
+        timeZone: "Asia/Dubai",
         dateStyle: "short",
         timeStyle: "short",
       });
@@ -219,7 +164,7 @@ router.get("/notifications", protect, async (req, res) => {
         type: n.type,
         title: n.title,
         message: n.message,
-        time: localTime, // ← Send formatted string instead of raw Date
+        time: localTime,
         read: n.read,
       });
     });
@@ -230,12 +175,10 @@ router.get("/notifications", protect, async (req, res) => {
   res.json({ notifications: notifs });
 });
 
-// PATCH /api/auth/notifications/:id/read
 router.patch("/notifications/:id/read", protect, async (req, res) => {
   try {
     const { Notification } = require("../models");
 
-    // Handle dynamic warning (not in DB)
     if (req.params.id.startsWith("warning-")) {
       return res.json({
         success: true,
@@ -244,7 +187,7 @@ router.patch("/notifications/:id/read", protect, async (req, res) => {
     }
 
     await Notification.findOneAndUpdate(
-      { _id: req.params.id, user: req.user._id },
+      { _id: req.params.id, recipient: req.user._id },
       { read: true },
     );
     res.json({ success: true });
@@ -254,13 +197,12 @@ router.patch("/notifications/:id/read", protect, async (req, res) => {
   }
 });
 
-// PATCH /api/auth/notifications/read-all
 router.patch("/notifications/read-all", protect, async (req, res) => {
   try {
     const { Notification } = require("../models");
 
     await Notification.updateMany(
-      { user: req.user._id, read: false },
+      { recipient: req.user._id, read: false },
       { read: true },
     );
     res.json({ success: true });
@@ -270,7 +212,6 @@ router.patch("/notifications/read-all", protect, async (req, res) => {
   }
 });
 
-// مثال سريع لـ Route الموافقة على الحذف (خاص بالأدمن فقط)
 router.post("/deletion-request", protect, async (req, res) => {
   try {
     const user = await User.findById(req.user._id);
@@ -287,6 +228,22 @@ router.post("/deletion-request", protect, async (req, res) => {
       (err) => console.error("Email error:", err.message),
     );
 
+    try {
+      const admins = await User.find({ isAdmin: true });
+      for (const admin of admins) {
+        await createNotification({
+          recipientId: admin._id,
+          recipientRole: "admin",
+          type: "deletion_request",
+          title: "Account Deletion Requested",
+          message: `${user.name} (${user.email}) requested account deletion. Reason: ${req.body.reason || "Not provided"}`,
+          meta: { userId: user._id },
+        });
+      }
+    } catch (err) {
+      console.error("[Notify] Deletion notification failed:", err.message);
+    }
+
     res.json({ message: "Request submitted" });
   } catch (err) {
     res.status(500).json({ message: err.message });
@@ -302,15 +259,15 @@ router.post("/resend-otp", async (req, res) => {
     if (user.isVerified)
       return res.status(400).json({ message: "Already verified" });
 
-    // جيب الـ settings عشان تاخد otpExpiryMinutes
     const settings = await PlatformSettings.findOne();
     const otpExpiryMinutes = settings?.otpExpiryMinutes ?? 10;
 
-    // جدد الـ OTP
-    const verificationCode = Math.floor(100000 + Math.random() * 900000).toString()
-    user.verificationCode = verificationCode
-    user.verificationCodeExpires = Date.now() + otpExpiryMinutes * 60 * 1000
-    await user.save()
+    const verificationCode = Math.floor(
+      100000 + Math.random() * 900000,
+    ).toString();
+    user.verificationCode = verificationCode;
+    user.verificationCodeExpires = Date.now() + otpExpiryMinutes * 60 * 1000;
+    await user.save();
 
     await sendVerificationEmail(email, verificationCode);
 
@@ -320,89 +277,93 @@ router.post("/resend-otp", async (req, res) => {
   }
 });
 
-// POST /api/auth/verify-reset-otp — just verify OTP without clearing it
-router.post('/verify-reset-otp', async (req, res) => {
+router.post("/verify-reset-otp", async (req, res) => {
   try {
-    const { email, otp } = req.body
+    const { email, otp } = req.body;
 
     if (!email || !otp) {
-      return res.status(400).json({ message: 'All fields required' })
+      return res.status(400).json({ message: "All fields required" });
     }
 
-    const user = await User.findOne({ email })
-    if (!user) return res.status(404).json({ message: 'User not found' })
+    const user = await User.findOne({ email });
+    if (!user) return res.status(404).json({ message: "User not found" });
 
-    // Verify OTP
-    if (user.verificationCode !== otp || user.verificationCodeExpires < Date.now()) {
-      return res.status(400).json({ message: 'Invalid or expired code' })
+    if (
+      user.verificationCode !== otp ||
+      user.verificationCodeExpires < Date.now()
+    ) {
+      return res.status(400).json({ message: "Invalid or expired code" });
     }
 
-    // Don't clear OTP yet — /reset-password will do that after setting new password
-    res.json({ message: 'OTP verified successfully' })
+    res.json({ message: "OTP verified successfully" });
   } catch (err) {
-    console.error('VERIFY RESET OTP ERROR:', err)
-    res.status(500).json({ message: err.message })
+    console.error("VERIFY RESET OTP ERROR:", err);
+    res.status(500).json({ message: err.message });
   }
-})
+});
 
-router.post('/send-reset-otp', async (req, res) => {
+router.post("/send-reset-otp", async (req, res) => {
   try {
-    const { email } = req.body
-    const user = await User.findOne({ email })
+    const { email } = req.body;
+    const user = await User.findOne({ email });
 
-    if (!user) return res.status(404).json({ message: 'User not found with this email' })
+    if (!user)
+      return res
+        .status(404)
+        .json({ message: "User not found with this email" });
 
-    // Get OTP expiry from settings
-    const settings = await PlatformSettings.findOne()
-    const otpExpiryMinutes = settings?.otpExpiryMinutes ?? 10
+    const settings = await PlatformSettings.findOne();
+    const otpExpiryMinutes = settings?.otpExpiryMinutes ?? 10;
 
-    // Generate new OTP
-    const verificationCode = Math.floor(100000 + Math.random() * 900000).toString()
-    user.verificationCode = verificationCode
-    user.verificationCodeExpires = Date.now() + otpExpiryMinutes * 60 * 1000
-    await user.save()
+    const verificationCode = Math.floor(
+      100000 + Math.random() * 900000,
+    ).toString();
+    user.verificationCode = verificationCode;
+    user.verificationCodeExpires = Date.now() + otpExpiryMinutes * 60 * 1000;
+    await user.save();
 
-    await sendVerificationEmail(email, verificationCode)
+    await sendVerificationEmail(email, verificationCode);
 
-    res.json({ message: 'Reset code sent successfully' })
+    res.json({ message: "Reset code sent successfully" });
   } catch (err) {
-    console.error('SEND RESET OTP ERROR:', err)
-    res.status(500).json({ message: err.message })
+    console.error("SEND RESET OTP ERROR:", err);
+    res.status(500).json({ message: err.message });
   }
-})
+});
 
-// POST /api/auth/reset-password — verify OTP + set new password + auto-login
-router.post('/reset-password', async (req, res) => {
+router.post("/reset-password", async (req, res) => {
   try {
-    const { email, otp, newPassword } = req.body
+    const { email, otp, newPassword } = req.body;
 
     if (!email || !otp || !newPassword) {
-      return res.status(400).json({ message: 'All fields required' })
+      return res.status(400).json({ message: "All fields required" });
     }
 
     if (newPassword.length < 6) {
-      return res.status(400).json({ message: 'Password must be at least 6 characters' })
+      return res
+        .status(400)
+        .json({ message: "Password must be at least 6 characters" });
     }
 
-    const user = await User.findOne({ email })
-    if (!user) return res.status(404).json({ message: 'User not found' })
+    const user = await User.findOne({ email });
+    if (!user) return res.status(404).json({ message: "User not found" });
 
-    // Verify OTP
-    if (user.verificationCode !== otp || user.verificationCodeExpires < Date.now()) {
-      return res.status(400).json({ message: 'Invalid or expired code' })
+    if (
+      user.verificationCode !== otp ||
+      user.verificationCodeExpires < Date.now()
+    ) {
+      return res.status(400).json({ message: "Invalid or expired code" });
     }
 
-    // Clear OTP and set new password
-    user.verificationCode = undefined
-    user.verificationCodeExpires = undefined
-    user.password = newPassword
-    await user.save()
+    user.verificationCode = undefined;
+    user.verificationCodeExpires = undefined;
+    user.password = newPassword;
+    await user.save();
 
-    // Auto-login: generate token
-    const token = signToken(user._id)
+    const token = signToken(user._id);
 
     res.json({
-      message: 'Password reset successfully',
+      message: "Password reset successfully",
       token,
       user: {
         id: user._id,
@@ -411,123 +372,84 @@ router.post('/reset-password', async (req, res) => {
         plan: user.plan,
         isAdmin: user.isAdmin,
       },
-    })
+    });
   } catch (err) {
-    console.error('RESET PASSWORD ERROR:', err)
-    res.status(500).json({ message: err.message })
+    console.error("RESET PASSWORD ERROR:", err);
+    res.status(500).json({ message: err.message });
   }
-})
+});
 
-// PUT /api/auth/change-password
-router.put('/change-password', protect, async (req, res) => {
+router.put("/change-password", protect, async (req, res) => {
   try {
-    const { currentPassword, newPassword } = req.body
+    const { currentPassword, newPassword } = req.body;
 
     if (!currentPassword || !newPassword) {
-      return res.status(400).json({ message: 'All fields required' })
+      return res.status(400).json({ message: "All fields required" });
     }
 
     if (newPassword.length < 6) {
-      return res.status(400).json({ message: 'Password must be at least 6 characters' })
+      return res
+        .status(400)
+        .json({ message: "Password must be at least 6 characters" });
     }
 
-    const user = await User.findById(req.user._id)
+    const user = await User.findById(req.user._id);
 
     if (!user) {
-      return res.status(404).json({ message: 'User not found' })
+      return res.status(404).json({ message: "User not found" });
     }
 
-    // Verify current password
-    const isMatch = await user.matchPassword(currentPassword)
+    const isMatch = await user.matchPassword(currentPassword);
     if (!isMatch) {
-      // 👇 Changed from 401 to 400
-      return res.status(400).json({ message: 'Current password is incorrect' })
+      return res.status(400).json({ message: "Current password is incorrect" });
     }
 
-    // Update password
-    user.password = newPassword
-    await user.save()
+    user.password = newPassword;
+    await user.save();
 
-    res.json({ message: 'Password changed successfully' })
+    res.json({ message: "Password changed successfully" });
   } catch (err) {
-    console.error('CHANGE PASSWORD ERROR:', err)
-    res.status(500).json({ message: err.message })
+    console.error("CHANGE PASSWORD ERROR:", err);
+    res.status(500).json({ message: err.message });
   }
-})
+});
 
-// TEST ONLY — remove before production
 router.post("/test-notification", protect, async (req, res) => {
   const { Notification } = require("../models");
   await Notification.create({
-    user: req.user._id,
+    recipient: req.user._id,
+    recipientRole: "user",
     title: "📅 منشورات مجدولة اليوم",
     message: "لديك 3 منشورات مجدولة اليوم. لا تنسَ نشرها!",
     type: "scheduled_today",
+    read: false,
   });
   await Notification.create({
-    user: req.user._id,
+    recipient: req.user._id,
+    recipientRole: "user",
     title: "⏰ منشورات مجدولة غداً",
     message: "لديك 2 منشور مجدول غداً. استعد لنشرها!",
     type: "scheduled_tomorrow",
+    read: false,
   });
   res.json({ message: "Test notifications created ✅" });
 });
 
-// POST /api/auth/test-email — sends scheduled post email immediately
-// router.post('/test-email', protect, async (req, res) => {
-//   const { sendScheduledPostReminderEmail } = require('../services/emailService')
-  
-//   // Fake posts data for testing
-//   const fakePosts = [
-//     { platform: 'Instagram', copyAR: 'منشور تجريبي ١' },
-//     { platform: 'Facebook', copyAR: 'منشور تجريبي ٢' },
-//   ]
-  
-//   try {
-//     await sendScheduledPostReminderEmail(req.user.email, req.user.name, fakePosts)
-//     res.json({ message: 'Email sent! Check your inbox.' })
-//   } catch (err) {
-//     console.error('Email error:', err)
-//     res.status(500).json({ message: err.message })
-//   }
-// })
-// backend/routes/auth.js
-router.post('/test-email-simple', protect, async (req, res) => {
-  const { transporter } = require('../services/emailService')  // ← export transporter too
-  
+router.post("/test-email-simple", protect, async (req, res) => {
+  const { transporter } = require("../services/emailService");
+
   try {
     await transporter.sendMail({
       from: process.env.EMAIL_USER,
       to: req.user.email,
-      subject: 'Test Email from ContentForge',
-      text: 'If you see this, email is working!',
-    })
-    res.json({ message: 'Test email sent! Check your inbox.' })
+      subject: "Test Email from ContentForge",
+      text: "If you see this, email is working!",
+    });
+    res.json({ message: "Test email sent! Check your inbox." });
   } catch (err) {
-    console.error('Test email failed:', err)
-    res.status(500).json({ message: err.message, code: err.code })
+    console.error("Test email failed:", err);
+    res.status(500).json({ message: err.message, code: err.code });
   }
-})
-/** Write this in the bowser console to test 
-to Test the Email :
-fetch('http://localhost:3000/api/auth/test-notification', {
-  method: 'POST',
-  headers: { 
-    'Authorization': 'Bearer ' + localStorage.getItem('cf_token'),
-    'Content-Type': 'application/json'
-  }
-}).then(r => r.json()).then(console.log)
+});
 
-to Test the Email :
-fetch('http://localhost:3000/api/auth//test-email-simple', {
-  method: 'POST',
-  headers: {
-    'Authorization': 'Bearer ' + localStorage.getItem('cf_token'),
-    'Content-Type': 'application/json'
-  }
-})
-.then(r => r.json())
-.then(data => console.log('Success:', data))
-.catch(err => console.error('Error:', err))
- */
 module.exports = router;

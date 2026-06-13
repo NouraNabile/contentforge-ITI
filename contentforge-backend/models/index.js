@@ -254,13 +254,53 @@ const connectionSchema = new mongoose.Schema({
 const Connection = mongoose.model('Connection', connectionSchema)
 
 // ── Notification ──────────────────────────────────────────────────────────────
+// const notificationSchema = new mongoose.Schema({
+//   user:    { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
+//   title:   { type: String, required: true },
+//   message: { type: String, required: true },
+//   type:    { type: String, enum: ['scheduled_today', 'scheduled_tomorrow', 'info'], default: 'info' },
+//   read:    { type: Boolean, default: false },
+//   postId:  { type: mongoose.Schema.Types.ObjectId, ref: 'Post' },
+// }, { timestamps: true })
+
+// const Notification = mongoose.model('Notification', notificationSchema)
 const notificationSchema = new mongoose.Schema({
-  user:    { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
+  // who receives this notification
+  recipient:     { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
+  recipientRole: { type: String, enum: ['user', 'admin'], default: 'user' },
+
   title:   { type: String, required: true },
   message: { type: String, required: true },
-  type:    { type: String, enum: ['scheduled_today', 'scheduled_tomorrow', 'info'], default: 'info' },
-  read:    { type: Boolean, default: false },
-  postId:  { type: mongoose.Schema.Types.ObjectId, ref: 'Post' },
+
+  type: {
+    type: String,
+    enum: [
+      // → admin receives these (user did something)
+      'new_login',
+      'new_brand',
+      'subscription_changed',
+      'contact_message',
+      'deletion_request',
+      'illegal_action',
+      // → user receives these (admin did something)
+      'plan_updated',
+      'trial_extended',
+      'account_blocked',
+      'account_unblocked',
+      'admin_settings_changed',
+      'policy_warning',
+      'admin_promotion',
+      // → cron/system
+      'scheduled_today',
+      'scheduled_tomorrow',
+      'info',
+    ],
+    default: 'info'
+  },
+
+  read:   { type: Boolean, default: false },
+  postId: { type: mongoose.Schema.Types.ObjectId, ref: 'Post' },
+  meta:   { type: Object, default: {} }, // any extra data (brandName, planName, etc.)
 }, { timestamps: true })
 
 const Notification = mongoose.model('Notification', notificationSchema)

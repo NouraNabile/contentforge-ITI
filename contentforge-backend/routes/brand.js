@@ -4,8 +4,9 @@ const router = express.Router();
 const multer = require("multer");
 const path = require("path");
 const protect = require("../middleware/auth");
-const { Brand } = require("../models");
+const { Brand, User } = require("../models");
 const { embedBrandVault } = require("../services/embeddingService");
+const { createNotification } = require("../services/notificationHelper");
 
 // Multer config — save uploads to /uploads folder
 const storage = multer.diskStorage({
@@ -16,30 +17,52 @@ const upload = multer({ storage, limits: { fileSize: 20 * 1024 * 1024 } }); // 2
 
 // POST /api/brand — create or update brand profile
 router.post("/", protect, async (req, res) => {
-  const existing = await Brand.findOne({ user: req.user._id });
+  try {
+    const existing = await Brand.findOne({ user: req.user._id });
 
-  const brandData = {
-    user: req.user._id,
-    name: req.body.name,
-    industry: req.body.industry,
-    website: req.body.website,
-    targetAudience: req.body.targetAudience,
-    dialects: req.body.dialects || [],
-    tones: req.body.tones || [],
-    platforms: req.body.platforms || [],
-    avoidTopics: req.body.avoidTopics,
-  };
+    const brandData = {
+      user: req.user._id,
+      name: req.body.name,
+      industry: req.body.industry,
+      website: req.body.website,
+      targetAudience: req.body.targetAudience,
+      dialects: req.body.dialects || [],
+      tones: req.body.tones || [],
+      platforms: req.body.platforms || [],
+      avoidTopics: req.body.avoidTopics,
+    };
 
-  let brand;
-  if (existing) {
-    brand = await Brand.findByIdAndUpdate(existing._id, brandData, {
-      new: true,
-    });
-  } else {
-    brand = await Brand.create(brandData);
+    let brand;
+    if (existing) {
+      brand = await Brand.findByIdAndUpdate(existing._id, brandData, {
+        new: true,
+      });
+    } else {
+      brand = await Brand.create(brandData);
+    }
+
+    // Notify admins about new/updated brand (BEFORE sending response)
+    try {
+      const admins = await User.find({ isAdmin: true });
+      for (const admin of admins) {
+        await createNotification({
+          recipientId: admin._id,
+          recipientRole: "admin",
+          type: "new_brand",
+          title: existing ? "Brand Updated" : "New Brand Created",
+          message: `${req.user.name} ${existing ? 'updated' : 'created'} a brand: "${brand.name}"`,
+          meta: { brandId: brand._id, brandName: brand.name, userId: req.user._id },
+        });
+      }
+    } catch (err) {
+      console.error("[Notify] Brand notification failed:", err.message);
+    }
+
+    res.json({ brand, message: "Brand saved successfully" });
+  } catch (err) {
+    console.error("Brand save error:", err);
+    res.status(500).json({ message: err.message });
   }
-
-  res.json({ brand, message: "Brand saved successfully" });
 });
 
 // GET /api/brand — get all brands for user
@@ -90,8 +113,6 @@ router.post("/:id/embed", protect, async (req, res) => {
   const brand = await Brand.findById(req.params.id);
   if (!brand) return res.status(404).json({ message: "Brand not found" });
 
-  // For now we use brand form text as the "document" to embed.
-  // In full production you'd extract PDF text with pdf-parse.
   const guidelinesText = `
     Brand: ${brand.name}. Industry: ${brand.industry}.
     Target audience: ${brand.targetAudience}.

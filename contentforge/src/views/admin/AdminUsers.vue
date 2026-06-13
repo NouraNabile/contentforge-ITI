@@ -86,8 +86,9 @@
               </td>
             </tr>
 
+            
             <!-- Users -->
-            <tr v-else v-for="u in users" :key="u._id" :class="[
+            <tr v-else v-for="u in users" :key="u._id " :class="[
               u.isBlocked ? 'opacity-50' : '',
               u._approving ? 'opacity-40 blur-sm transition-all duration-1500 pointer-events-none' : ''
             ]">
@@ -294,7 +295,7 @@
                 </select>
               </div>
                <!-- /////اضافة تاريخ الانضمام نوران -->
-            <div>
+            <div v-if="!editForm.isAdmin">
               <label class="text-xs font-medium mb-1.5 block" :class="isDark ? 'text-slate-400' : 'text-slate-600'">
     {{ t('admin.usersPage.startDate') }}
   </label>
@@ -306,7 +307,7 @@
     :class="isDark ? 'bg-slate-900 border-white/10 text-white' : 'bg-white border-slate-200 text-slate-900'" 
   />
 </div>
-<div> 
+<div v-if="!editForm.isAdmin"> 
   <label class="text-xs font-medium mb-1.5 block" :class="isDark ? 'text-slate-400' : 'text-slate-600'">
     {{ t('admin.usersPage.subscriptionType') }}
   </label>
@@ -454,7 +455,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, onMounted , nextTick} from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useTheme } from '../../composables/useTheme.js'
 import adminApi from '../../api/adminApi'
@@ -533,17 +534,71 @@ async function submitBlockWarning() {
     showToast(t('admin.usersPage.warningSyncFailed'), 'error')
   }
 }
-
+const componentKey = ref(0);
 async function executeToggleBlock(u) {
+  // try {
+  //   const res = await adminApi.blockUser(u._id)
+  //   u.isBlocked = res.isBlocked
+  //   if (!u.moderation) u.moderation = {}
+  //   Object.assign(u.moderation, res.moderation)
+  // } catch (error) {
+  //   console.error("Error toggling block:", error)
+  // }
+//   try {
+//     const res = await adminApi.blockUser(u._id);  // ← واحدة بس
+//     console.log('res:', res);
+//     u.isBlocked = res.isBlocked;
+//     u.moderation = res.moderation;
+//     const index = users.value.findIndex(user => user._id === u._id);
+//     if (index !== -1) {
+//   users.value[index].isBlocked = res.isBlocked;
+//   users.value[index].moderation = res.moderation;
+// }
+//     componentKey.value += 1; 
+//     if (!res.isBlocked) { // إذا أصبح المستخدم غير محظور
+//       try {
+//         await emailServices.sendUnblockEmail(u);
+//         console.log("تم إرسال إيميل التفعيل للمستخدم");
+//       } catch (emailError) {
+//         console.error("فشل إرسال الإيميل:", emailError);
+//       }
+//     }
+    
+//   } catch (error) {
+//     console.error(error);
+//   }
+
   try {
-    const res = await adminApi.blockUser(u._id)
-    u.isBlocked = res.isBlocked
-    if (!u.moderation) u.moderation = {}
-    Object.assign(u.moderation, res.moderation)
+    // نطلب من السيرفر فك الحظر
+    const res = await adminApi.blockUser(u._id); 
+    
+    // تحديث الحالة في الواجهة
+    u.isBlocked = res.isBlocked;
+    u.moderation = res.moderation;
+    
+    // تحديث الـ Array
+    const index = users.value.findIndex(user => user._id === u._id);
+    if (index !== -1) {
+      users.value[index].isBlocked = res.isBlocked;
+      users.value[index].moderation = res.moderation;
+    }
+    
+    // التحديث التلقائي للجدول
+    componentKey.value += 1; 
+
+    // إشعار بسيط للمدير (بما أن السيرفر تكفل بإرسال الإيميل)
+    if (!res.isBlocked) {
+      alert('تم رفع الحظر بنجاح، وتم إرسال إيميل للمستخدم من قبل النظام.');
+    } else {
+      alert('تم حظر المستخدم بنجاح.');
+    }
+    
   } catch (error) {
-    console.error("Error toggling block:", error)
+    console.error("Error toggling block:", error);
+    alert('حدث خطأ أثناء تنفيذ العملية.');
   }
 }
+
 
 function closeModal() {
   showReasonModal.value = false
@@ -554,7 +609,7 @@ function closeModal() {
 function handleBlockAction(u) {
   selectedUser.value = u
   if (u.isBlocked || u.moderation?.blockStatus === 'warning') {
-    executeToggleBlock(u)
+    executeToggleBlock(selectedUser.value)
   } else {
     blockReason.value = ''
     showReasonModal.value = true

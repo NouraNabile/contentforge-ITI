@@ -29,6 +29,53 @@ async function sendVerificationEmail(email, code) {
     `,
   });
 }
+////////////////////////////////////////////////
+const emailServices = {
+  // دالة إرسال إيميل رفع الحظر
+ async sendUnblockEmail(email, name) {
+  try {
+    await transporter.sendMail({
+      from: `"Admin Team" <${process.env.ADMIN_EMAIL}>`, // إضافة اسم مرسل واضح
+      to: email,
+      subject: "Account Restored: You're back in!",
+      html: `
+        <div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; max-width: 600px; margin: 0 auto; border: 1px solid #e0e0e0; border-radius: 12px; overflow: hidden; background-color: #ffffff;">
+          
+          <div style="background-color: #4f46e5; padding: 30px; text-align: center;">
+            <h1 style="color: #ffffff; margin: 0; font-size: 24px;">Account Restored</h1>
+          </div>
+
+          <div style="padding: 40px 30px; color: #333333;">
+            <p style="font-size: 16px;">Hello <strong>${name}</strong>,</p>
+            <p style="font-size: 16px; line-height: 1.6;">
+              Great news! Your account has been reviewed and successfully <strong>unblocked</strong>. 
+            </p>
+            <p style="font-size: 16px; line-height: 1.6;">
+              You can now log in to your dashboard and continue using our platform as usual.
+            </p>
+
+            <div style="text-align: center; margin: 30px 0;">
+              <a href="https://your-website.com/login" style="background-color: #4f46e5; color: #ffffff; padding: 12px 25px; text-decoration: none; border-radius: 6px; font-weight: bold; display: inline-block;">Log In Now</a>
+            </div>
+            
+            <p style="font-size: 14px; color: #777; margin-top: 30px;">
+              If you have any questions, feel free to reply to this email.
+            </p>
+          </div>
+
+          <div style="background-color: #f9fafb; padding: 20px; text-align: center; font-size: 12px; color: #9ca3af;">
+            <p>© ${new Date().getFullYear()} Your Company Name. All rights reserved.</p>
+          </div>
+        </div>
+      `,
+    });
+    return { success: true };
+  } catch (error) {
+    console.error("Nodemailer error:", error);
+    throw error;
+  }
+}
+};
 
 async function sendPolicyWarningEmail(email, name, reason, expiryDate) {
   const formattedDate = new Date(expiryDate).toLocaleString('ar-EG', {
@@ -337,5 +384,6 @@ module.exports = {
   sendScheduledPostReminderEmail,
   sendAdminPromotionEmail,
   sendPlanUpdateByAdminEmail,
+  emailServices,
   transporter,
 };

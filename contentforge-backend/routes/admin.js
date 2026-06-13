@@ -9,6 +9,7 @@ const {
   sendAdminPromotionEmail,
   sendPlanUpdateByAdminEmail,
   sendTrialUpdateEmail,
+  emailServices
 } = require("../services/emailService");
 
 // ── GET /api/admin/stats ──────────────────────────────────────────────────────
@@ -272,6 +273,12 @@ router.put("/users/:id/block", adminOnly, async (req, res) => {
             "Your account has been restored. All restrictions have been removed.",
           meta: { unblockedBy: req.user?._id, unblockedAt: new Date() },
         });
+        try {
+        await emailServices.sendUnblockEmail(user.email, user.name);
+        console.log(`[Email] تم إرسال إيميل رفع الحظر إلى: ${user.email}`);
+    } catch (err) {
+        console.error("خطأ في إرسال إيميل رفع الحظر:", err.message);
+    }
       } catch (err) {
         console.error("[Notify] Unblock notification failed:", err.message);
       }

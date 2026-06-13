@@ -525,12 +525,12 @@ router.put("/settings/trial-days", adminOnly, async (req, res) => {
   }
 });
 
-// ── PUT /api/admin/users/:id/approve-edit ───────────────────────────────
-router.put("/users/:id/approve-edit", adminOnly, async (req, res) => {
+// ── PUT /api/admin/users/:id ───────────────────────────────
+// Main endpoint for updating user data (plan, subscription, etc.)
+router.put("/users/:id", adminOnly, async (req, res) => {
   try {
     const {
       plan,
-      planEndsAt,
       isVerified,
       isAdmin,
       subscriptionType,
@@ -543,6 +543,8 @@ router.put("/users/:id/approve-edit", adminOnly, async (req, res) => {
 
     const targetUser = await User.findById(req.params.id);
     if (!targetUser) return res.status(404).json({ message: "User not found" });
+    if (targetUser.isAdmin && !isAdmin)
+      return res.status(403).json({ message: "Cannot demote the only admin via this endpoint" });
 
     const updateData = { isVerified, isAdmin, subscriptionType };
 
@@ -570,6 +572,8 @@ router.put("/users/:id/approve-edit", adminOnly, async (req, res) => {
     } else {
       updateData.planEndsAt = null;
       updateData.isTrial = false;
+      updateData.plan = "enterprise";
+      updateData.subscriptionType = "yearly";
     }
 
     const user = await User.findByIdAndUpdate(req.params.id, updateData, {
@@ -577,18 +581,15 @@ router.put("/users/:id/approve-edit", adminOnly, async (req, res) => {
       select: "-password",
     });
 
-    // إرسال الرد للمتصفح (يتم إرساله مرة واحدة فقط)
     res.json({ user });
 
-    // منطق الإيميل الذكي (يعمل في الخلفية ولا يؤخر رد السيرفر)
+    // Send email notification in background (don't block response)
     if (user) {
       if (user.isAdmin && !targetUser.isAdmin) {
-        // حالة الترقية لـ Admin
         sendAdminPromotionEmail(user.email, user.name).catch((err) =>
           console.error("[Admin Promotion Email Error]:", err.message),
         );
       } else {
-        // حالة تحديث الباقة
         sendPlanUpdateByAdminEmail(
           user.email,
           user.name,
@@ -601,6 +602,7 @@ router.put("/users/:id/approve-edit", adminOnly, async (req, res) => {
       }
     }
 
+    // Send in-app notification to user
     if (!isAdmin && plan) {
       try {
         await createNotification({
@@ -621,6 +623,7 @@ router.put("/users/:id/approve-edit", adminOnly, async (req, res) => {
       }
     }
 
+    // Notify admin self
     try {
       await createNotification({
         recipientId: req.user._id,

@@ -1,7 +1,7 @@
+// backend/services/emailService.js
 require("dotenv").config();
 const nodemailer = require("nodemailer");
 
-// ✅ transporter واحد بس للملف كله — بيفتح connection مرة واحدة
 const transporter = nodemailer.createTransport({
   service: "gmail",
   auth: {
@@ -17,7 +17,6 @@ transporter.verify((err) => {
   else console.log('✅ Email server ready');
 });
 
-// ─────────────────────────────────────────────────────────────
 async function sendVerificationEmail(email, code) {
   await transporter.sendMail({
     from: process.env.ADMIN_EMAIL,
@@ -31,7 +30,6 @@ async function sendVerificationEmail(email, code) {
   });
 }
 
-// ─────────────────────────────────────────────────────────────
 async function sendPolicyWarningEmail(email, name, reason, expiryDate) {
   const formattedDate = new Date(expiryDate).toLocaleString('ar-EG', {
     dateStyle: 'full',
@@ -65,11 +63,11 @@ async function sendPolicyWarningEmail(email, name, reason, expiryDate) {
     `,
   });
 }
-// ───────────────────────────────────────────────────────────── 
+
 async function sendDeletionRequestEmail(name, email, reason) {
   await transporter.sendMail({
-    from: email,
-    to:   process.env.ADMIN_EMAIL,
+    from: process.env.ADMIN_EMAIL,
+    to: process.env.ADMIN_EMAIL,
     subject: `طلب حذف حساب — ${name}`,
     html: `
       <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e1e8ed; border-radius: 10px;">
@@ -83,6 +81,7 @@ async function sendDeletionRequestEmail(name, email, reason) {
     `,
   });
 }
+
 async function sendTrialUpdateEmail(email, name, newDays, newEndDate) {
   const formattedDate = new Date(newEndDate).toLocaleString('ar-EG', {
     dateStyle: 'full', timeStyle: 'short'
@@ -106,30 +105,8 @@ async function sendTrialUpdateEmail(email, name, newDays, newEndDate) {
     `,
   });
 }
-// async function sendTrialExpiryWarningEmail(email, name, expiryDate) {
-//   const formattedDate = new Date(expiryDate).toLocaleString('ar-EG', {
-//     dateStyle: 'full', timeStyle: 'short'
-//   })
-//   await transporter.sendMail({
-//     from: process.env.ADMIN_EMAIL,
-//     to: email,
-//     subject: 'تذكير: فترة تجربتك المجانية على وشك الانتهاء',
-//     html: `
-//       <div style="direction:rtl; text-align:right; font-family:sans-serif; max-width:600px; margin:0 auto; padding:20px; border:1px solid #e1e8ed; border-radius:10px;">
-//         <h2 style="color:#f59e0b;">تذكير بانتهاء فترة التجربة</h2>
-//         <p>مرحباً ${name}،</p>
-//         <p>فترة تجربتك المجانية في ContentForge ستنتهي بعد <strong>3 أيام</strong>.</p>
-//         <div style="background:#fffbeb; padding:15px; border-radius:8px; margin:16px 0;">
-//           <p style="margin:0;"><strong>تاريخ الانتهاء:</strong> ${formattedDate}</p>
-//         </div>
-//         <p>قم بترقية حسابك الآن للاستمرار في استخدام جميع المميزات.</p>
-//         <p style="font-size:12px; color:#718096;">شكراً لاستخدامك ContentForge.</p>
-//       </div>
-//     `,
-//   })
-// }
+
 async function sendTrialExpiryWarningEmail(email, name, expiryDate) {
-  // تنسيق التاريخ بشكل عربي شيك وقابل للقراءة
   const formattedDate = new Date(expiryDate).toLocaleDateString('ar-EG', {
     weekday: 'long',
     year: 'numeric',
@@ -162,16 +139,9 @@ async function sendTrialExpiryWarningEmail(email, name, expiryDate) {
   });
 }
 
-// ⚠️ ما تنسيش تضيفيها تحت في الـ module.exports مع باقي الدوال:
-module.exports = {
-  // الدوال القديمة بتاعتك...
-  sendVerificationEmail,
-  sendTrialUpdateEmail,
-  sendTrialExpiryWarningEmail // ← ضيفيها هنا
-};
 async function sendContactNotificationEmail(name, email, company, subject, message) {
   await transporter.sendMail({
-    from: email,
+    from: process.env.ADMIN_EMAIL,
     to: process.env.ADMIN_EMAIL,
     subject: `[Contact] ${subject} — ${name}`,
     html: `
@@ -185,13 +155,13 @@ async function sendContactNotificationEmail(name, email, company, subject, messa
         <p style="white-space:pre-line;">${message}</p>
       </div>
     `,
-  })
+  });
 }
 
 async function sendContactAutoReply(email, name) {
   await transporter.sendMail({
     from: process.env.ADMIN_EMAIL,
-    to:   email,
+    to: email,
     subject: 'تم استلام رسالتك ✉️ — ContentForge',
     html: `
       <div style="font-family:sans-serif; max-width:600px; margin:0 auto; padding:20px; border:1px solid #e1e8ed; border-radius:10px;">
@@ -201,13 +171,13 @@ async function sendContactAutoReply(email, name) {
         <p style="font-size:12px; color:#718096;">— فريق ContentForge</p>
       </div>
     `,
-  })
+  });
 }
 
 async function sendContactReplyEmail(email, name, originalMessage, replyText) {
   await transporter.sendMail({
     from: process.env.ADMIN_EMAIL,
-    to:   email,
+    to: email,
     subject: 'رد من فريق ContentForge',
     html: `
       <div style="font-family:sans-serif; max-width:600px; margin:0 auto; padding:20px; border:1px solid #e1e8ed; border-radius:10px;">
@@ -221,11 +191,10 @@ async function sendContactReplyEmail(email, name, originalMessage, replyText) {
         <p style="font-size:12px; color:#718096; white-space:pre-line;">${originalMessage}</p>
       </div>
     `,
-  })
+  });
 }
 
-// Send email to remind user of scheduled posts for the day
-async function sendScheduledPostReminderEmail(email, name, posts) {
+function sendScheduledPostReminderEmail(email, name, posts) {
   const postList = posts.map(p => `
     <tr>
       <td style="padding:8px 12px; border-bottom:1px solid #e2e8f0;">${p.platform}</td>
@@ -233,7 +202,7 @@ async function sendScheduledPostReminderEmail(email, name, posts) {
     </tr>
   `).join('')
 
-  await transporter.sendMail({
+  return transporter.sendMail({
     from: process.env.EMAIL_USER,
     to: email,
     subject: '📅 تذكير: لديك منشورات مجدولة اليوم — ContentForge',
@@ -258,10 +227,10 @@ async function sendScheduledPostReminderEmail(email, name, posts) {
         <p style="font-size:12px; color:#718096; margin-top:20px;">ContentForge — منصة إدارة المحتوى الذكية</p>
       </div>
     `,
-  })
+  });
 }
 
-async function sendScheduledPostTomorrowEmail(email, name, posts) {
+function sendScheduledPostTomorrowEmail(email, name, posts) {
   const postList = posts.map(p => `
     <tr>
       <td style="padding:8px 12px; border-bottom:1px solid #e2e8f0;">${p.platform}</td>
@@ -269,7 +238,7 @@ async function sendScheduledPostTomorrowEmail(email, name, posts) {
     </tr>
   `).join('')
 
-  await transporter.sendMail({
+  return transporter.sendMail({
     from: process.env.EMAIL_USER,
     to: email,
     subject: '⏰ تذكير: لديك منشورات مجدولة غداً — ContentForge',
@@ -294,11 +263,8 @@ async function sendScheduledPostTomorrowEmail(email, name, posts) {
         <p style="font-size:12px; color:#718096; margin-top:20px;">ContentForge — منصة إدارة المحتوى الذكية</p>
       </div>
     `,
-  })
+  });
 }
-
-// ─────────────────────────────────────────────────────────────
-// ... (كود الـ transporter في الأعلى)
 
 async function sendAdminPromotionEmail(email, name) {
   await transporter.sendMail({
@@ -320,7 +286,7 @@ async function sendAdminPromotionEmail(email, name) {
 
 const planPrices = { free: 'مجانية', pro: '99 جنيه / شهر', enterprise: '299 جنيه / شهر' }
 
-async function sendPlanUpdateByEmail(email, name, plan, isTrial, planEndsAt) {
+async function sendPlanUpdateByAdminEmail(email, name, plan, isTrial, planEndsAt) {
   const formattedDate = planEndsAt
     ? new Date(planEndsAt).toLocaleDateString('ar-EG', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })
     : '—'
@@ -358,8 +324,6 @@ async function sendPlanUpdateByEmail(email, name, plan, isTrial, planEndsAt) {
   });
 }
 
-
-
 module.exports = {
   sendVerificationEmail,
   sendPolicyWarningEmail,
@@ -372,6 +336,6 @@ module.exports = {
   sendScheduledPostTomorrowEmail,
   sendScheduledPostReminderEmail,
   sendAdminPromotionEmail,
-  sendPlanUpdateByEmail,
+  sendPlanUpdateByAdminEmail,
   transporter,
 };

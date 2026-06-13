@@ -76,11 +76,6 @@ const router = createRouter({
       ],
     },
     { path: '/contact', component: ContactPage },
-    ,
-    {
-      path: '/payment-success',
-      component: PaymentSuccessPage
-    },
     {
       path: '/profile',
       name: 'Profile',

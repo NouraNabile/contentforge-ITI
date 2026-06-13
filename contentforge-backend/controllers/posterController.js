@@ -7,6 +7,7 @@
 // ─────────────────────────────────────────────────────────────────────────────
 
 const { generatePoster } = require("../services/posterService");
+const { incrementUsage } = require("../middleware/subscription");
 const fs = require("fs");
 
 /**
@@ -53,6 +54,10 @@ async function createPoster(req, res) {
     // ── Call service layer ──────────────────────────────────────────────────
     const result = await generatePoster(req.file.path, prompt.trim());
 
+
+    // ── Increment usage count for subscription limits ───────────────────
+    await incrementUsage("aiImagesGenerated")(req, res, () => {});
+    
     // ── Success response ──────────────────────────────────────────────────
     return res.status(200).json({
       success: true,

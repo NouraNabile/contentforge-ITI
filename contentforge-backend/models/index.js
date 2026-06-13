@@ -21,48 +21,91 @@ const contactMessageSchema = new mongoose.Schema({
 
 // ── User ──────────────────────────────────────────────────────────────────────
 
-const userSchema = new mongoose.Schema({
-  // 1. البيانات الأساسية للمستخدم
-  name:     { type: String, required: true, trim: true },
-  email:    { type: String, required: true, unique: true, lowercase: true },
-  password: { type: String, required: true, minlength: 6 },
-  phone:    { type: String, required: [true, 'Phone number is required'], unique: true },
-  
-  // 2. صلاحيات الحساب وحالته العامة
-  isAdmin:   { type: Boolean, default: false },
-  isBlocked: { type: Boolean, default: false },
-  lastLoginAt: { type: Date },
+const userSchema = new mongoose.Schema(
+  {
+    // 1. البيانات الأساسية للمستخدم
+    name: { type: String, required: true, trim: true },
+    email: { type: String, required: true, unique: true, lowercase: true },
+    password: { type: String, required: true, minlength: 6 },
+    phone: {
+      type: String,
+      required: [true, "Phone number is required"],
+      unique: true,
+    },
 
-  // 3. نظام التحقق وتفعيل الإيميل (OTP)
-  isVerified:              { type: Boolean, default: false },
-  verificationCode:        String,
-  verificationCodeExpires: Date,
+    // 2. صلاحيات الحساب وحالته العامة
+    isAdmin: { type: Boolean, default: false },
+    isBlocked: { type: Boolean, default: false },
+    lastLoginAt: { type: Date },
 
-  // 4. نظام الاشتراكات والباقات الموحد
-  plan:             { type: String, enum: ['free', 'pro', 'enterprise',''], default: 'free' },
-  subscriptionType: { type: String, enum: ['monthly', 'yearly', 'none'], default: 'none' },
-  planEndsAt:       { type: Date, default: null }, // التاريخ الموحد لانتهاء الصلاحية (Trial أو اشتراك مدفوع)//trialEndsAt
-  stripeCustomerId: { type: String },
-  
-  // حقول تتبع الـ Trial لمنع تكرار الاستخدام المجاني
-  isTrial:          { type: Boolean, default: true }, 
-  hasUsedTrial:     { type: Boolean, default: false },
+    // 3. نظام التحقق وتفعيل الإيميل (OTP)
+    isVerified: { type: Boolean, default: false },
+    verificationCode: String,
+    verificationCodeExpires: Date,
 
-  // 5. نظام الرقابة وفترة السماح (Moderation & Grace Period)
-  moderation: {
-    blockStatus:          { type: String, enum: ['none', 'warning', 'blocked'], default: 'none' },
-    restrictionReason:    { type: String, default: null },
-    gracePeriodExpiresAt: { type: Date, default: null },
-    actionTriggeredBy:    { type: mongoose.Schema.Types.ObjectId, ref: 'User', default: null } // الآدمن المسؤول
+    // 4. نظام الاشتراكات والباقات الموحد
+    plan: {
+      type: String,
+      enum: ["free", "pro", "enterprise", ""],
+      default: "free",
+    },
+    subscriptionType: {
+      type: String,
+      enum: ["monthly", "yearly", "none"],
+      default: "none",
+    },
+    planEndsAt: { type: Date, default: null }, // التاريخ الموحد لانتهاء الصلاحية (Trial أو اشتراك مدفوع)//trialEndsAt
+    stripeCustomerId: { type: String },
+
+    // 5. نظام تتبع الاستخدام (Usage Tracking)
+    usage: {
+      aiImagesGenerated: { type: Number, default: 0 },
+      postsGenerated: { type: Number, default: 0 },
+      calendarsCreated: { type: Number, default: 0 },
+      lastUsageReset: { type: Date, default: Date.now },
+    },
+
+    // 6. حدود الخطة الحالية (Plan Limits)
+    planLimits: {
+      maxAiImagesPerMonth: { type: Number, default: 3 }, // Free: 3, Pro: 30, Enterprise: Unlimited
+      maxPostsPerCalendar: { type: Number, default: 5 }, // Free: 5, Pro: 15, Enterprise: 30
+      maxCalendarsPerMonth: { type: Number, default: 1 }, // Free: 1, Pro: 5, Enterprise: Unlimited
+      maxBrands: { type: Number, default: 1 }, // Free: 1, Pro: 3, Enterprise: 10
+      advancedAnalytics: { type: Boolean, default: false },
+      multiDialectSupport: { type: Boolean, default: false },
+      automatedReels: { type: Boolean, default: false },
+      prioritySupport: { type: Boolean, default: false },
+    },
+
+    // حقول تتبع الـ Trial لمنع تكرار الاستخدام المجاني
+    isTrial: { type: Boolean, default: true },
+    hasUsedTrial: { type: Boolean, default: false },
+
+    // 7. نظام الرقابة وفترة السماح (Moderation & Grace Period)
+    moderation: {
+      blockStatus: {
+        type: String,
+        enum: ["none", "warning", "blocked"],
+        default: "none",
+      },
+      restrictionReason: { type: String, default: null },
+      gracePeriodExpiresAt: { type: Date, default: null },
+      actionTriggeredBy: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "User",
+        default: null,
+      }, // الآدمن المسؤول
+    },
+
+    // 8. طلبات حذف الحساب
+    deletionRequest: {
+      isAsked: { type: Boolean, default: false },
+      reason: { type: String, default: null },
+      isDeleted: { type: Boolean, default: false },
+    },
   },
-
-  // 6. طلبات حذف الحساب
-  deletionRequest: {
-    isAsked:   { type: Boolean, default: false },
-    reason:    { type: String, default: null },
-    isDeleted: { type: Boolean, default: false }
-  }
-}, { timestamps: true }); // لإنشاء createdAt و updatedAt تلقائياً
+  { timestamps: true },
+); // لإنشاء createdAt و updatedAt تلقائياً
 
 // ==========================================
 // 🛠️ الـ Indexes وقوانين الـ Database

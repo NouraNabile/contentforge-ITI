@@ -5,13 +5,18 @@ const protect = require("../middleware/auth");
 const { Trend } = require("../models");
 const { Brand, Calendar, Post, OriginalCalendar } = require("../models");
 const {
+  incrementUsage,
+  checkCalendarLimit,
+  checkCalendarPostsLimit,
+} = require("../middleware/subscription");
+const {
   generateCalendar,
   generateVariantB,
 } = require("../services/geminiService");
 const { retrieveRelevantChunks } = require("../services/embeddingService");
 
 // POST /api/calendar/generate
-router.post("/generate", protect, async (req, res) => {
+router.post("/generate", protect, checkCalendarPostsLimit, checkCalendarLimit, async (req, res) => {
   const { brandId, brief, dialect, platforms, startDate, endDate, duration } =
     req.body;
 
@@ -101,6 +106,12 @@ router.post("/generate", protect, async (req, res) => {
       originalCalendarData: calendar.toObject(),
       originalPostsData: posts.map((p) => p.toObject()),
     });
+
+    for (const post of posts) {
+      await incrementUsage("postsGenerated")(req, res, () => {});
+    }
+    await incrementUsage("calendarsCreated")(req, res, () => {});
+
   } catch (err) {
     console.error("Failed to snapshot original calendar state:", err);
   }

@@ -6,6 +6,11 @@ const { Post, Brand, Calendar } = require("../models");
 const { generateVariantB } = require("../services/geminiService");
 const { uploadBase64Image } = require("../utils/uploadToCloudinary");
 const { Connection } = require("../models");
+const {
+  checkPosterLimit,
+  checkPostsLimit,
+  incrementUsage,
+} = require("../middleware/subscription");
 const axios = require("axios");
 
 const API_VERSION = process.env.META_API_VERSION || "v25.0";
@@ -291,56 +296,63 @@ router.patch("/:id/date", protect, async (req, res) => {
 // 1. Gemini يبني image prompt مخصص للبوست
 // 2. Hugging Face FLUX يولد الصورة
 // 3. بتتحفظ في MongoDB وبترجع للـ frontend
-router.post("/:id/generate-image", protect, async (req, res) => {
-  try {
-    const post = await Post.findById(req.params.id);
-    if (!post) return res.status(404).json({ message: "Post not found" });
+router.post(
+  "/:id/generate-image",
+  protect,
+  checkPosterLimit,
+  async (req, res) => {
+    try {
+      const post = await Post.findById(req.params.id);
+      if (!post) return res.status(404).json({ message: "Post not found" });
 
-    const brand = await Brand.findById(post.brand);
-    if (!brand) return res.status(404).json({ message: "Brand not found" });
+      const brand = await Brand.findById(post.brand);
+      if (!brand) return res.status(404).json({ message: "Brand not found" });
 
-    const isRegenerate = !!post.imageUrl; // لو عنده صورة قديمة = regenerate
+      const isRegenerate = !!post.imageUrl; // لو عنده صورة قديمة = regenerate
 
-    console.log(
-      `[Posts] ${isRegenerate ? "Regenerating" : "Generating"} image for post ${post._id} (${post.platform})`,
-    );
+      console.log(
+        `[Posts] ${isRegenerate ? "Regenerating" : "Generating"} image for post ${post._id} (${post.platform})`,
+      );
 
-    // لو regenerate — امسح الـ prompt القديم عشان Gemini يعمل واحد جديد مختلف
-    if (isRegenerate) {
-      post.imagePrompt = null;
-    }
+      // لو regenerate — امسح الـ prompt القديم عشان Gemini يعمل واحد جديد مختلف
+      if (isRegenerate) {
+        post.imagePrompt = null;
+      }
 
-    const { imagePrompt, imageUrl } = await generatePostImage({
-      post,
-      brand,
-      regenerate: isRegenerate, // بنبعته للـ service عشان يغير الـ seed
-    });
-
-    if (!imageUrl) {
-      return res.status(503).json({
-        message: "Image generation not available — set HF_API_TOKEN in .env",
+      const { imagePrompt, imageUrl } = await generatePostImage({
+        post,
+        brand,
+        regenerate: isRegenerate, // بنبعته للـ service عشان يغير الـ seed
       });
+
+      if (!imageUrl) {
+        return res.status(503).json({
+          message: "Image generation not available — set HF_API_TOKEN in .env",
+        });
+      }
+
+      post.imagePrompt = imagePrompt;
+      post.imageUrl = imageUrl;
+      await post.save();
+
+      await incrementUsage("aiImagesGenerated")(req, res, () => {});
+
+      res.json({
+        message: isRegenerate
+          ? "Image regenerated successfully"
+          : "Image generated successfully",
+        imageUrl,
+        imagePrompt,
+        regenerated: isRegenerate,
+      });
+    } catch (err) {
+      console.error("[Posts] Image generation error:", err.message);
+      res
+        .status(500)
+        .json({ message: "Image generation failed: " + err.message });
     }
-
-    post.imagePrompt = imagePrompt;
-    post.imageUrl = imageUrl;
-    await post.save();
-
-    res.json({
-      message: isRegenerate
-        ? "Image regenerated successfully"
-        : "Image generated successfully",
-      imageUrl,
-      imagePrompt,
-      regenerated: isRegenerate,
-    });
-  } catch (err) {
-    console.error("[Posts] Image generation error:", err.message);
-    res
-      .status(500)
-      .json({ message: "Image generation failed: " + err.message });
-  }
-});
+  },
+);
 
 // ________________________Platform Connection___________________________
 // Instagram publish
@@ -473,7 +485,7 @@ router.stack.forEach((layer) => {
 });
 
 // POST /api/posts — إنشاء منشور جديد من الـ Modal وتحديث الكالندر
-router.post("/", protect, async (req, res) => {
+router.post("/", protect, checkPostsLimit, async (req, res) => {
   try {
     const {
       brand,
@@ -526,6 +538,9 @@ router.post("/", protect, async (req, res) => {
     }
 
     console.log(`[Posts] Created new post successfully: ${newPost._id}`);
+
+    await incrementUsage("postsGenerated")(req, res, () => {});
+
     res.status(201).json(newPost);
   } catch (err) {
     console.error("[Posts Create] Error:", err.message);

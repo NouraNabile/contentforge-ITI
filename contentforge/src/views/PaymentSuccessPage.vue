@@ -92,9 +92,16 @@ const goBack = () => {
 onMounted(async () => {
   try {
     const data = await paymentApi.getStatus()
+    
     if (authStore.user) {
+      // تحديث الـ plan في الـ store
       authStore.user = { ...authStore.user, plan: data.plan }
       localStorage.setItem('cf_user', JSON.stringify(authStore.user))
+      
+      // ✅ استخدم authApi.getProfile() مباشرة
+      const freshUser = await authApi.getProfile()
+      authStore.user = freshUser
+      localStorage.setItem('cf_user', JSON.stringify(freshUser))
     }
   } catch { 
     /* silent */ 

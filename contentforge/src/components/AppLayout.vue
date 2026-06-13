@@ -468,42 +468,70 @@
         style="height: calc(100vh - 57px); border-color: var(--border)"
         v-show="sidebarOpen || isDesktop"
       >
-        <!-- Nav items -->
-        <nav class="space-y-0.5 flex-1">
-          <RouterLink
-            v-for="item in visibleNavItems"
-            :key="item.path"
-            :to="item.path"
-            @click="sidebarOpen = false"
-            class="flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-xs transition-all group"
-            :class="[
-              $route.path === item.path
-                ? 'bg-blue-600/15 text-blue-400 border border-blue-500/20'
-                : 'theme-sub hover:theme-text border border-transparent hover:bg-blue-500/5',
-            ]"
-          >
-            <svg
-              class="w-4 h-4 shrink-0"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-            >
-              <path
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                stroke-width="1.5"
-                :d="item.icon"
-              />
-            </svg>
-            {{ item.label }}
-            <span
-              v-if="item.badgeKey && sidebarStats[item.badgeKey]"
-              class="ms-auto text-[9px] px-1.5 py-0.5 rounded-full bg-blue-600/20 text-blue-400"
-            >
-              {{ sidebarStats[item.badgeKey] }}
-            </span>
-          </RouterLink>
-        </nav>
+   <!-- Nav items -->
+<nav class="space-y-0.5 flex-1">
+  <!-- ✅ Unlocked items (RouterLink) -->
+  <RouterLink 
+    v-for="item in unlockedNavItems" 
+    :key="item.path" 
+    :to="item.path" 
+    @click="sidebarOpen = false"
+    class="flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-xs transition-all group" 
+    :class="[
+      $route.path === item.path
+        ? 'bg-blue-600/15 text-blue-400 border border-blue-500/20'
+        : 'theme-sub hover:theme-text border border-transparent hover:bg-blue-500/5',
+    ]"
+  >
+    <svg class="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" :d="item.icon" />
+    </svg>
+    {{ item.label }}
+    <span v-if="item.badgeKey && sidebarStats[item.badgeKey]"
+      class="ms-auto text-[9px] px-1.5 py-0.5 rounded-full bg-blue-600/20 text-blue-400">
+      {{ sidebarStats[item.badgeKey] }}
+    </span>
+  </RouterLink>
+
+  <!-- ✅ Locked items (div with click handler) -->
+  <div
+    v-for="item in lockedNavItems"
+    :key="item.path"
+    @click="!item.comingSoon && $router.push('/payment')"
+    class="flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-xs transition-all group theme-muted cursor-pointer hover:theme-text opacity-70 border border-transparent hover:bg-amber-500/5 relative"
+    :class="{ 'cursor-not-allowed': item.comingSoon }"
+  >
+    <!-- 🔒 Lock icon overlay -->
+    <div class="relative">
+      <svg class="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" :d="item.icon" />
+      </svg>
+      <svg 
+        class="w-2.5 h-2.5 text-amber-400 absolute -bottom-1 -right-1 bg-slate-900 rounded-full p-0.5" 
+        fill="currentColor" 
+        viewBox="0 0 24 24"
+      >
+        <path d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
+      </svg>
+    </div>
+    
+    <span>{{ item.label }}</span>
+    
+    <!-- ✅ Badge: PRO أو Coming Soon -->
+    <span 
+      v-if="item.comingSoon"
+      class="ms-auto text-[9px] px-1.5 py-0.5 rounded-full bg-purple-500/20 text-purple-400 border border-purple-500/30 font-bold"
+    >
+      {{ t('layout.comingSoon') || 'Coming Soon' }}
+    </span>
+    <span 
+      v-else
+      class="ms-auto text-[9px] px-1.5 py-0.5 rounded-full bg-amber-500/20 text-amber-400 border border-amber-500/30 font-bold"
+    >
+      PRO
+    </span>
+  </div>
+</nav>
 
         <!-- Quick stats -->
         <div class="mt-4 p-3 rounded-xl theme-card theme-border space-y-2">
@@ -886,10 +914,21 @@ async function fetchStats() {
   }
 }
 
-onMounted(() => {
-  if (localStorage.getItem("cf_token")) fetchStats();
-  else setTimeout(fetchStats, 300);
-});
+onMounted(async () => {
+  if (localStorage.getItem('cf_token')) {
+    fetchStats()
+    
+    // ✅ حدّث الـ user data من الـ backend
+    try {
+      const freshUser = await authStore.refreshUser()
+      console.log('User refreshed on mount:', freshUser)
+    } catch (err) {
+      console.error('Failed to refresh user on mount:', err)
+    }
+  } else {
+    setTimeout(fetchStats, 300)
+  }
+})
 watch(() => calendarStore.posts, fetchStats, { deep: true });
 watch(() => authStore.user?._id, fetchStats);
 watch(
@@ -899,63 +938,62 @@ watch(
   },
 );
 
-const navItems = computed(() => [
-  {
-    label: t("layout.nav.calendar"),
-    path: "/dashboard",
-    badgeKey: "calendars",
-    icon: "M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z",
-  },
-  {
-    label: t("layout.nav.drafts"),
-    path: "/drafts",
-    badgeKey: "drafts",
-    icon: "M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z",
-  },
-  {
-    label: t("layout.nav.branding"),
-    path: "/branding",
-    badgeKey: null,
-    icon: "M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10",
-  },
-  {
-    label: t("layout.nav.chat"),
-    path: "/chat",
-    badgeKey: null,
-    icon: "M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z",
-  },
-  {
-    label: t("layout.nav.connections"),
-    path: "/connections",
-    badgeKey: null,
-    icon: "M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1",
-  },
-  {
-    label: t("layout.nav.poster"),
-    path: "/poster",
-    badgeKey: null,
-    icon: "M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z",
-  },
-  {
-    label: t("layout.nav.payment"),
-    path: "/payment",
-    badgeKey: null,
-    icon: "M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z",
-  },
-  {
-    label: t("layout.nav.profile"),
-    path: "/profile",
-    badgeKey: null,
-    icon: "M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z",
-  },
-]);
-
-const visibleNavItems = computed(() => {
-  if (isDesktop.value) {
-    return navItems.value.filter((item) => item.path !== "/profile");
-  }
-  return navItems.value;
+// ✅ Check if user is on Free plan
+const isNotProOrEnterprise = computed(() => {
+  const plan = authStore.user?.plan || 'free';
+  return plan !== 'pro' && plan !== 'enterprise';
 });
+
+// ✅ Check if user is NOT on Enterprise plan
+const isNotEnterprise = computed(() => {
+  const plan = authStore.user?.plan || 'free';
+  return plan !== 'enterprise';
+});
+
+const navItems = computed(() => [
+  { label: t('layout.nav.calendar'), path: '/dashboard', badgeKey: 'calendars', icon: 'M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z' },
+  { label: t('layout.nav.drafts'), path: '/drafts', badgeKey: 'drafts', icon: 'M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z' },
+  { label: t('layout.nav.branding'), path: '/branding', badgeKey: null, icon: 'M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10' },
+  { label: t('layout.nav.chat'), path: '/chat', badgeKey: null, icon: 'M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z' },
+  { label: t('layout.nav.connections'), path: '/connections', badgeKey: null, icon: 'M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1' },
+  
+  // ✅ Poster - مقفول للـ Free users فقط (PRO feature)
+  { 
+    label: t('layout.nav.poster'), 
+    path: '/poster', 
+    badgeKey: null, 
+    icon: 'M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z',
+    locked: isNotProOrEnterprise.value,  // 🔒 مقفول لغير Pro/Enterprise
+    comingSoon: false
+  },
+  
+  // ✅ AI Reels - مقفول لغير Enterprise + Coming Soon
+  { 
+    label: t('layout.nav.aiReels'), 
+    path: '/ai-reels', 
+    badgeKey: null, 
+    icon: 'M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z',
+    locked: isNotEnterprise.value,  // 🔒 مقفول لغير Enterprise
+    comingSoon: true
+  },
+  
+  { label: t('layout.nav.payment'), path: '/payment', badgeKey: null, icon: 'M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z' },
+  { label: t('layout.nav.profile'), path: '/profile', badgeKey: null, icon: 'M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z' }
+])
+
+const unlockedNavItems = computed(() => {
+  let items = navItems.value.filter(item => !item.locked)
+  
+  if (isDesktop.value) {
+    items = items.filter(item => item.path !== '/profile')
+  }
+  
+  return items
+})
+
+const lockedNavItems = computed(() => {
+  return navItems.value.filter(item => item.locked)
+})
 
 const showDeleteModal = ref(false);
 const deleteReason = ref("");

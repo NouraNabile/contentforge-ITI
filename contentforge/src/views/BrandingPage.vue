@@ -28,15 +28,41 @@
         <button
           v-for="tab in tabs"
           :key="tab.key"
-          @click="activeTab = tab.key"
-          class="px-3 sm:px-4 py-2 text-sm font-medium transition-all rounded-t-lg -mb-px whitespace-nowrap"
-          :class="
-            activeTab === tab.key
+          @click="tab.locked ? $router.push('/payment') : (activeTab = tab.key)"
+          class="px-3 sm:px-4 py-2 text-sm font-medium transition-all rounded-t-lg -mb-px whitespace-nowrap flex items-center gap-2"
+          :class="[
+            activeTab === tab.key && !tab.locked
               ? 'text-blue-500 border-b-2 border-blue-500 font-semibold'
-              : 'theme-sub hover:theme-text'
-          "
+              : tab.locked
+              ? 'theme-muted cursor-pointer hover:theme-text opacity-75'
+              : 'theme-sub hover:theme-text',
+          ]"
         >
+          <!-- 🔒 لوجو القفل -->
+          <svg
+            v-if="tab.locked"
+            class="w-3.5 h-3.5 text-amber-400"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"
+            />
+          </svg>
+
           {{ t(tab.labelKey) }}
+
+          <!-- Badge PRO -->
+          <span
+            v-if="tab.locked"
+            class="text-[9px] px-1.5 py-0.5 rounded-full bg-amber-500/20 text-amber-400 border border-amber-500/30 font-bold"
+          >
+            PRO
+          </span>
         </button>
       </div>
 
@@ -470,6 +496,62 @@
       </section>
 
       <!-- TAB: Top Posts -->
+       <div v-if="activeTab === 'Top Posts' && isFreePlan" class="space-y-6">
+        <div
+          class="rounded-2xl theme-surface theme-border p-8 sm:p-12 text-center"
+        >
+          <div class="flex flex-col items-center gap-4">
+            <div
+              class="w-20 h-20 rounded-2xl bg-gradient-to-br from-amber-500/20 to-orange-500/20 flex items-center justify-center border border-amber-500/30"
+            >
+              <svg
+                class="w-10 h-10 text-amber-400"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="1.5"
+                  d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"
+                />
+              </svg>
+            </div>
+            <div class="space-y-2">
+              <h3 class="font-display text-xl font-600 theme-text">
+                {{ t("branding.topPostsLocked") || "Top Posts Feature" }}
+              </h3>
+              <p class="text-sm theme-sub max-w-md mx-auto leading-relaxed">
+                {{
+                  t("branding.topPostsLockedDesc") ||
+                  "This feature is available on Pro and Enterprise plans. Upgrade to analyze your top-performing posts and boost your content strategy."
+                }}
+              </p>
+            </div>
+            <RouterLink
+              to="/payment"
+              class="px-6 py-3 rounded-xl bg-gradient-to-r from-amber-500 to-orange-500 text-white text-sm font-semibold hover:from-amber-600 hover:to-orange-600 transition-all shadow-lg shadow-amber-500/20 flex items-center gap-2"
+            >
+              <svg
+                class="w-4 h-4"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M13 10V3L4 14h7v7l9-11h-7z"
+                />
+              </svg>
+              {{ t("branding.upgradeNow") || "Upgrade Now" }}
+            </RouterLink>
+          </div>
+        </div>
+      </div>
+
       <section
         v-if="activeTab === 'Top Posts'"
         class="space-y-6"
@@ -1036,14 +1118,22 @@
 
 <script setup>
 import AppLayout from "../components/AppLayout.vue";
-import { ref, onMounted } from "vue";
+import { ref, computed, onMounted } from "vue";
+import { useAuthStore } from "../stores/authStore";
 import { useI18n } from "vue-i18n";
 import brandApi from "../api/brandApi";
 import topPostsApi from "../api/topPostsApi";
 
 const { t, locale } = useI18n();
-
 const toasts = ref([]);
+const authStore = useAuthStore();
+
+// ✅ Check if user is on Free plan
+const isFreePlan = computed(() => {
+  const plan = authStore.user?.plan || "free";
+  return plan === "free" || plan === "";
+});
+
 let toastIdCounter = 0;
 function showToast(message, type = 'success', duration = 4000) {
   const id = ++toastIdCounter;
@@ -1056,10 +1146,14 @@ function removeToast(id) {
 
 const activeTab = ref("Brand Identity");
 
-const tabs = [
+const tabs = computed(() => [
   { key: "Brand Identity", labelKey: "branding.tabIdentity" },
-  { key: "Top Posts", labelKey: "branding.tabPosts" },
-];
+  {
+    key: "Top Posts",
+    labelKey: "branding.tabPosts",
+    locked: isFreePlan.value, // 🔒 مقفول للـ Free users
+  },
+]);
 
 const newColor = ref("#000000");
 const newColorHex = ref("#000000");

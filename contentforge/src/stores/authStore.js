@@ -64,10 +64,26 @@ export const useAuthStore = defineStore('auth', () => {
     }
   }
 
+  async function refreshUser() {
+    try {
+      const freshUser = await authApi.getProfile();
+      user.value = freshUser;
+
+      // تحديث localStorage
+      localStorage.setItem("cf_user", JSON.stringify(freshUser));
+
+      console.log("✅ User data refreshed:", freshUser.plan);
+      return freshUser;
+    } catch (err) {
+      console.error("Failed to refresh user:", err);
+      throw err;
+    }
+  }
+
   function logout() {
     user.value = null
     authApi.logout()
   }
 
-  return { user, loading, error, isLoggedIn, userName, userPlan, userInitial, login, register, logout }
+  return { user, loading, error, isLoggedIn, userName, userPlan, userInitial, login, register, logout, refreshUser }
 })

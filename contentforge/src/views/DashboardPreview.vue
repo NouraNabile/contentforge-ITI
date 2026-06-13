@@ -367,7 +367,7 @@
                             {{
                               t(
                                 `dashboard.platformName.${post.platform}`,
-                                post.platform,
+                                post.platform
                               )
                             }}
                           </span>
@@ -389,7 +389,7 @@
                             {{
                               t(
                                 `dashboard.statusName.${post.status}`,
-                                post.status,
+                                post.status
                               )
                             }}
                           </span>
@@ -446,8 +446,8 @@
             trendsOpen || isTrendsAlwaysVisible
               ? 'translate-x-0'
               : locale === 'ar'
-                ? '-translate-x-full'
-                : 'translate-x-full',
+              ? '-translate-x-full'
+              : 'translate-x-full',
           ]"
           style="border-color: var(--border)"
         >
@@ -532,7 +532,7 @@
                 {{
                   t(
                     `dashboard.platformName.${selectedPost.platform}`,
-                    selectedPost.platform,
+                    selectedPost.platform
                   )
                 }}
               </span>
@@ -554,7 +554,7 @@
                   t(
                     statuses.find((s) => s.value === selectedPost.status)
                       ?.labelKey || "",
-                    selectedPost.status,
+                    selectedPost.status
                   )
                 }}
               </span>
@@ -563,7 +563,7 @@
                   selectedPost.scheduledDate
                     ? new Date(selectedPost.scheduledDate).toLocaleDateString(
                         locale === "ar" ? "ar-EG" : "en-GB",
-                        { day: "numeric", month: "short" },
+                        { day: "numeric", month: "short" }
                       )
                     : ""
                 }}
@@ -930,8 +930,8 @@
                       generatingImage
                         ? t("dashboard.generatingBtnImage")
                         : selectedPost.imageUrl
-                          ? t("dashboard.regenerateBtnImage")
-                          : t("dashboard.generateBtnImage")
+                        ? t("dashboard.regenerateBtnImage")
+                        : t("dashboard.generateBtnImage")
                     }}
                   </button>
                 </div>
@@ -1015,8 +1015,8 @@
                       publishing
                         ? t("dashboard.publishing")
                         : selectedPost?.status === "published"
-                          ? t("dashboard.published")
-                          : t("dashboard.publish")
+                        ? t("dashboard.published")
+                        : t("dashboard.publish")
                     }}
                   </button>
                 </div>
@@ -1198,8 +1198,8 @@
               generating
                 ? t("dashboard.generatingLong")
                 : isRegenerate
-                  ? t("dashboard.regenerateBtn")
-                  : t("dashboard.generateBtn")
+                ? t("dashboard.regenerateBtn")
+                : t("dashboard.generateBtn")
             }}
           </button>
         </div>
@@ -1293,8 +1293,8 @@
             toast.type === 'success'
               ? 'bg-emerald-500 text-white'
               : toast.type === 'warning'
-                ? 'bg-amber-400 text-slate-900'
-                : 'bg-rose-500 text-white',
+              ? 'bg-amber-400 text-slate-900'
+              : 'bg-rose-500 text-white',
             locale === 'ar' ? 'flex-row-reverse text-right' : '',
           ]"
         >
@@ -1305,8 +1305,8 @@
               toast.type === "success"
                 ? "✓"
                 : toast.type === "warning"
-                  ? "!"
-                  : "✕"
+                ? "!"
+                : "✕"
             }}
           </span>
           <p class="text-sm font-semibold leading-snug flex-1 m-0">
@@ -1561,6 +1561,56 @@
         </div>
       </Transition>
     </Teleport>
+
+    <!-- Usage Warning Modal -->
+<Teleport to="body">
+  <Transition name="modal-fade">
+    <div
+      v-if="showUsageWarning"
+      class="fixed inset-0 z-[60] flex items-center justify-center p-4"
+      style="background: rgba(0, 0, 0, 0.7)"
+    >
+      <div
+        class="theme-surface rounded-2xl theme-border max-w-sm w-full p-6 theme-shadow space-y-4"
+      >
+        <div class="flex items-center gap-3">
+          <div
+            class="w-10 h-10 rounded-xl bg-amber-500/15 flex items-center justify-center text-xl shrink-0"
+          >
+            ⚠️
+          </div>
+          <div>
+            <h3 class="font-semibold theme-text text-sm">
+              {{ t("dashboard.lowPostsWarning") }}
+            </h3>
+            <p class="text-xs theme-sub mt-0.5">
+              {{ t("dashboard.remainingPostsInfo") }}
+            </p>
+          </div>
+        </div>
+        <p class="text-sm theme-sub leading-relaxed">
+          {{ t("dashboard.youHaveOnly") }}
+          <span class="text-amber-400 font-bold">{{ remainingPostsCount }}</span>
+          {{ t("dashboard.postsRemaining") }}
+        </p>
+        <div class="flex gap-3 pt-1">
+          <button
+            @click="cancelUsageWarning"
+            class="flex-1 py-2.5 rounded-xl theme-card theme-border theme-sub text-sm hover:theme-text transition-colors"
+          >
+            {{ t("common.cancel") }}
+          </button>
+          <button
+            @click="confirmUsageWarning"
+            class="flex-1 py-2.5 rounded-xl bg-amber-500 text-white text-sm font-medium hover:bg-amber-400 transition-colors"
+          >
+            {{ t("dashboard.continueAnyway") }}
+          </button>
+        </div>
+      </div>
+    </div>
+  </Transition>
+</Teleport>
   </AppLayout>
 </template>
 
@@ -1570,6 +1620,7 @@ import AppLayout from "../components/AppLayout.vue";
 import calendarApi from "../api/calendarApi";
 import postsApi from "../api/postsApi";
 import brandApi from "../api/brandApi";
+import subscriptionApi from "../api/subscriptionApi";
 import api from "../api/client";
 import { useI18n } from "vue-i18n";
 import { useCalendarStore } from "../stores/calendarStore";
@@ -1590,6 +1641,11 @@ const showPublishConfirm = ref(false);
 const publishConfirmDate = ref("");
 const pendingPublishId = ref(null);
 const pendingPublishPlatform = ref(null);
+
+
+const showUsageWarning = ref(false);
+const remainingPostsCount = ref(0);
+let resolveUsageWarning = null; // دالة لحل الـ Promise
 
 // Reset tab when opening a new post
 watch(selectedPost, (val) => {
@@ -1719,7 +1775,7 @@ const duration = computed(() => {
   if (!startDate.value || !endDate.value) return 0;
   return Math.round(
     (new Date(endDate.value) - new Date(startDate.value)) /
-      (1000 * 60 * 60 * 24),
+      (1000 * 60 * 60 * 24)
   );
 });
 
@@ -1858,7 +1914,7 @@ watch(
   (newDate) => {
     if (!startDate.value) startDate.value = newDate;
   },
-  { immediate: true },
+  { immediate: true }
 );
 
 // ── Load on mount ─────────────────────────────────────────────────────────────
@@ -1876,7 +1932,7 @@ onMounted(async () => {
       color: t.velocity > 200 ? "text-green-400" : "text-teal-400",
     }));
     trendsLastUpdated.value = new Date(data.lastUpdated).toLocaleTimeString(
-      "ar-EG",
+      "ar-EG"
     );
   } catch (err) {
     console.error("Trends Fetch Error:", err);
@@ -1893,7 +1949,7 @@ onMounted(async () => {
       brandId.value = activeBrand._id; // حفظ الـ ID في الـ ref الخاص بالصفحة
 
       console.log(
-        `[Dashboard] Found Active Brand: ${activeBrand.name} (ID: ${activeBrand._id})`,
+        `[Dashboard] Found Active Brand: ${activeBrand.name} (ID: ${activeBrand._id})`
       );
 
       // 4️⃣ الآن نقوم بجلب الكالندر الخاص بهذا البراند بأمان
@@ -1909,7 +1965,7 @@ onMounted(async () => {
       }
     } else {
       console.warn(
-        "[Dashboard] No brands associated with this logged-in user.",
+        "[Dashboard] No brands associated with this logged-in user."
       );
       // هنا يمكنك توجيه المستخدم لصفحة إنشاء براند إذا كان النظام يتطلب ذلك أولاً
     }
@@ -1917,6 +1973,31 @@ onMounted(async () => {
     console.error("[Dashboard Setup Error]:", err);
   }
 });
+
+// ── Usage Warning Functions ───────────────────────────────────────────────────────
+function showUsageConfirm(count) {
+  return new Promise((resolve) => {
+    remainingPostsCount.value = count;
+    showUsageWarning.value = true;
+    resolveUsageWarning = resolve;
+  });
+}
+
+function confirmUsageWarning() {
+  showUsageWarning.value = false;
+  if (resolveUsageWarning) {
+    resolveUsageWarning(true);
+    resolveUsageWarning = null;
+  }
+}
+
+function cancelUsageWarning() {
+  showUsageWarning.value = false;
+  if (resolveUsageWarning) {
+    resolveUsageWarning(false);
+    resolveUsageWarning = null;
+  }
+}
 
 // ── Generate / Regenerate ─────────────────────────────────────────────────────
 function openRegenerate() {
@@ -1931,6 +2012,28 @@ async function doGenerate() {
   generating.value = true;
   loadingCalendar.value = true;
   showModal.value = false;
+
+  // ✅ تحقق من الـ remaining posts قبل الـ generate
+  try {
+    const usageData = await subscriptionApi.getUsage();
+    const remainingPosts =
+      usageData.limits.maxPostsPerCalendar - usageData.usage.postsGenerated;
+
+    if (remainingPosts <= 0) {
+      generateError.value = `You have reached your posts limit. Please upgrade your plan.`;
+      return;
+    }
+
+    if (remainingPosts < 5) {
+      // اعرض تحذير لو العدد قليل
+      const shouldContinue = await showUsageConfirm(remainingPosts);
+      if (!shouldContinue) {
+        return;
+      }
+    }
+  } catch (err) {
+    console.error("Failed to check usage:", err);
+  }
 
   try {
     validateDates();
@@ -2051,14 +2154,13 @@ async function createPost() {
       .filter(Boolean);
     console.log(
       "Current Calendar ID:",
-      currentCalendar.value?._id || currentCalendar.value?.id,
+      currentCalendar.value?._id || currentCalendar.value?.id
     );
     const payload = {
       brand: brandId.value,
       calendar: currentCalendar.value?._id || currentCalendar.value?.id, // نضمن إرسال الـ ID صح
       dialect: newPost.value.dialect,
       platform: newPost.value.platform,
-      dialect: newPost.value.dialect,
       scheduledDate: new Date(newPost.value.scheduledDate).toISOString(),
       copyAR: newPost.value.copyAR,
       copyEN: newPost.value.copyEN || "",
@@ -2278,7 +2380,7 @@ async function savePost() {
             copy: editCopy.value,
             status: formattedStatus,
           }
-        : p,
+        : p
     );
     saveMsg.value = "";
     selectedPost.value.copyAR = editCopy.value;
@@ -2311,7 +2413,7 @@ async function publishPost() {
   // Wrong date → show custom confirm modal
   if (scheduledDay && scheduledDay !== today) {
     publishConfirmDate.value = new Date(
-      scheduledDay + "T12:00:00",
+      scheduledDay + "T12:00:00"
     ).toLocaleDateString(locale.value === "ar" ? "ar-EG" : "en-GB", {
       day: "numeric",
       month: "long",
@@ -2327,7 +2429,6 @@ async function publishPost() {
   await doPublish(postId, platform);
 }
 
-
 async function doPublish(postId, platform) {
   publishing.value = true;
   const today = new Date().toISOString().split("T")[0];
@@ -2341,7 +2442,7 @@ async function doPublish(postId, platform) {
     store.posts = store.posts.map((p) =>
       p._id === postId || p.id === postId
         ? { ...p, status: "published", date: today }
-        : p,
+        : p
     );
     selectedPost.value.status = "published";
     selectedPost.value.date = today;
@@ -2421,7 +2522,7 @@ async function applyVariantB() {
           copy: variantB.value.copyAR,
           hashtags: variantB.value.hashtags,
         }
-      : p,
+      : p
   );
 
   variantB.value = null;
@@ -2446,7 +2547,7 @@ async function generateImage() {
     store.posts = store.posts.map((p) =>
       p._id === postId || p.id === postId
         ? { ...p, imageUrl: data.imageUrl, imagePrompt: data.imagePrompt }
-        : p,
+        : p
     );
   } catch (err) {
     imageError.value = err.message?.includes("loading")
@@ -2518,7 +2619,7 @@ async function onDrop(targetCell) {
     if (wasApproved) {
       await postsApi.updatePost(postId, { status: "draft" });
       store.posts = store.posts.map((p) =>
-        p._id === postId || p.id === postId ? { ...p, status: "draft" } : p,
+        p._id === postId || p.id === postId ? { ...p, status: "draft" } : p
       );
     }
   } catch (err) {

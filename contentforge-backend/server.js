@@ -77,6 +77,8 @@ app.use(
   "/uploads/generated",
   express.static(path.join(__dirname, "uploads", "generated")),
 );
+// ✅ Route الجديد للـ Subscription
+app.use("/api/subscription", require("./routes/subscription"));
 
 // ── Health check ───────────────────────────────────────────────────────────────
 app.get("/api/health", (req, res) => {
@@ -295,6 +297,53 @@ cron.schedule("0 * * * *", async () => {
     verificationCodeExpires: { $lt: new Date() },
   });
   console.log("[Cron] Cleaned unverified expired users");
+});
+
+
+// Cron Job لتصفير الـ Usage شهرياً - أول يوم في كل شهر الساعة 12 بالليل
+cron.schedule("0 0 1 * *", async () => {
+  console.log("🔄 جاري تصفير عدادات الاستخدام الشهرية...");
+  await resetMonthlyUsage();
+});
+
+// Cron Job لإعادة المستخدمين للخطة المجانية عند انتهاء الاشتراك
+cron.schedule("0 * * * *", async () => {
+  // كل ساعة
+  try {
+    const now = new Date();
+    const expiredUsers = await User.find({
+      plan: { $in: ["pro", "enterprise"] },
+      planEndsAt: { $lt: now, $ne: null },
+      isTrial: false,
+    });
+
+    if (expiredUsers.length > 0) {
+      await User.updateMany(
+        { _id: { $in: expiredUsers.map((u) => u._id) } },
+        {
+          $set: {
+            plan: "free",
+            subscriptionType: "none",
+            planLimits: {
+              maxAiImagesPerMonth: 3,
+              maxPostsPerCalendar: 5,
+              maxCalendarsPerMonth: 1,
+              maxBrands: 1,
+              advancedAnalytics: false,
+              multiDialectSupport: false,
+              automatedReels: false,
+              prioritySupport: false,
+            },
+          },
+        },
+      );
+      console.log(
+        `🔴 تم إعادة ${expiredUsers.length} مستخدم للخطة المجانية (انتهى اشتراكهم)`,
+      );
+    }
+  } catch (error) {
+    console.error("❌ خطأ في فحص الاشتراكات المنتهية:", error.message);
+  }
 });
 
 // ── Start server ──────────────────────────────────────────────────────────────

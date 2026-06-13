@@ -4,6 +4,7 @@
     "logout": "Logout",
     "switchLight": "Switch to Light Mode",
     "switchDark": "Switch to Dark Mode",
+    "comingSoon": "Coming Soon",
     "nav": {
       "calendar": "Calendar",
       "drafts": "Posts Manager",
@@ -12,7 +13,8 @@
       "connections": "Connections",
       "payment": "Billing",
       "poster": "Poster Generation",
-      "profile": "Profile"
+      "profile": "Profile",
+      "aiReels": "AI Reels"
     },
     "pageTitle": {
       "dashboard": "Calendar",
@@ -383,10 +385,10 @@
   },
   "dashboard": {
     "deleteSuccess": "Calendar deleted successfully",
-  "resetSuccess": "Calendar reset successfully",
-  "unsupportedPlatform": "Only Instagram and Facebook are supported",
-  "publishedSuccess": "Published successfully!",
-  "publishFailed": "Failed to publish",
+    "resetSuccess": "Calendar reset successfully",
+    "unsupportedPlatform": "Only Instagram and Facebook are supported",
+    "publishedSuccess": "Published successfully!",
+    "publishFailed": "Failed to publish",
     "addPostTitle": "Add New Post",
     "addPostHashtagHint": "Separate hashtags with spaces",
     "variantBArabic": "Variant B — Arabic",
@@ -516,7 +518,12 @@
     "analytics": "Analytics",
     "publish": "Publish",
     "settings": "Settings",
-    "dialectLabel": "Dialect"
+    "dialectLabel": "Dialect",
+    "lowPostsWarning": "Low Posts Warning",
+    "remainingPostsInfo": "You're running low on posts",
+    "youHaveOnly": "You have only",
+    "postsRemaining": "posts remaining. Do you want to continue?",
+    "continueAnyway": "Continue Anyway"
   },
   "competitors": {
     "eyebrow": "Why ContentForge",
@@ -633,6 +640,9 @@
     "pdfHint": "or click to browse · Max 10MB",
     "savedSuccess": "Saved & embedded successfully!",
     "saveFailed": "Save failed",
+    "topPostsLocked": "Top Posts Feature",
+    "topPostsLockedDesc": "This feature is available on Pro and Enterprise plans. Upgrade to analyze your top-performing posts and boost your content strategy.",
+    "upgradeNow": "Upgrade Now",
     "market": {
       "egypt": "Egypt",
       "saudi": "Saudi Arabia",
@@ -1081,7 +1091,11 @@
     "dataSecure": "Your data is safe",
     "tryAgainAnytime": "Try again anytime",
     "needHelp": "Having trouble?",
-    "contactSupport": "Contact support"
+    "contactSupport": "Contact support",
+    "usageStats": "Usage Statistics",
+    "aiImagesUsed": "AI Images Generated",
+    "postsGenerated": "Posts Generated",
+    "calendarsCreated": "Calendars Created"
   },
   "contact": {
     "badge": "Get in touch",

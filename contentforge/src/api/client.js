@@ -1,75 +1,76 @@
 // src/api/client.js
-// ─────────────────────────────────────────────────────────────────────────────
-// Core axios instance — every API call in the app goes through this file.
-// It automatically:
-//   • Attaches the JWT token to every request header
-//   • Refreshes UI on 401 (logged out)
-//   • Shows consistent error messages
-// ─────────────────────────────────────────────────────────────────────────────
 
-import axios from 'axios'
+import axios from "axios";
 
-// ── Base URL ──────────────────────────────────────────────────────────────────
-// During development  → http://localhost:3000/api
-// In production       → https://your-render-app.onrender.com/api
-// Change VITE_API_URL in your .env file to switch
-const BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000/api'
+const BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:3000/api";
 
-// ── Create the axios instance ─────────────────────────────────────────────────
 const api = axios.create({
   baseURL: BASE_URL,
-  timeout: 60000,          // 60 seconds — AI generation can be slow
+  timeout: 60000,
   headers: {
-    'Content-Type': 'application/json',
+    "Content-Type": "application/json",
   },
-})
+});
 
-// ── REQUEST interceptor — attach JWT token automatically ──────────────────────
+// ✅ أضف هذا: REQUEST interceptor
 api.interceptors.request.use(
   (config) => {
-    const token = localStorage.getItem('cf_token') || localStorage.getItem('auth_token')
+    const token = localStorage.getItem("cf_token");
+
     if (token) {
-      config.headers.Authorization = `Bearer ${token}`
+      config.headers.Authorization = `Bearer ${token}`;
     }
-    return config
+
+    return config;
   },
-  (error) => Promise.reject(error)
-)
-
-// ── RESPONSE interceptor — handle errors globally ────────────────────────────
-api.interceptors.response.use(
-  // Success: just return the data directly (no need to write .data everywhere)
-  (response) => response.data,
-
-  // Error: parse and re-throw with a clean message
   (error) => {
-    const status  = error.response?.status
-    const message = error.response?.data?.message || error.message || 'Something went wrong'
+    return Promise.reject(error);
+  },
+);
 
-    // 401 → token expired or invalid → force logout
+// RESPONSE interceptor (الكود الموجود لديك)
+api.interceptors.response.use(
+  (response) => response.data,
+  (error) => {
+    const status = error.response?.status;
+    const data = error.response?.data;
+    const message = data?.message || error.message || "Something went wrong";
+    const reason = data?.reason;
+    const upgradeUrl = data?.upgradeUrl;
+
     if (status === 401) {
-      localStorage.removeItem('cf_token')
-      localStorage.removeItem('cf_user')
-      // Redirect to login if not already there
-      if (window.location.pathname !== '/login') {
-        window.location.href = '/login'
+      localStorage.removeItem("cf_token");
+      localStorage.removeItem("cf_user");
+      if (window.location.pathname !== "/login") {
+        window.location.href = "/login";
       }
     }
 
-    // 403 → trial expired → clear session and redirect to upgrade page
-   if (status === 403) {
-  if (window.location.pathname !== '/trial-expired') {
-    window.location.href = '/trial-expired'
-  }
-}
+    if (status === 403) {
+      const currentPath = window.location.pathname;
 
-    // 429 → rate limited (too many AI requests)
-    if (status === 429) {
-      console.warn('Rate limited — slow down requests')
+      if (reason === "trial_expired") {
+        if (currentPath !== "/trial-expired") {
+          window.location.href = "/trial-expired";
+        }
+      } else if (reason === "feature_locked") {
+        if (currentPath !== "/payment") {
+          alert(message);
+          window.location.href = upgradeUrl || "/payment";
+        }
+      } else {
+        if (currentPath !== "/trial-expired") {
+          window.location.href = "/trial-expired";
+        }
+      }
     }
 
-    return Promise.reject({ status, message })
-  }
-)
+    if (status === 429) {
+      console.warn("Rate limited — slow down requests");
+    }
 
-export default api
+    return Promise.reject({ status, message });
+  },
+);
+
+export default api;

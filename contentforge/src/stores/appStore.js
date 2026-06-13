@@ -14,7 +14,7 @@ export const appStore = reactive({
   darkMode: true,
 
   // User
-  user: { name: 'Noura', brand: 'Araby Coffee', plan: 'Growth' },
+  user: { name: 'Noura', brand: 'Araby Coffee', plan: 'pro' },
 
   // Sidebar collapsed state
   sidebarCollapsed: false,
@@ -48,16 +48,33 @@ export const appStore = reactive({
   },
 
   addNotification({ titleKey, messageKey, timeKey = 'notifications.time.justNow', type = 'info', icon = '🔔' }) {
-    _notificationDefs.unshift({ id: Date.now(), type, icon, titleKey, messageKey, timeKey, read: false })
+    _notificationDefs.unshift({
+      id: crypto.randomUUID(),
+      type,
+      icon,
+      titleKey,
+      messageKey,
+      timeKey,
+      read: false,
+    });
+
+    if (_notificationDefs.length > 50) {
+      _notificationDefs.pop();
+    }
   },
 
   get unreadCount() {
-    return _notifications.filter(n => !n.read).length
+    return _notificationDefs.filter(n => !n.read).length
   },
 
   initTheme() {
     const saved = localStorage.getItem('theme')
-    this.darkMode = saved ? saved === 'dark' : true
+    if (saved) {
+      this.darkMode = saved === "dark";
+    } else {
+      // ✅ إذا لم يختر المستخدم ثيم، نستخدم تفضيلات نظام التشغيل
+      this.darkMode = window.matchMedia("(prefers-color-scheme: dark)").matches;
+    }
     document.documentElement.classList.toggle('dark', this.darkMode)
     document.documentElement.classList.toggle('light', !this.darkMode)
   }

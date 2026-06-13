@@ -140,8 +140,35 @@ router.post("/login", async (req, res) => {
   });
 });
 
+// router.get("/me", protect, async (req, res) => {
+//   res.json({ recipient: req.user._id, });
+// });
+
 router.get("/me", protect, async (req, res) => {
-  res.json({ recipient: req.user._id, });
+  try {
+    // req.user موجود بالفعل من الـ protect middleware
+    const user = await User.findById(req.user._id).select("-password");
+
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    res.json({
+      _id: user._id,
+      name: user.name,
+      email: user.email,
+      phone: user.phone,
+      plan: user.plan,
+      subscriptionType: user.subscriptionType,
+      planEndsAt: user.planEndsAt,
+      isTrial: user.isTrial,
+      isAdmin: user.isAdmin,
+      usage: user.usage,
+      planLimits: user.planLimits,
+    });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
 });
 
 router.get("/notifications", protect, async (req, res) => {

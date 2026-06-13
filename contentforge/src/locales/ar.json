@@ -4,6 +4,7 @@
     "logout": "تسجيل الخروج",
     "switchLight": "التبديل إلى الوضع الفاتح",
     "switchDark": "التبديل إلى الوضع الداكن",
+     "comingSoon": "قريباً",
     "nav": {
       "calendar": "التقويم",
       "drafts": "إدارة المنشورات",
@@ -12,7 +13,8 @@
       "connections": "الاتصالات",
       "payment": "الفواتير",
       "poster": "إنشاء الملصقات الإعلانية",
-      "profile": "الملف الشخصي"
+      "profile": "الملف الشخصي",
+       "aiReels": "ريلز بالذكاء الاصطناعي"
     },
     "pageTitle": {
       "dashboard": "التقويم",
@@ -494,7 +496,12 @@
     "publish": "النشر",
     "settings": "الإعدادات",
     "postsPlanned": "منشورات مخططة",
-    "dialectLabel": "اللهجة"
+    "dialectLabel": "اللهجة",
+    "lowPostsWarning": "تحذير: رصيد منشورات منخفض",
+    "remainingPostsInfo": "أنت على وشك استنفاد رصيدك من المنشورات",
+    "youHaveOnly": "يتبقى لديك فقط",
+    "postsRemaining": "منشورات. هل تريد المتابعة؟",
+    "continueAnyway": "نعم، تابع"
   },
   "competitors": {
     "eyebrow": "لماذا ContentForge",
@@ -632,6 +639,9 @@
     "pdfHint": "أو انقر للتصفح · الحد الأقصى 10MB",
     "savedSuccess": "تم الحفظ والتضمين بنجاح!",
     "saveFailed": "فشل الحفظ",
+    "topPostsLocked": "ميزة Top Posts",
+    "topPostsLockedDesc": "هذه الميزة متاحة في خطط Pro و Enterprise. قم بالترقية لتحليل أفضل منشوراتك وتعزيز استراتيجية المحتوى.",
+    "upgradeNow": "ترقية الآن",
     "market": {
       "egypt": "مصر",
       "saudi": "المملكة العربية السعودية",
@@ -1080,7 +1090,11 @@
     "dataSecure": "بياناتك بأمان",
     "tryAgainAnytime": "يمكنك المحاولة دائماً",
     "needHelp": "تواجه مشكلة؟",
-    "contactSupport": "تواصل مع الدعم"
+    "contactSupport": "تواصل مع الدعم",
+    "usageStats": "إحصائيات الاستخدام",
+    "aiImagesUsed": "الصور المولدة بالذكاء الاصطناعي",
+    "postsGenerated": "المنشورات المُنشأة",
+    "calendarsCreated": "التقويمات المُنشأة"
   },
   "contact": {
     "badge": "تواصل معنا",

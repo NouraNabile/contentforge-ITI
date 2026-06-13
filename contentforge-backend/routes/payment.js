@@ -133,57 +133,113 @@ router.post(
       case "customer.subscription.created":
       case "customer.subscription.updated": {
         const userId = data.metadata?.userId;
-        const planKey = data.metadata?.planKey;
+
+        // 1. استخراج الخطة بناءً على الـ priceId الفعلي (أدق وأمان من metadata)
+        const currentPriceId = data.items?.data?.[0]?.price?.id;
+        const planEntry = Object.entries(PLANS).find(
+          ([key, val]) => val.priceId === currentPriceId,
+        );
+        const planKey = planEntry ? planEntry[0] : data.metadata?.planKey;
         const planName = PLANS[planKey]?.plan;
 
-        if (userId && planName && data.status === "active") {
+        if (!userId || !planName) break;
+
+        // 2. حالة الاشتراك النشط أو التجريبي (شراء ناجح أو بداية تجربة)
+        if (data.status === "active" || data.status === "trialing") {
+          let planLimits = {};
+          let subscriptionType =
+            planKey.includes("annual") || planKey.includes("yearly")
+              ? "yearly"
+              : "monthly";
+
+          if (planName === "pro") {
+            planLimits = {
+              maxAiImagesPerMonth: 30,
+              maxPostsPerCalendar: 15,
+              maxCalendarsPerMonth: 5,
+              maxBrands: 3,
+              advancedAnalytics: true,
+              multiDialectSupport: true,
+              automatedReels: false,
+              prioritySupport: false,
+            };
+          } else if (planName === "enterprise") {
+            planLimits = {
+              maxAiImagesPerMonth: 999999,
+              maxPostsPerCalendar: 30,
+              maxCalendarsPerMonth: 999,
+              maxBrands: 10,
+              advancedAnalytics: true,
+              multiDialectSupport: true,
+              automatedReels: true,
+              prioritySupport: true,
+            };
+          }
+
           await User.findByIdAndUpdate(userId, {
             plan: planName,
-            isTrial: false,
+            subscriptionType: subscriptionType,
+            planLimits: planLimits,
+            planEndsAt: new Date(data.current_period_end * 1000),
+            isTrial: data.status === "trialing", // تعيينها true إذا كانت فترة تجربة
+            "usage.aiImagesGenerated": 0, // Mongoose سيتعامل معها كـ $set تلقائياً
           });
-          console.log(`✅ User ${userId} upgraded to ${planName}`);
 
-          // Notify admins and user about subscription upgrade (INSIDE the case block, BEFORE break)
-          try {
-            const changedUser = await User.findById(userId);
-            if (changedUser) {
-              const admins = await User.find({ isAdmin: true });
-              for (const admin of admins) {
-                await createNotification({
-                  recipientId: admin._id,
-                  recipientRole: "admin",
-                  type: "subscription_changed",
-                  title: "Subscription Upgraded",
-                  message: `${changedUser.name} (${changedUser.email}) upgraded to ${planName} plan.`,
-                  meta: { userId, planName, subscriptionId: data.id },
-                });
-              }
-              // Also notify the user
-              await createNotification({
-                recipientId: changedUser._id,
-                recipientRole: "user",
-                type: "plan_updated",
-                title: "Welcome to Your New Plan!",
-                message: `Your subscription has been upgraded to ${planName}. Enjoy the new features!`,
-                meta: { plan: planName },
-              });
-            }
-          } catch (err) {
-            console.error("[Notify] Subscription notification failed:", err.message);
-          }
+          console.log(`✅ User ${userId} set to ${planName} (${data.status})`);
+        }
+        // 3. حالة الإلغاء، انتهاء الصلاحية، أو فشل الدفع المتكرر (Downgrade to Free)
+        else if (
+          ["canceled", "unpaid", "incomplete_expired"].includes(data.status)
+        ) {
+          await User.findByIdAndUpdate(userId, {
+            plan: "free",
+            subscriptionType: null,
+            planEndsAt: null,
+            isTrial: false,
+            // يمكنك هنا إعادة planLimits إلى قيم الخطة المجانية إذا كانت محفوظة لديك
+          });
+          console.log(
+            `⚠️ User ${userId} subscription ${data.status}, downgraded to free`,
+          );
         }
         break;
       }
 
+      // 4. حالة الحذف النهائي للاشتراك (يحدث أحياناً بدلاً من canceled)
       case "customer.subscription.deleted": {
         const userId = data.metadata?.userId;
         if (userId) {
-          await User.findByIdAndUpdate(userId, { plan: "free" });
-          console.log(`🔴 User ${userId} subscription canceled → free`);
+          await User.findByIdAndUpdate(userId, {
+            plan: "free",
+            subscriptionType: null,
+            planEndsAt: null,
+            isTrial: false,
+          });
+          console.log(
+            `🗑️ User ${userId} subscription deleted, downgraded to free`,
+          );
         }
         break;
       }
 
+      case "invoice.paid": {
+        const userId =
+          data.metadata?.userId || data.subscription_details?.metadata?.userId;
+        if (userId) {
+          await User.findByIdAndUpdate(userId, {
+            $set: {
+              "usage.aiImagesGenerated": 0,
+              "usage.postsGenerated": 0,
+              "usage.calendarsCreated": 0,
+            },
+          });
+          console.log(
+            `♻️ Usage reset for user ${userId} after successful payment`,
+          );
+        }
+        break;
+      }
+      
       case "invoice.payment_failed": {
         console.warn(`⚠️ Payment failed for customer: ${data.customer}`);
         break;

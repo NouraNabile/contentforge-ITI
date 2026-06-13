@@ -1378,6 +1378,11 @@
       "noTrends": "No trends data yet"
     },
     "usersPage": {
+      "unblockSuccess": "User unblocked successfully. An email has been sent.",
+    "blockSuccess": "User blocked successfully.",
+    "blockToggleError": "An error occurred while performing this action.",
+    "deleteSuccess": "User deleted successfully.",
+    "deleteError": "Failed to delete user.",
       "saveSuccess": "User updated successfully",
       "saveError": "Failed to save changes",
       "startDatePastError": "Start date cannot be in the past.",

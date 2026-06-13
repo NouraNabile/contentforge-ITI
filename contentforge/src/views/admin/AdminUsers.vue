@@ -588,14 +588,14 @@ async function executeToggleBlock(u) {
 
     // إشعار بسيط للمدير (بما أن السيرفر تكفل بإرسال الإيميل)
     if (!res.isBlocked) {
-      alert('تم رفع الحظر بنجاح، وتم إرسال إيميل للمستخدم من قبل النظام.');
+      showToast(t('admin.usersPage.unblockSuccess'), 'success')
     } else {
-      alert('تم حظر المستخدم بنجاح.');
+      showToast(t('admin.usersPage.blockSuccess'), 'success')
     }
     
   } catch (error) {
     console.error("Error toggling block:", error);
-    alert('حدث خطأ أثناء تنفيذ العملية.');
+    showToast(t('admin.usersPage.blockToggleError'), 'error')
   }
 }
 
@@ -698,6 +698,9 @@ async function doDelete() {
     users.value = users.value.filter(u => u._id !== deleteTarget.value._id)
     total.value -= 1
     deleteTarget.value = null
+    showToast(t('admin.usersPage.deleteSuccess'), 'success')
+  } catch {
+    showToast(t('admin.usersPage.deleteError'), 'error')
   } finally {
     saving.value = false
   }

@@ -543,6 +543,7 @@ router.put("/users/:id", adminOnly, async (req, res) => {
       subscriptionType,
       startDate,
       isTrial,
+      planLimits
     } = req.body;
 
     const settings = await PlatformSettings.findOne();
@@ -554,11 +555,43 @@ router.put("/users/:id", adminOnly, async (req, res) => {
       return res.status(403).json({ message: "Cannot demote the only admin via this endpoint" });
 
     const updateData = { isVerified, isAdmin, subscriptionType };
-
+    const PLANS = {
+    free: {
+      maxAiImagesPerMonth: 3, // استناداً إلى "up to 3 posts"
+      maxPostsPerCalendar: 5, // (قيمة افتراضية حسب السكيما)
+      maxCalendarsPerMonth: 1, // (قيمة افتراضية حسب السكيما)
+      maxBrands: 1, // (قيمة افتراضية حسب السكيما)
+      advancedAnalytics: false, // "Standard feature set (Top Posts excluded)"
+      multiDialectSupport: false, // "Core Arabic dialects support only"
+      automatedReels: false, // غير مذكور في Free
+      prioritySupport: false,
+    },
+    pro: {
+      maxAiImagesPerMonth: 30, // بناءً على تقدير منطقي لـ "1 image per post"
+      maxPostsPerCalendar: 15,
+      maxCalendarsPerMonth: 5,
+      maxBrands: 3,
+      advancedAnalytics: true, // "Advanced Top Posts performance analytics"
+      multiDialectSupport: true, // "Expanded multi-dialect Arabic support"
+      automatedReels: false, // غير مذكور في Pro
+      prioritySupport: false,
+    },
+    enterprise: {
+      maxAiImagesPerMonth: 100, // حد أعلى للـ Enterprise
+      maxPostsPerCalendar: 30,
+      maxCalendarsPerMonth: 20,
+      maxBrands: 10,
+      advancedAnalytics: true, // "Comprehensive"
+      multiDialectSupport: true, // "Comprehensive"
+      automatedReels: true, // "Automated AI Reels generation"
+      prioritySupport: true,
+    }
+  };
     if (!isAdmin) {
       updateData.plan = plan;
       updateData.isTrial = plan === "free" ? true : (isTrial ?? false);
       updateData.startDate = startDate;
+      updateData.planLimits= PLANS[plan]
 
       if (plan !== "free" && startDate && subscriptionType) {
         const start = new Date(startDate);
@@ -581,6 +614,7 @@ router.put("/users/:id", adminOnly, async (req, res) => {
       updateData.isTrial = false;
       updateData.plan = "enterprise";
       updateData.subscriptionType = "yearly";
+      updateData.planLimits = PLANS.enterprise;
     }
 
     const user = await User.findByIdAndUpdate(req.params.id, updateData, {

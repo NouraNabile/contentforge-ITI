@@ -504,7 +504,7 @@ async function fetchUsers(p = 1) {
   loading.value = true
   page.value = p
   try {
-    const res = await adminApi.getUsers({ page: p, limit: 20, search: search.value, plan: planFilter.value })
+    const res = await adminApi.getUsers({ page: p, limit: 6, search: search.value, plan: planFilter.value })
 
     const fetchedUsers = (res.users || []).filter(u => u.deletionRequest?.isDeleted !== true)
     users.value = fetchedUsers

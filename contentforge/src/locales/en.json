@@ -50,7 +50,7 @@
   "auth": {
     "connecting": "Connecting...",
     "googleSignIn": "Sign in With Google",
-    "facebookSignIn":"Sign in With Facebook",
+    "facebookSignIn": "Sign in With Facebook",
     "orContinueWith": "Or Continue With",
     "welcomeBack": "Welcome back",
     "subtitle": "Sign in to your ContentForge account",
@@ -195,7 +195,6 @@
     }
   },
   "drafts": {
-
     "subtitle": "{count} posts pending review or approval",
     "title": "Drafts",
     "empty": "No drafts yet",
@@ -308,7 +307,7 @@
     "noResults": "No results found",
     "saving": "Saving...",
     "updating": "Updating...",
-    "done" : "Done"
+    "done": "Done"
   },
   "connections": {
     "title": "Connections",
@@ -1023,7 +1022,6 @@
       "TwitterX": "Twitter/X",
       "TikTok": "TikTok"
     },
-    
     "status": {
       "Draft": "Draft",
       "Pending": "Pending",
@@ -1383,10 +1381,10 @@
     },
     "usersPage": {
       "unblockSuccess": "User unblocked successfully. An email has been sent.",
-    "blockSuccess": "User blocked successfully.",
-    "blockToggleError": "An error occurred while performing this action.",
-    "deleteSuccess": "User deleted successfully.",
-    "deleteError": "Failed to delete user.",
+      "blockSuccess": "User blocked successfully.",
+      "blockToggleError": "An error occurred while performing this action.",
+      "deleteSuccess": "User deleted successfully.",
+      "deleteError": "Failed to delete user.",
       "saveSuccess": "User updated successfully",
       "saveError": "Failed to save changes",
       "startDatePastError": "Start date cannot be in the past.",
@@ -1455,22 +1453,31 @@
     }
   },
   "aiReels": {
-  "title": "AI Reel Generator",
-  "subtitle": "Coming Soon",
-  "comingSoonBadge": "Coming Soon",
-  "description": "We're building an intelligent AI-powered tool that will help you create stunning short-form video reels with automated scripting, scene generation, and smart editing. Stay tuned for the future of content creation!",
-  "feature1": "AI Script Writing",
-  "feature2": "Auto Scene Generation",
-  "feature3": "Smart Transitions",
-  "feature4": "Voice & Music Sync",
-  "notifyText": "Want to be the first to know when we launch?",
-  "emailPlaceholder": "Enter your email",
-  "notifyBtn": "Notify Me",
-  "sending": "Sending...",
-  "notifySuccess": "Thanks! We'll notify you when it's ready.",
-  "invalidEmail": "Please enter a valid email address",
-  "errorGeneric": "Something went wrong. Please try again.",
-  "timeline": "Expected: Q4 2026",
-  "backToDashboard": "Back to Dashboard"
-}
+    "title": "AI Reel Generator",
+    "subtitle": "Coming Soon",
+    "comingSoonBadge": "Coming Soon",
+    "description": "We're building an intelligent AI-powered tool that will help you create stunning short-form video reels with automated scripting, scene generation, and smart editing. Stay tuned for the future of content creation!",
+    "feature1": "AI Script Writing",
+    "feature2": "Auto Scene Generation",
+    "feature3": "Smart Transitions",
+    "feature4": "Voice & Music Sync",
+    "notifyText": "Want to be the first to know when we launch?",
+    "emailPlaceholder": "Enter your email",
+    "notifyBtn": "Notify Me",
+    "sending": "Sending...",
+    "notifySuccess": "Thanks! We'll notify you when it's ready.",
+    "invalidEmail": "Please enter a valid email address",
+    "errorGeneric": "Something went wrong. Please try again.",
+    "timeline": "Expected: Q4 2026",
+    "backToDashboard": "Back to Dashboard",
+    "enterpriseOnly": "Enterprise Only",
+    "lockedTitle": "AI Reels — Enterprise Feature",
+    "lockedSubtitle": "Unlock the future of video content",
+    "lockedDescription": "AI Reels is an exclusive Enterprise feature. Upgrade your plan to access AI-powered reel generation, automated scripting, and smart scene editing.",
+    "lockedFeature1": "AI-powered video scripting",
+    "lockedFeature2": "Automated scene generation",
+    "lockedFeature3": "Smart transitions & editing",
+    "lockedFeature4": "Voice & music synchronisation",
+    "upgradeBtn": "Upgrade to Enterprise"
+  }
 }

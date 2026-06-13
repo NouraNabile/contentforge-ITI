@@ -413,7 +413,7 @@
                   <!-- Platform Selection -->
                   <label class="text-xs font-medium theme-sub mb-2 block">{{
                     t("dashboard.platform") || "Platform"
-                    }}</label>
+                  }}</label>
                   <div class="flex gap-2">
                     <button v-for="p in ['Instagram', 'Facebook']" :key="p" @click="selectedPost.platform = p"
                       class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs transition-all border" :class="selectedPost.platform === p
@@ -453,9 +453,6 @@
                     </button>
                   </div>
                 </div>
-                <p v-if="saveMsg" class="text-xs text-green-400 text-center">
-                  {{ saveMsg }}
-                </p>
               </div>
 
               <!-- TAB: A/B Critic -->
@@ -584,14 +581,6 @@
             <!-- Modal Footer -->
             <div class="flex flex-col gap-2 px-4 sm:px-6 py-3 sm:py-4 border-t shrink-0"
               style="border-color: var(--border)">
-              <p v-if="publishMsg" class="text-xs text-center" :class="publishMsg.startsWith('✅')
-                ? 'text-green-400'
-                : publishMsg.startsWith('⚠️')
-                  ? 'text-amber-400'
-                  : 'text-rose-400'
-                ">
-                {{ publishMsg }}
-              </p>
               <div class="flex items-center justify-between gap-3">
                 <button @click="selectedPost = null"
                   class="px-4 sm:px-5 py-2.5 rounded-xl theme-card theme-border theme-sub text-sm hover:theme-text transition-colors">
@@ -756,52 +745,73 @@
     </div>
 
     <!-- Reset Confirm -->
-    <div v-if="showResetConfirm"
-      class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-end sm:items-center justify-center p-0 sm:p-6">
-      <div class="theme-surface rounded-t-2xl sm:rounded-2xl theme-border max-w-sm w-full p-5 sm:p-6 theme-shadow">
-        <h2 class="font-display text-lg font-600 theme-text mb-2">
-          {{ t("dashboard.resetTitle") }}
-        </h2>
-        <p class="text-sm theme-sub mb-6">{{ t("dashboard.resetDesc") }}</p>
-        <div class="flex gap-3">
-          <button @click="showResetConfirm = false"
-            class="flex-1 py-2.5 rounded-xl theme-card theme-border theme-sub text-sm hover:theme-text transition-colors">
-            {{ t("common.cancel") }}
-          </button>
-          <button @click="resetCalendar" :disabled="resetting"
-            class="flex-1 py-2.5 rounded-xl bg-rose-600 text-white text-sm hover:bg-rose-500 transition-colors disabled:opacity-50">
-            {{ resetting ? t("dashboard.resetting") : t("dashboard.resetBtn") }}
-          </button>
+    <Teleport to="body">
+      <div v-if="showResetConfirm"
+        class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-end sm:items-center justify-center p-0 sm:p-6">
+        <div class="theme-surface rounded-t-2xl sm:rounded-2xl theme-border max-w-sm w-full p-5 sm:p-6 theme-shadow">
+          <h2 class="font-display text-lg font-600 theme-text mb-2">
+            {{ t("dashboard.resetTitle") }}
+          </h2>
+          <p class="text-sm theme-sub mb-6">{{ t("dashboard.resetDesc") }}</p>
+          <div class="flex gap-3">
+            <button @click="showResetConfirm = false"
+              class="flex-1 py-2.5 rounded-xl theme-card theme-border theme-sub text-sm hover:theme-text transition-colors">
+              {{ t("common.cancel") }}
+            </button>
+            <button @click="resetCalendar" :disabled="resetting"
+              class="flex-1 py-2.5 rounded-xl bg-rose-600 text-white text-sm hover:bg-rose-500 transition-colors disabled:opacity-50">
+              {{ resetting ? t("dashboard.resetting") : t("dashboard.resetBtn") }}
+            </button>
+          </div>
         </div>
       </div>
-    </div>
-
+    </Teleport>
     <!-- Delete Confirm -->
-    <div v-if="showDeleteConfirm"
-      class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-end sm:items-center justify-center p-0 sm:p-6">
-      <div class="theme-surface rounded-t-2xl sm:rounded-2xl theme-border max-w-sm w-full p-5 sm:p-6 theme-shadow">
-        <h2 class="font-display text-lg font-600 theme-text mb-2">
-          {{ t("dashboard.deleteTitle") }}
-        </h2>
-        <p class="text-sm theme-sub mb-6">{{ t("dashboard.deleteDesc") }}</p>
-        <div class="flex gap-3">
-          <button @click="showDeleteConfirm = false"
-            class="flex-1 py-2.5 rounded-xl theme-card theme-border theme-sub text-sm hover:theme-text transition-colors">
-            {{ t("common.cancel") }}
-          </button>
-          <button @click="deleteCalendar" :disabled="deleting"
-            class="flex-1 py-2.5 rounded-xl bg-rose-600 text-white text-sm hover:bg-rose-500 transition-colors disabled:opacity-50">
-            {{ deleting ? t("dashboard.deleting") : t("dashboard.deleteBtn") }}
-          </button>
+    <Teleport to="body">
+
+      <div v-if="showDeleteConfirm"
+        class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-end sm:items-center justify-center p-0 sm:p-6">
+        <div class="theme-surface rounded-t-2xl sm:rounded-2xl theme-border max-w-sm w-full p-5 sm:p-6 theme-shadow">
+          <h2 class="font-display text-lg font-600 theme-text mb-2">
+            {{ t("dashboard.deleteTitle") }}
+          </h2>
+          <p class="text-sm theme-sub mb-6">{{ t("dashboard.deleteDesc") }}</p>
+          <div class="flex gap-3">
+            <button @click="showDeleteConfirm = false"
+              class="flex-1 py-2.5 rounded-xl theme-card theme-border theme-sub text-sm hover:theme-text transition-colors">
+              {{ t("common.cancel") }}
+            </button>
+            <button @click="deleteCalendar" :disabled="deleting"
+              class="flex-1 py-2.5 rounded-xl bg-rose-600 text-white text-sm hover:bg-rose-500 transition-colors disabled:opacity-50">
+              {{ deleting ? t("dashboard.deleting") : t("dashboard.deleteBtn") }}
+            </button>
+          </div>
         </div>
       </div>
-    </div>
+    </Teleport>
 
-    <!-- Approve toast -->
-    <div v-if="approveMsg"
-      class="fixed bottom-6 right-6 z-50 px-4 py-3 rounded-xl bg-green-600 text-white text-sm font-medium shadow-lg">
-      ✓ {{ approveMsg }}
-    </div>
+    <!-- Toast Notifications -->
+    <Teleport to="body">
+      <TransitionGroup name="toast" tag="div" class="fixed z-[9999] flex flex-col gap-2 pointer-events-none"
+        :class="locale === 'ar' ? 'bottom-5 left-5 items-start' : 'bottom-5 right-5 items-end'">
+        <div v-for="toast in toasts" :key="toast.id"
+          class="pointer-events-auto flex items-center gap-3 px-4 py-3 rounded-2xl shadow-2xl max-w-[340px] w-full sm:w-auto"
+          :class="[
+            toast.type === 'success' ? 'bg-emerald-500 text-white' :
+              toast.type === 'warning' ? 'bg-amber-400 text-slate-900' :
+                'bg-rose-500 text-white',
+            locale === 'ar' ? 'flex-row-reverse text-right' : ''
+          ]">
+          <span class="shrink-0 w-5 h-5 flex items-center justify-center rounded-full text-xs font-bold bg-white/25">
+            {{ toast.type === 'success' ? '✓' : toast.type === 'warning' ? '!' : '✕' }}
+          </span>
+          <p class="text-sm font-semibold leading-snug flex-1 m-0">{{ toast.message }}</p>
+          <button @click="removeToast(toast.id)"
+            class="shrink-0 opacity-60 hover:opacity-100 transition-opacity text-xs leading-none"
+            :class="locale === 'ar' ? 'order-first' : ''">✕</button>
+        </div>
+      </TransitionGroup>
+    </Teleport>
 
     <!-- Add Post Modal -->
     <div v-if="showAddPostModal"
@@ -1056,6 +1066,18 @@ const addPostError = ref("");
 // ── Drag & Drop state ─────────────────────────────────────────────────────
 const draggedCell = ref(null);
 const dragOverId = ref(null);
+
+// ── Toast system ───────────────────────────────────────────────────────────────
+const toasts = ref([]);
+let toastIdCounter = 0;
+function showToast(message, type = 'success', duration = 4000) {
+  const id = ++toastIdCounter;
+  toasts.value.push({ id, message, type });
+  setTimeout(() => removeToast(id), duration);
+}
+function removeToast(id) {
+  toasts.value = toasts.value.filter(t => t.id !== id);
+}
 
 // weekDays use i18n keys — reactive to locale switching
 const weekDays = computed(() => [
@@ -1365,11 +1387,10 @@ async function approvePlan() {
   try {
     await calendarApi.approveCalendar(currentCalendar.value._id);
     store.posts = store.posts.map((p) => ({ ...p, status: "approved" }));
-    approveMsg.value = t("dashboard.allApproved");
     planApproved.value = true;
-    setTimeout(() => (approveMsg.value = ""), 3000);
+    showToast(t("dashboard.allApproved"), 'success');
   } catch (err) {
-    alert(t("dashboard.approveFailed") + ": " + err.message);
+    showToast(t("dashboard.approveFailed") + ": " + err.message, 'error');
   } finally {
     approving.value = false;
   }
@@ -1391,7 +1412,7 @@ async function deleteCalendar() {
     showDeleteConfirm.value = false;
     isRegenerate.value = false;
   } catch (err) {
-    alert(t("dashboard.deleteFailed") + ": " + err.message);
+    showToast(t("dashboard.deleteFailed") + ": " + err.message, 'error');
   } finally {
     deleting.value = false;
   }
@@ -1413,7 +1434,7 @@ async function resetCalendar() {
     planApproved.value = false;
     showResetConfirm.value = false;
   } catch (err) {
-    alert(t("dashboard.resetFailed") + ": " + err.message);
+    showToast(t("dashboard.resetFailed") + ": " + err.message, 'error');
   } finally {
     resetting.value = false;
   }
@@ -1670,17 +1691,15 @@ async function savePost() {
         }
         : p,
     );
-    // تحديث نفس الكائن المختار حالياً بالشاشة
+    saveMsg.value = "";
     selectedPost.value.copyAR = editCopy.value;
     selectedPost.value.status = formattedStatus;
-
-    saveMsg.value = t("dashboard.saved");
+    showToast(t("dashboard.saved"), 'success');
     setTimeout(() => { selectedPost.value = null }, 800)
   } catch {
-    saveMsg.value = t("dashboard.savedLocally");
+    showToast(t("dashboard.savedLocally"), 'warning');
   } finally {
     saving.value = false;
-    setTimeout(() => (saveMsg.value = ""), 2000);
   }
 }
 
@@ -1689,8 +1708,7 @@ async function publishPost() {
   if (!selectedPost.value) return
   const platform = selectedPost.value.platform
   if (!['Instagram', 'Facebook'].includes(platform)) {
-    publishMsg.value = '⚠️ Only Instagram and Facebook are supported'
-    setTimeout(() => publishMsg.value = '', 3000)
+    showToast(t('dashboard.unsupportedPlatform'), 'warning')
     return
   }
 
@@ -1746,18 +1764,14 @@ async function publishPost() {
 
 async function doPublish(postId, platform) {
   publishing.value = true
-  publishMsg.value = ''
   const today = new Date().toISOString().split('T')[0]
   try {
-    // ── WORKAROUND: Set copy = copyAR before publishing ──
     const arabicText = selectedPost.value?.copyAR
     if (arabicText) {
       await postsApi.updatePost(postId, { copy: arabicText })
     }
-
     await postsApi.publishPost(postId, platform)
     await postsApi.updateDate(postId, today)
-
     store.posts = store.posts.map(p =>
       p._id === postId || p.id === postId
         ? { ...p, status: 'published', date: today }
@@ -1765,14 +1779,10 @@ async function doPublish(postId, platform) {
     )
     selectedPost.value.status = 'published'
     selectedPost.value.date = today
-    publishMsg.value = '✅ Published successfully!'
-    setTimeout(() => {
-      publishMsg.value = ''
-      selectedPost.value = null
-    }, 1500)
+    showToast(t('dashboard.publishedSuccess'), 'success')
+    setTimeout(() => { selectedPost.value = null }, 1000)
   } catch (err) {
-    publishMsg.value = '❌ ' + (err.message || 'Failed to publish')
-    setTimeout(() => publishMsg.value = '', 4000)
+    showToast(err.message || t('dashboard.publishFailed'), 'error')
   } finally {
     publishing.value = false
   }
@@ -1944,7 +1954,7 @@ async function onDrop(targetCell) {
       );
     }
   } catch (err) {
-    alert(t("dashboard.moveFailed") + ": " + err.message);
+    showToast(t("dashboard.moveFailed") + ": " + err.message, 'error');
   } finally {
     draggedCell.value = null;
   }
@@ -1952,6 +1962,21 @@ async function onDrop(targetCell) {
 </script>
 
 <style scoped>
+.toast-enter-active,
+.toast-leave-active {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.toast-enter-from,
+.toast-leave-to {
+  opacity: 0;
+  transform: translateY(12px) scale(0.96);
+}
+
+.toast-move {
+  transition: transform 0.3s ease;
+}
+
 .modal-fade-enter-active,
 .modal-fade-leave-active {
   transition: opacity 0.2s ease;

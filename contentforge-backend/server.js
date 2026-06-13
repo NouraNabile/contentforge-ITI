@@ -14,14 +14,96 @@ const { User, PlatformSettings, Notification } = require("./models");
 const posterRoutes = require("./routes/posterRouter");
 const { checkAndSendExpiryWarnings } = require("./services/cronJobs");
 const { createNotification } = require("./services/notificationHelper");
+const passport = require("passport");
 
 const app = express();
+
 const {
   sendTrialExpiryWarningEmail,
   sendScheduledPostReminderEmail,
   sendScheduledPostTomorrowEmail,
 } = require("./services/emailService");
-const contactRouter = require("./routes/contact");
+
+// ── Passport setup ────────────────────────────────────────────────────────────
+require("./config/passport");
+app.use(passport.initialize());
+
+// ── Connect to MongoDB Atlas ────────────────────────────────────────────────
+mongoose
+  .connect(process.env.MONGODB_URI)
+  .then((conn) => {
+    console.log(`✅ MongoDB Connected: ${conn.connection.host}`);
+    startTrendScheduler();
+  })
+  .catch((error) => {
+    console.error(`❌ MongoDB connection failed: ${error.message}`);
+    console.error("👉 Check your MONGO_URI in the .env file");
+    process.exit(1);
+  });
+
+// ── Middleware ────────────────────────────────────────────────────────────────
+app.use(
+  cors({
+    origin: process.env.CLIENT_URL || "http://localhost:5173",
+    credentials: true,
+  }),
+);
+
+// Stripe webhook needs raw body — MUST be before express.json
+app.use("/api/payment/webhook", express.raw({ type: "application/json" }));
+
+app.use(express.json({ limit: "20mb" }));
+app.use(express.urlencoded({ extended: true }));
+
+// Serve uploaded files publicly
+app.use("/uploads", express.static("uploads"));
+
+// ── API Routes ────────────────────────────────────────────────────────────────
+app.use("/api/auth", require("./routes/auth"));
+app.use("/api/brand", require("./routes/brand"));
+app.use("/api/calendar", require("./routes/calendar"));
+app.use("/api/posts", require("./routes/posts"));
+app.use("/api/trends", require("./routes/trends"));
+app.use("/api/chat", chatRoutes);
+app.use("/api/admin", require("./routes/admin"));
+app.use("/api/stats", require("./routes/stats"));
+app.use("/api/connections", require("./routes/connections"));
+app.use("/api/payment", require("./routes/payment"));
+app.use("/api/contact", require("./routes/contact"));
+app.use("/api/top-posts", require("./routes/topPosts"));
+app.use("/api/posters", posterRoutes);
+app.use("/api/notifications", require("./routes/notifications"));
+app.use(
+  "/uploads/generated",
+  express.static(path.join(__dirname, "uploads", "generated")),
+);
+
+// ── Health check ───────────────────────────────────────────────────────────────
+app.get("/api/health", (req, res) => {
+  res.json({
+    status: "OK",
+    service: "ContentForge API",
+    timestamp: new Date().toISOString(),
+    mongo: "connected",
+  });
+});
+
+// ── 404 handler ───────────────────────────────────────────────────────────────
+app.use((req, res) => {
+  res.status(404).json({ message: `Route ${req.originalUrl} not found` });
+});
+
+// ── Global error handler ──────────────────────────────────────────────────────
+app.use((err, req, res, next) => {
+  console.error("❌ Server Error:", err.message);
+  res.status(err.status || 500).json({
+    message: err.message || "Internal server error",
+  });
+});
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// ═══════════════════════ CRON JOBS ════════════════════════════════════════════
+// ═══════════════════════════════════════════════════════════════════════════════
 
 // ── Cron: Check trial expiry warnings at midnight ────────────────────────────
 cron.schedule("0 0 * * *", () => {
@@ -157,77 +239,66 @@ cron.schedule("0 8 * * *", async () => {
   }
 });
 
-// ── Connect to MongoDB Atlas ──────────────────────────────────────────────────
-mongoose
-  .connect(process.env.MONGODB_URI)
-  .then((conn) => {
-    console.log(`✅ MongoDB Connected: ${conn.connection.host}`);
-    startTrendScheduler();
-  })
-  .catch((error) => {
-    console.error(`❌ MongoDB connection failed: ${error.message}`);
-    console.error("👉 Check your MONGO_URI in the .env file");
-    process.exit(1);
-  });
+// ── Auto-block cron job (every 5 minutes) ─────────────────────────────────
+cron.schedule("*/5 * * * *", async () => {
+  try {
+    console.log(
+      "=== [Cron Job] جاري فحص الحسابات المستحقة للحظر التلقائي... ===",
+    );
+    const now = new Date();
 
-// ── Middleware ────────────────────────────────────────────────────────────────
-app.use(
-  cors({
-    origin: process.env.CLIENT_URL || "http://localhost:5173",
-    credentials: true,
-  }),
-);
+    const usersToBlock = await User.find({
+      "moderation.blockStatus": "warning",
+      "moderation.gracePeriodExpiresAt": { $lte: now },
+      isBlocked: { $ne: true },
+    });
 
-// Stripe webhook needs raw body — MUST be before express.json
-app.use("/api/payment/webhook", express.raw({ type: "application/json" }));
+    if (usersToBlock.length > 0) {
+      const userIds = usersToBlock.map((user) => user._id);
 
-app.use(express.json({ limit: "20mb" }));
-app.use(express.urlencoded({ extended: true }));
+      await User.updateMany(
+        { _id: { $in: userIds } },
+        {
+          $set: {
+            "moderation.blockStatus": "blocked",
+            isBlocked: true,
+            "moderation.gracePeriodExpiresAt": null,
+          },
+        },
+      );
 
-// Serve uploaded files publicly
-app.use("/uploads", express.static("uploads"));
+      // Notify blocked users
+      for (const user of usersToBlock) {
+        try {
+          await createNotification({
+            recipientId: user._id,
+            recipientRole: "user",
+            type: "account_blocked",
+            title: "Account Blocked",
+            message: "Your account has been automatically blocked due to policy violation. Please contact support.",
+            meta: { blockedAt: new Date(), reason: user.moderation.restrictionReason },
+          });
+        } catch (err) {
+          console.error("[Notify] Auto-block notification failed:", err.message);
+        }
+      }
 
-// ── API Routes ────────────────────────────────────────────────────────────────
-app.use("/api/auth", require("./routes/auth"));
-app.use("/api/brand", require("./routes/brand"));
-app.use("/api/calendar", require("./routes/calendar"));
-app.use("/api/posts", require("./routes/posts"));
-app.use("/api/trends", require("./routes/trends"));
-app.use("/api/chat", chatRoutes);
-app.use("/api/admin", require("./routes/admin"));
-app.use("/api/stats", require("./routes/stats"));
-app.use("/api/connections", require("./routes/connections"));
-app.use("/api/payment", require("./routes/payment"));
-app.use("/api/contact", require("./routes/contact"));
-app.use("/api/top-posts", require("./routes/topPosts"));
-app.use("/api/posters", posterRoutes);
-app.use(
-  "/uploads/generated",
-  express.static(path.join(__dirname, "uploads", "generated")),
-);
-app.use("/api/notifications", require("./routes/notifications"));
-
-// ── Health check ───────────────────────────────────────────────────────────────
-app.get("/api/health", (req, res) => {
-  res.json({
-    status: "OK",
-    service: "ContentForge API",
-    timestamp: new Date().toISOString(),
-    mongo: "connected",
-  });
+      console.log(
+        `[Cron Job] تم حظر ${usersToBlock.length} مستخدمين تلقائياً.`,
+      );
+    }
+  } catch (error) {
+    console.error("خطأ في الـ Cron Job:", error.message);
+  }
 });
 
-// ── 404 handler ───────────────────────────────────────────────────────────────
-app.use((req, res) => {
-  res.status(404).json({ message: `Route ${req.originalUrl} not found` });
-});
-
-// ── Global error handler ──────────────────────────────────────────────────────
-app.use((err, req, res, next) => {
-  console.error("❌ Server Error:", err.message);
-  res.status(err.status || 500).json({
-    message: err.message || "Internal server error",
+// ── Clean unverified expired users (hourly) ───────────────────────────────
+cron.schedule("0 * * * *", async () => {
+  await User.deleteMany({
+    isVerified: false,
+    verificationCodeExpires: { $lt: new Date() },
   });
+  console.log("[Cron] Cleaned unverified expired users");
 });
 
 // ── Start server ──────────────────────────────────────────────────────────────
@@ -235,66 +306,4 @@ const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
   console.log(`\n🚀 ContentForge API running on http://localhost:${PORT}`);
   console.log(`📋 Health check: http://localhost:${PORT}/api/health\n`);
-
-  // ── Auto-block cron job (every 5 minutes) ─────────────────────────────────
-  cron.schedule("*/5 * * * *", async () => {
-    try {
-      console.log(
-        "=== [Cron Job] جاري فحص الحسابات المستحقة للحظر التلقائي... ===",
-      );
-      const now = new Date();
-
-      const usersToBlock = await User.find({
-        "moderation.blockStatus": "warning",
-        "moderation.gracePeriodExpiresAt": { $lte: now },
-        isBlocked: { $ne: true },
-      });
-
-      if (usersToBlock.length > 0) {
-        const userIds = usersToBlock.map((user) => user._id);
-
-        await User.updateMany(
-          { _id: { $in: userIds } },
-          {
-            $set: {
-              "moderation.blockStatus": "blocked",
-              isBlocked: true,
-              "moderation.gracePeriodExpiresAt": null,
-            },
-          },
-        );
-
-        // Notify blocked users
-        for (const user of usersToBlock) {
-          try {
-            await createNotification({
-              recipientId: user._id,
-              recipientRole: "user",
-              type: "account_blocked",
-              title: "Account Blocked",
-              message: "Your account has been automatically blocked due to policy violation. Please contact support.",
-              meta: { blockedAt: new Date(), reason: user.moderation.restrictionReason },
-            });
-          } catch (err) {
-            console.error("[Notify] Auto-block notification failed:", err.message);
-          }
-        }
-
-        console.log(
-          `[Cron Job] تم حظر ${usersToBlock.length} مستخدمين تلقائياً.`,
-        );
-      }
-    } catch (error) {
-      console.error("خطأ في الـ Cron Job:", error.message);
-    }
-  });
-
-  // ── Clean unverified expired users (hourly) ───────────────────────────────
-  cron.schedule("0 * * * *", async () => {
-    await User.deleteMany({
-      isVerified: false,
-      verificationCodeExpires: { $lt: new Date() },
-    });
-    console.log("[Cron] Cleaned unverified expired users");
-  });
 });

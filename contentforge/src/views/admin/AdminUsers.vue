@@ -232,6 +232,32 @@
       </div>
     </div>
 
+    <!-- Toast Notifications -->
+    <Teleport to="body">
+      <TransitionGroup name="toast" tag="div"
+        class="fixed z-[9999] flex flex-col gap-2 pointer-events-none"
+        :class="locale === 'ar'
+          ? 'bottom-5 left-5 items-start'
+          : 'bottom-5 right-5 items-end'">
+        <div v-for="toast in toasts" :key="toast.id"
+          class="pointer-events-auto flex items-center gap-3 px-4 py-3 rounded-2xl shadow-2xl max-w-[340px] w-full sm:w-auto"
+          :class="[
+            toast.type === 'success' ? 'bg-emerald-500 text-white' :
+            toast.type === 'warning' ? 'bg-amber-400 text-slate-900' :
+            'bg-rose-500 text-white',
+            locale === 'ar' ? 'flex-row-reverse text-right' : ''
+          ]">
+          <span class="shrink-0 w-5 h-5 flex items-center justify-center rounded-full text-xs font-bold bg-white/25">
+            {{ toast.type === 'success' ? '✓' : toast.type === 'warning' ? '!' : '✕' }}
+          </span>
+          <p class="text-sm font-semibold leading-snug flex-1 m-0">{{ toast.message }}</p>
+          <button @click="removeToast(toast.id)"
+            class="shrink-0 opacity-60 hover:opacity-100 transition-opacity text-xs leading-none"
+            :class="locale === 'ar' ? 'order-first' : ''">✕</button>
+        </div>
+      </TransitionGroup>
+    </Teleport>
+
     <!-- Edit Modal -->
     <Teleport to="body">
       <Transition name="modal-fade">
@@ -294,7 +320,7 @@
     <label class="flex items-center gap-2 cursor-pointer">
       <input type="radio" v-model="editForm.subscriptionType" value="yearly" 
              class="w-4 h-4 text-blue-600 focus:ring-blue-500" />
-      <span class="text-sm" :class="isDark ? 'text-slate-300' : 'text-slate-700'">{{ t('admin.usersPage.yearly') }}</span>
+      <span class="text-sm" :class="isDark ? 'text-slate-300' : 'text-slate-700'">{{ t('admin.usersPage.annually') }}</span>
     </label>
   </div>
 </div>
@@ -433,7 +459,7 @@ import { useI18n } from 'vue-i18n'
 import { useTheme } from '../../composables/useTheme.js'
 import adminApi from '../../api/adminApi'
 
-const { t } = useI18n()
+const { t, locale } = useI18n()
 const { isDark } = useTheme()
 
 const users = ref([])
@@ -451,6 +477,18 @@ const saving = ref(false)
 const showReasonModal = ref(false)
 const blockReason = ref('')
 const selectedUser = ref(null)
+const toasts = ref([])
+let toastIdCounter = 0
+
+function showToast(message, type = 'success', duration = 4000) {
+  const id = ++toastIdCounter
+  toasts.value.push({ id, message, type })
+  setTimeout(() => removeToast(id), duration)
+}
+
+function removeToast(id) {
+  toasts.value = toasts.value.filter(t => t.id !== id)
+}
 
 let searchTimer
 // ضيفي المتغير ده في الـ Data أو الـ Setup
@@ -489,10 +527,10 @@ async function submitBlockWarning() {
     Object.assign(userToUpdate.moderation, res.moderation)
 
     closeModal()
-    alert(t('admin.usersPage.warningIssuedSuccess'))
+    showToast(t('admin.usersPage.warningIssuedSuccess'), 'success')
   } catch (error) {
     console.error("Error saving warning to DB:", error)
-    alert(t('admin.usersPage.warningSyncFailed'))
+    showToast(t('admin.usersPage.warningSyncFailed'), 'error')
   }
 }
 
@@ -523,19 +561,28 @@ function handleBlockAction(u) {
   }
 }
 
-function getRemainingTime(expiry) {
-  if (!expiry) return '24h'
-  const diff = new Date(expiry) - Date.now()
-  if (diff <= 0) return t('admin.usersPage.timeExpired')
-  return t('admin.usersPage.timeRemaining', { hours, mins })
-}
+// في الـ Script الخاص بالـ Vue
+const getRemainingTime = (date) => {
+  if (!date) return "—";
+  
+  const targetDate = new Date(date);
+  const now = new Date();
+  const diff = targetDate - now;
+
+  if (diff <= 0) return "انتهت المدة";
+
+  const hours = Math.floor(diff / (1000 * 60 * 60));
+  const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+
+  return `${hours} H : ${minutes} M`;
+};
 
 function openEdit(u) {
   editUser.value = u
   editForm.value = {
     plan: u.plan || 'free',
     isTrial: !!u.isTrial,
-    planStart: u.planStart ? u.planStart.slice(0, 10) : '',
+    startDate: u.planStart ? u.planStart.slice(0, 10) : '',
     isVerified: !!u.isVerified,
     isAdmin: !!u.isAdmin,
     subscriptionType: u.subscriptionType || 'monthly',
@@ -549,7 +596,7 @@ async function saveEdit() {
 
   // التحقق من startDate
   if (editForm.value.startDate && new Date(editForm.value.startDate) < todayDate) {
-    alert(t('admin.usersPage.startDatePastError'));
+    showToast(t('admin.usersPage.startDatePastError'), 'warning')
     return;
   }
 
@@ -578,8 +625,9 @@ async function saveEdit() {
     const idx = users.value.findIndex(u => u._id === editUser.value._id);
     if (idx !== -1) users.value[idx] = { ...users.value[idx], ...updated.user };
     editUser.value = null;
+    showToast(t('admin.usersPage.saveSuccess'), 'success')
   } catch (error) {
-    alert(t('admin.usersPage.saveError'));
+    showToast(t('admin.usersPage.saveError'), 'error')
   } finally {
     saving.value = false;
   }
@@ -652,6 +700,21 @@ onMounted(() => fetchUsers())
 </script>
 
 <style scoped>
+.toast-enter-active,
+.toast-leave-active {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.toast-enter-from,
+.toast-leave-to {
+  opacity: 0;
+  transform: translateY(12px) scale(0.96);
+}
+
+.toast-move {
+  transition: transform 0.3s ease;
+}
+
 .modal-fade-enter-active,
 .modal-fade-leave-active {
   transition: opacity 0.2s ease;

@@ -13,7 +13,21 @@ const signToken = (id) =>
   });
 
 const { PlatformSettings } = require("../models");
+const passport = require('passport');
+///////////////////////////////////////// Google OAuth Routes ───────────────────────────────
+router.get('/google', passport.authenticate('google', { scope: ['profile', 'email'] }));
 
+// المسار الثاني: كول باك (Callback) يعود إليه المستخدم بعد الموافقة في جوجل
+router.get('/google/callback',
+  passport.authenticate('google', { session: false }),
+  (req, res) => {
+    // ننشئ الـ Token الخاص بنا
+    const token = jwt.sign({ id: req.user._id }, process.env.JWT_SECRET, { expiresIn: '1h' });
+
+    // نوجه المستخدم لصفحة في الفرونت إند ومعها الـ Token
+    res.redirect(`http://localhost:5173/login-success?token=${token}`);
+  }
+);
 router.post("/register", async (req, res) => {
   try {
     const { name, email, password, phone } = req.body;
@@ -119,6 +133,9 @@ router.post("/login", async (req, res) => {
       email: user.email,
       plan: user.plan,
       isAdmin: user.isAdmin,
+      isTrial: user.isTrial,
+      planEndsAt: user.planEndsAt,
+      trialExpired: user.isTrial && user.planEndsAt && new Date() > new Date(user.planEndsAt),
     },
   });
 });

@@ -281,6 +281,31 @@
       </div>
     </div>
 
+    <!-- Toast Notifications -->
+    <Teleport to="body">
+      <TransitionGroup name="toast" tag="div"
+        class="fixed z-[9999] flex flex-col gap-2 pointer-events-none"
+        :class="locale === 'ar'
+          ? 'bottom-5 left-5 items-start'
+          : 'bottom-5 right-5 items-end'">
+        <div v-for="toast in toasts" :key="toast.id"
+          class="pointer-events-auto flex items-center gap-3 px-4 py-3 rounded-2xl shadow-2xl max-w-[340px] w-full sm:w-auto"
+          :class="[
+            toast.type === 'success' ? 'bg-emerald-500 text-white' :
+            'bg-rose-500 text-white',
+            locale === 'ar' ? 'flex-row-reverse text-right' : ''
+          ]">
+          <span class="shrink-0 w-5 h-5 flex items-center justify-center rounded-full text-xs font-bold bg-white/25">
+            {{ toast.type === 'success' ? '✓' : '✕' }}
+          </span>
+          <p class="text-sm font-semibold leading-snug flex-1 m-0">{{ toast.message }}</p>
+          <button @click="removeToast(toast.id)"
+            class="shrink-0 opacity-60 hover:opacity-100 transition-opacity text-xs leading-none"
+            :class="locale === 'ar' ? 'order-first' : ''">✕</button>
+        </div>
+      </TransitionGroup>
+    </Teleport>
+
     <!-- Block Warning Modal -->
     <Teleport to="body">
       <Transition name="modal-fade">
@@ -340,6 +365,18 @@ const trends = ref([])
 const showReasonModal = ref(false)
 const blockReason = ref('')
 const selectedUser = ref(null)
+const toasts = ref([])
+let toastIdCounter = 0
+
+function showToast(message, type = 'success', duration = 4000) {
+  const id = ++toastIdCounter
+  toasts.value.push({ id, message, type })
+  setTimeout(() => removeToast(id), duration)
+}
+
+function removeToast(id) {
+  toasts.value = toasts.value.filter(t => t.id !== id)
+}
 
 const uptimeStr = computed(() => {
   const s = stats.value.serverUptime || 0
@@ -440,9 +477,9 @@ async function submitBlockWarning() {
     showReasonModal.value = false
     blockReason.value = ''
     closeModal()
-    alert(t('admin.warningSuccess'))
+    showToast(t('admin.warningSuccess'), 'success')
   } catch (error) {
-    alert(error.response?.data?.message || t('admin.warningFailed'))
+    showToast(error.response?.data?.message || t('admin.warningFailed'), 'error')
   }
 }
 
@@ -474,6 +511,21 @@ onMounted(async () => {
 </script>
 
 <style scoped>
+.toast-enter-active,
+.toast-leave-active {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.toast-enter-from,
+.toast-leave-to {
+  opacity: 0;
+  transform: translateY(12px) scale(0.96);
+}
+
+.toast-move {
+  transition: transform 0.3s ease;
+}
+
 .modal-fade-enter-active,
 .modal-fade-leave-active {
   transition: opacity 0.2s ease;

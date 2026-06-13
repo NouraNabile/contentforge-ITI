@@ -40,7 +40,7 @@
         <p class="left-footer">{{ t('auth.copyright') }}</p>
       </div>
     </div>
-
+    <!-- <a href="http://localhost:3000/api/auth/google">سجل دخولك عبر جوجل</a> -->
     <!-- Right panel -->
     <div class="login-right">
 
@@ -397,7 +397,7 @@
             </button>
           </p>
         </div>
-
+        <a href="http://localhost:3000/api/auth/google">سجل دخولك عبر جوجل</a>
       </div>
     </div>
 
@@ -406,18 +406,29 @@
 
 <script setup>
 import { ref, onMounted, nextTick } from 'vue'
-import { RouterLink, useRouter } from 'vue-router'
+import { RouterLink, useRouter, useRoute } from 'vue-router'
 import { useAuthStore } from '../stores/authStore'
 import { useI18n } from 'vue-i18n'
 import { useLang } from '../composables/useLang.js'
 import { useTheme } from '../composables/useTheme.js'
 import api from '../api/client'
 import authApi from '../api/authApi'
+import paymentApi from '../api/paymentApi.js'
 
 const { t } = useI18n()
 const { locale, switchLang } = useLang()
 const { isDark, toggle: toggleTheme } = useTheme()
 const router = useRouter()
+const route = useRoute()
+
+
+// Extract the plan and billing info if they exist in the URL
+const targetPlan = route.query.plan // Will be 'pro' or 'enterprise'
+const targetBilling = route.query.billing // Will be 'annual' or 'monthly'
+const redirectPath = route.query.redirect // The page they were on before clicking login
+
+
+
 const authStore = useAuthStore()
 
 // ── Core state ────────────────────────────────────────────────────────────────
@@ -471,6 +482,36 @@ function handleForgotOtpKeyDown(index, event) {
     forgotOtpRefs.value[index - 1]?.focus()
 }
 
+// ── Post-auth redirect: payment flow vs normal flow ───────────────────────────
+async function handlePostAuthRedirect(user) {
+  const { plan, billing, redirect } = route.query
+
+  if (plan) {
+    // Came from a "Try Now" button -> proceed to payment
+    try {
+      const fullPlanKey = `${plan}_${billing || 'monthly'}`
+      const url = await paymentApi.checkout(fullPlanKey)
+      if (url) {
+        window.location.href = url
+        return
+      }
+      error.value = t('payment.errorGeneric')
+    } catch (err) {
+      error.value = err.message || t('payment.errorGeneric')
+    }
+    // Fall back to dashboard if checkout failed
+    router.push(user?.isAdmin ? '/admin' : '/dashboard')
+    return
+  }
+
+  // Normal flow: navbar "Get Started", payment cancel back button, direct /login, etc.
+  if (redirect && typeof redirect === 'string' && redirect.startsWith('/')) {
+    router.push(redirect)
+  } else {
+    router.push(user?.isAdmin ? '/admin' : '/dashboard')
+  }
+}
+
 onMounted(async () => {
   try {
     await api.get('/health')
@@ -522,6 +563,39 @@ async function resendForgotOtp() {
   }
 }
 
+// ── Post-auth redirect: checkout flow vs normal dashboard ─────────────────────
+/**
+ * If the user arrived here via a "Try Now" click on Pro/Enterprise
+ * (PricingSection.vue or TrialExpiredPage.vue pass plan + billing in the query),
+ * send them straight to the payment API after successful login/register.
+ * Otherwise fall back to normal dashboard/admin routing.
+ */
+
+
+async function redirectAfterAuth() {
+  const { plan, billing, redirect } = route.query
+  const user = JSON.parse(localStorage.getItem('cf_user') || '{}')
+  const cameFromCancel = typeof redirect === 'string' && redirect.startsWith('/payment/cancel')
+
+  if (plan && !cameFromCancel) {
+    try {
+      const billingSuffix = billing === 'annual' ? 'annual' : 'monthly'
+      const fullPlanKey = `${plan}_${billingSuffix}`
+
+      // Mark origin as 'pricing_guest' or 'pricing' so the backend cancel url knows where to go
+      const url = await paymentApi.checkout(fullPlanKey, { from: 'pricing_guest' })
+      if (url) {
+        window.location.href = url
+        return
+      }
+      error.value = t('payment.errorGeneric', 'تأخر استجابة بوابة الدفع، يرجى المحاولة مرة أخرى.')
+    } catch (err) {
+      error.value = err.message || t('payment.errorGeneric')
+    }
+  }
+  router.push(user?.isAdmin ? '/admin' : '/dashboard')
+}
+
 // ── Submit (login / register) ─────────────────────────────────────────────────
 async function submit() {
   error.value = null
@@ -550,7 +624,43 @@ async function submit() {
       await nextTick()
       if (localStorage.getItem('cf_token')) {
         const user = JSON.parse(localStorage.getItem('cf_user') || '{}')
-        router.push(user?.isAdmin ? '/admin' : '/dashboard')
+        await handlePostAuthRedirect(user)
+
+        // 1. Check Admin status
+        if (user?.isAdmin) {
+          router.push('/admin')
+          return
+        }
+
+        // 2. Check for Expired Trial status
+        if (user?.trialExpired) {
+          router.push('/trial-expired')
+          return
+        }
+
+        // 3. 🌟 SPECIAL CASE: Came from Pricing "Try Now" button
+        const targetPlan = route.query.plan
+        const targetBilling = route.query.billing
+
+        if (targetPlan && targetBilling) {
+          try {
+            const paymentKey = `${targetPlan}_${targetBilling}`
+            const url = await paymentApi.checkout(paymentKey, { from: 'login_redirect' })
+
+            if (url) {
+              window.location.href = url // Redirect to Stripe
+              return // Stop here, do not go to dashboard
+            }
+          } catch (e) {
+            console.error("Failed to initiate checkout redirect:", e)
+            // If checkout fails, we safely fall through to the dashboard below
+          }
+        }
+
+        // 4. 🛡️ FALLBACK: Normal login flow (No plan in URL, or checkout failed)
+        // This handles direct logins, navbar "Sign In" clicks, etc.
+        router.push('/dashboard')
+
       } else {
         error.value = t('auth.errorTokenMissing')
       }
@@ -574,7 +684,34 @@ async function verifyEmail() {
     successKey.value = 'auth.verifiedSuccess'
     await authStore.login(form.value)
     const user = JSON.parse(localStorage.getItem('cf_user') || '{}')
-    router.push(user?.isAdmin ? '/admin' : '/dashboard')
+    await handlePostAuthRedirect(user)
+
+    if (user?.isAdmin) {
+      router.push('/admin')
+    } else if (user?.trialExpired) {
+      router.push('/trial-expired')
+    } else {
+      // 🌟 SPECIAL CASE: New user registered via Pricing "Try Now"
+      const targetPlan = route.query.plan
+      const targetBilling = route.query.billing
+
+      if (targetPlan && targetBilling) {
+        try {
+          const paymentKey = `${targetPlan}_${targetBilling}`
+          const url = await paymentApi.checkout(paymentKey, { from: 'login_redirect' })
+          
+          if (url) {
+            window.location.href = url
+            return
+          }
+        } catch (e) {
+          console.error("Failed to initiate checkout redirect:", e)
+        }
+      }
+
+      // 🛡️ FALLBACK: Normal registration flow -> go to dashboard
+      router.push('/dashboard')
+    }
   } catch (err) {
     error.value = err.response?.data?.message || t('auth.errorInvalidCode')
   } finally {

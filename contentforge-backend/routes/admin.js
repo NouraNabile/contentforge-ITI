@@ -6,6 +6,7 @@ const { User, Post, Brand, Trend, PlatformSettings } = require("../models");
 const { createNotification } = require("../services/notificationHelper");
 const {
   sendPolicyWarningEmail,
+  sendAdminPromotionEmail,
   sendPlanUpdateByAdminEmail,
   sendTrialUpdateEmail,
 } = require("../services/emailService");
@@ -180,6 +181,7 @@ router.put("/settings", adminOnly, async (req, res) => {
 
       updatedUsers = trialUsers.length;
     }
+
     try {
       const allUsers = await User.find({
         isAdmin: { $ne: true },
@@ -536,6 +538,9 @@ router.put("/users/:id/approve-edit", adminOnly, async (req, res) => {
       isTrial,
     } = req.body;
 
+    const settings = await PlatformSettings.findOne();
+    const defaultTrialDays = settings?.trialDays || 14;
+
     const targetUser = await User.findById(req.params.id);
     if (!targetUser) return res.status(404).json({ message: "User not found" });
 
@@ -557,7 +562,10 @@ router.put("/users/:id/approve-edit", adminOnly, async (req, res) => {
         }
         updateData.planEndsAt = newEnd;
       } else {
-        updateData.planEndsAt = planEndsAt ?? null;
+        const start = new Date(startDate || Date.now());
+        const newEnd = new Date(start);
+        newEnd.setDate(newEnd.getDate() + defaultTrialDays);
+        updateData.planEndsAt = newEnd;
       }
     } else {
       updateData.planEndsAt = null;
@@ -569,17 +577,31 @@ router.put("/users/:id/approve-edit", adminOnly, async (req, res) => {
       select: "-password",
     });
 
-    if (!isAdmin && plan) {
-      sendPlanUpdateByAdminEmail(
-        user.email,
-        user.name,
-        user.plan,
-        user.isTrial,
-        user.planEndsAt,
-      ).catch((err) =>
-        console.error("[Email] Plan update error:", err.message),
-      );
+    // إرسال الرد للمتصفح (يتم إرساله مرة واحدة فقط)
+    res.json({ user });
 
+    // منطق الإيميل الذكي (يعمل في الخلفية ولا يؤخر رد السيرفر)
+    if (user) {
+      if (user.isAdmin && !targetUser.isAdmin) {
+        // حالة الترقية لـ Admin
+        sendAdminPromotionEmail(user.email, user.name).catch((err) =>
+          console.error("[Admin Promotion Email Error]:", err.message),
+        );
+      } else {
+        // حالة تحديث الباقة
+        sendPlanUpdateByAdminEmail(
+          user.email,
+          user.name,
+          user.plan,
+          user.isTrial,
+          user.planEndsAt,
+        ).catch((err) =>
+          console.error("[Plan Update Email Error]:", err.message),
+        );
+      }
+    }
+
+    if (!isAdmin && plan) {
       try {
         await createNotification({
           recipientId: user._id,
@@ -615,8 +637,6 @@ router.put("/users/:id/approve-edit", adminOnly, async (req, res) => {
     } catch (err) {
       console.error("[Notify] Admin self-notification failed:", err.message);
     }
-
-    res.json({ user });
   } catch (err) {
     console.error("=== خطأ في تعديل المستخدم ===", err.message);
     res.status(500).json({ message: "Server error", error: err.message });

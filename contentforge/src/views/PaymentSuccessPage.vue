@@ -1,10 +1,8 @@
 <template>
   <div class="min-h-screen theme-bg flex items-center justify-center p-4 sm:p-6" :dir="locale === 'ar' ? 'rtl' : 'ltr'">
 
-    <!-- ── Floating Action Bar (Lang & Theme Selectors) ── -->
     <div class="fixed top-3 end-3 sm:top-4 sm:end-4 z-10 flex items-center gap-2">
       
-      <!-- Language Switcher -->
       <button @click="switchLang"
         class="text-xs theme-sub px-3 py-1.5 rounded-lg theme-card theme-border hover:theme-text transition-colors flex items-center gap-1.5">
         <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -15,7 +13,6 @@
         <span class="sm:hidden">{{ locale === 'en' ? 'ع' : 'EN' }}</span>
       </button>
 
-      <!-- Theme Switcher -->
       <button @click="toggleTheme"
         class="w-8 h-8 rounded-lg theme-card theme-border flex items-center justify-center theme-sub hover:theme-text transition-colors shrink-0"
         :title="isDark ? t('layout.switchLight') : t('layout.switchDark')">
@@ -30,17 +27,14 @@
       </button>
     </div>
 
-    <!-- ── Background Ambient Backdrop Glow ── -->
     <div class="fixed inset-0 pointer-events-none overflow-hidden">
       <div class="absolute top-1/3 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-green-500/5 rounded-full blur-3xl"></div>
     </div>
 
-    <!-- ── Main Card Container ── -->
     <div class="relative w-full max-w-lg">
 
       <div class="theme-card theme-border rounded-2xl sm:rounded-3xl p-6 sm:p-10 text-center shadow-2xl shadow-black/40 space-y-7">
 
-        <!-- Animated Success Badge Group -->
         <div class="relative mx-auto w-fit">
           <div class="w-20 h-20 sm:w-24 sm:h-24 rounded-full bg-green-500/10 border border-green-500/25 flex items-center justify-center mx-auto">
             <svg class="w-10 h-10 sm:w-12 sm:h-12 text-green-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -50,21 +44,18 @@
           <div class="absolute inset-0 rounded-full border border-green-500/20 animate-ping"></div>
         </div>
 
-        <!-- Success Text Headers -->
         <div class="space-y-2">
           <h1 class="text-2xl sm:text-3xl font-bold theme-text">{{ t('payment.successTitle') }}</h1>
           <p class="text-sm sm:text-base theme-muted leading-relaxed max-w-sm mx-auto">{{ t('payment.successMsg') }}</p>
         </div>        
 
-        <!-- Responsive Action Button Control -->
-        <div class="flex flex-col sm:flex-row gap-3">
-          <button @click="router.push('/dashboard')"
-            class="flex-1 px-6 py-3 rounded-xl bg-blue-600 text-white text-sm font-semibold hover:bg-blue-500 transition-all duration-200 hover:shadow-lg hover:shadow-blue-500/25">
-            {{ t('payment.goToDashboard') }}
-          </button>
-        </div>
+        <div class="flex flex-col">
+  <button @click="goBack"
+    class="w-full px-6 py-3 rounded-xl bg-blue-600 text-white text-sm font-semibold hover:bg-blue-500 transition-all duration-200 hover:shadow-lg hover:shadow-blue-500/25">
+    {{ t('common.done') || 'Done' }}
+  </button>
+</div>
 
-        <!-- Support Subtext Help Footer -->
         <p class="text-xs theme-muted">
           {{ t('payment.needHelp') }}
           <button @click="router.push('/contact')" class="text-blue-400 hover:text-blue-300 transition-colors underline underline-offset-2 ms-1">
@@ -91,6 +82,11 @@ const router    = useRouter()
 const authStore = useAuthStore()
 const { isDark, toggle: toggleTheme } = useTheme()
 const { switchLang } = useLang()
+
+
+const goBack = () => {
+  router.push('/dashboard')
+}
 
 // ── Refresh User Profile Data ──
 onMounted(async () => {

@@ -298,7 +298,8 @@ async function sendScheduledPostTomorrowEmail(email, name, posts) {
 }
 
 // ─────────────────────────────────────────────────────────────
-// بيتبعت لما الأدمن يرفع صلاحيات user لـ admin
+// ... (كود الـ transporter في الأعلى)
+
 async function sendAdminPromotionEmail(email, name) {
   await transporter.sendMail({
     from: process.env.ADMIN_EMAIL,
@@ -317,11 +318,9 @@ async function sendAdminPromotionEmail(email, name) {
   });
 }
 
-// ─────────────────────────────────────────────────────────────
-// بيتبعت لما الأدمن يعدل plan أو trial الخاص بـ user
 const planPrices = { free: 'مجانية', pro: '99 جنيه / شهر', enterprise: '299 جنيه / شهر' }
 
-async function sendPlanUpdateByAdminEmail(email, name, plan, isTrial, planEndsAt) {
+async function sendPlanUpdateByEmail(email, name, plan, isTrial, planEndsAt) {
   const formattedDate = planEndsAt
     ? new Date(planEndsAt).toLocaleDateString('ar-EG', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })
     : '—'
@@ -359,6 +358,8 @@ async function sendPlanUpdateByAdminEmail(email, name, plan, isTrial, planEndsAt
   });
 }
 
+
+
 module.exports = {
   sendVerificationEmail,
   sendPolicyWarningEmail,
@@ -371,6 +372,6 @@ module.exports = {
   sendScheduledPostTomorrowEmail,
   sendScheduledPostReminderEmail,
   sendAdminPromotionEmail,
-  sendPlanUpdateByAdminEmail,
+  sendPlanUpdateByEmail,
   transporter,
 };

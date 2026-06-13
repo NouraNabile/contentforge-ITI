@@ -49,14 +49,10 @@
           <p class="text-sm sm:text-base theme-muted leading-relaxed max-w-sm mx-auto">{{ t('payment.cancelMsg') }}</p>
         </div>        
 
-        <div class="flex flex-col sm:flex-row gap-3">
-          <button @click="router.push('/payment')"
-            class="flex-1 px-6 py-3 rounded-xl bg-blue-600 text-white text-sm font-semibold hover:bg-blue-500 transition-colors">
-            {{ t('payment.tryAgain') }}
-          </button>
-          <button @click="router.push('/dashboard')"
-            class="flex-1 px-6 py-3 rounded-xl theme-bg theme-border theme-sub text-sm font-medium hover:theme-text transition-colors">
-            {{ t('payment.goToDashboard') }}
+        <div class="flex flex-col">
+          <button @click="goBack"
+            class="w-full px-6 py-3 rounded-xl bg-blue-600 text-white text-sm font-semibold hover:bg-blue-500 transition-colors shadow-lg shadow-blue-600/20">
+            {{ t('common.back') || 'Back' }}
           </button>
         </div>
 
@@ -74,12 +70,37 @@
 
 <script setup>
 import { useRouter } from 'vue-router'
-import { useI18n }   from 'vue-i18n'
-import { useLang }   from '@/composables/useLang'
-import { useTheme }  from '@/composables/useTheme'
+import { useI18n } from 'vue-i18n'
+import { useLang } from '@/composables/useLang'
+import { useTheme } from '@/composables/useTheme'
 
 const { t, locale } = useI18n()
-const router        = useRouter()
+const router = useRouter()
 const { switchLang } = useLang()
 const { isDark, toggle: toggleTheme } = useTheme()
+
+const goBack = () => {
+  const token = localStorage.getItem('cf_token')
+  const userStr = localStorage.getItem('cf_user')
+  const user = userStr ? JSON.parse(userStr) : {}
+
+  if (token) {
+    // 🌟 1. Admins have no expiration. Check this FIRST to guarantee correct routing.
+    if (user?.isAdmin) {
+      router.push('/admin')
+      return
+    }
+
+    // 🌟 2. If a regular user's trial is expired, send them back to the trial expired page
+    if (user?.trialExpired) {
+      router.push('/trial-expired')
+      return
+    }
+
+    // 🌟 3. Normal active logged-in user: send to payment page to view status or try again
+    router.push('/payment')
+  } else {
+    router.push('/login')
+  }
+}
 </script>

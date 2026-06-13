@@ -1005,6 +1005,31 @@
           </div>
         </Transition>
       </Teleport>
+
+    <!-- Toast Notifications -->
+    <Teleport to="body">
+      <TransitionGroup name="toast" tag="div"
+        class="fixed z-[9999] flex flex-col gap-2 pointer-events-none"
+        :class="locale === 'ar' ? 'bottom-5 left-5 items-start' : 'bottom-5 right-5 items-end'">
+        <div v-for="toast in toasts" :key="toast.id"
+          class="pointer-events-auto flex items-center gap-3 px-4 py-3 rounded-2xl shadow-2xl max-w-[340px] w-full sm:w-auto"
+          :class="[
+            toast.type === 'success' ? 'bg-emerald-500 text-white' :
+            toast.type === 'warning' ? 'bg-amber-400 text-slate-900' :
+            'bg-rose-500 text-white',
+            locale === 'ar' ? 'flex-row-reverse text-right' : ''
+          ]">
+          <span class="shrink-0 w-5 h-5 flex items-center justify-center rounded-full text-xs font-bold bg-white/25">
+            {{ toast.type === 'success' ? '✓' : toast.type === 'warning' ? '!' : '✕' }}
+          </span>
+          <p class="text-sm font-semibold leading-snug flex-1 m-0">{{ toast.message }}</p>
+          <button @click="removeToast(toast.id)"
+            class="shrink-0 opacity-60 hover:opacity-100 transition-opacity text-xs leading-none"
+            :class="locale === 'ar' ? 'order-first' : ''">✕</button>
+        </div>
+      </TransitionGroup>
+    </Teleport>
+
     </div>
   </AppLayout>
 </template>
@@ -1016,7 +1041,18 @@ import { useI18n } from "vue-i18n";
 import brandApi from "../api/brandApi";
 import topPostsApi from "../api/topPostsApi";
 
-const { t } = useI18n();
+const { t, locale } = useI18n();
+
+const toasts = ref([]);
+let toastIdCounter = 0;
+function showToast(message, type = 'success', duration = 4000) {
+  const id = ++toastIdCounter;
+  toasts.value.push({ id, message, type });
+  setTimeout(() => removeToast(id), duration);
+}
+function removeToast(id) {
+  toasts.value = toasts.value.filter(t => t.id !== id);
+}
 
 const activeTab = ref("Brand Identity");
 
@@ -1313,9 +1349,9 @@ async function saveAll() {
       localStorage.setItem("cf_brandId", result.brand._id);
       await brandApi.embedBrand(result.brand._id);
     }
-    alert(t("branding.savedSuccess"));
+    showToast(t("branding.savedSuccess"), 'success');
   } catch (err) {
-    alert(t("branding.saveFailed", { msg: err.message }));
+    showToast(t("branding.saveFailed", { msg: err.message }), 'error');
   }
 }
 
@@ -1389,7 +1425,7 @@ function handleLogo(e) {
   const file = e.target.files[0];
   if (!file) return;
   if (file.size > 2 * 1024 * 1024) {
-    alert(t("branding.logoSizeError"));
+    showToast(t("branding.logoSizeError"), 'warning');
     e.target.value = "";
     return;
   }
@@ -1416,6 +1452,21 @@ function getPlatformKey(platformName) {
 </script>
 
 <style scoped>
+.toast-enter-active,
+.toast-leave-active {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.toast-enter-from,
+.toast-leave-to {
+  opacity: 0;
+  transform: translateY(12px) scale(0.96);
+}
+
+.toast-move {
+  transition: transform 0.3s ease;
+}
+
 .modal-fade-enter-active,
 .modal-fade-leave-active {
   transition: opacity 0.25s ease;

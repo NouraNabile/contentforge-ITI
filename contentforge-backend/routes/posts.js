@@ -2,6 +2,7 @@
 const express = require("express");
 const router = express.Router();
 const protect = require("../middleware/auth");
+const { User } = require("../models");
 const { Post, Brand, Calendar } = require("../models");
 const { generateVariantB } = require("../services/geminiService");
 const { uploadBase64Image } = require("../utils/uploadToCloudinary");
@@ -335,7 +336,9 @@ router.post(
       post.imageUrl = imageUrl;
       await post.save();
 
-      await incrementUsage("aiImagesGenerated")(req, res, () => {});
+      await User.findByIdAndUpdate(req.user._id, {
+        $inc: { "usage.aiImagesGenerated": 1 }
+      });
 
       res.json({
         message: isRegenerate
@@ -539,8 +542,10 @@ router.post("/", protect, checkPostsLimit, async (req, res) => {
 
     console.log(`[Posts] Created new post successfully: ${newPost._id}`);
 
-    await incrementUsage("postsGenerated")(req, res, () => {});
-
+    // ✅ تحديث الـ usage مباشرة (بدون middleware)
+    await User.findByIdAndUpdate(req.user._id, {
+      $inc: { "usage.postsGenerated": 1 },
+    });
     res.status(201).json(newPost);
   } catch (err) {
     console.error("[Posts Create] Error:", err.message);

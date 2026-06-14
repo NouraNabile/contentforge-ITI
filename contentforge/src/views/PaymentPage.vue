@@ -9,27 +9,34 @@
       <div class="rounded-2xl theme-surface theme-border p-6">
         <div class="flex items-start justify-between gap-4 flex-wrap">
           <div>
-            <p class="text-xs theme-muted mb-1">
-              {{ t("payment.currentPlan") }}
-            </p>
-            <div class="flex items-center gap-2">
-              <span class="text-xl font-bold theme-text capitalize">{{
-                planLabel
-              }}</span>
-            </div>
-            <p
-              v-if="subscription?.currentPeriodEnd"
-              class="text-xs theme-muted mt-1.5"
-            >
-              {{ t("payment.renewsOn") }}
-              {{ formatDate(subscription.currentPeriodEnd) }}
-              <span
-                v-if="subscription.cancelAtPeriodEnd"
-                class="text-rose-400 ml-1"
-                >({{ t("payment.cancelAtEnd") }})</span
-              >
-            </p>
-          </div>
+  <p class="text-xs theme-muted mb-1">
+    {{ t("payment.currentPlan") }}
+  </p>
+  <div class="flex items-center gap-2">
+    <span class="text-xl font-bold theme-text capitalize">{{ planLabel }}</span>
+    
+    <!-- ✅ Badge للإلغاء المجدول -->
+    <span 
+      v-if="subscription?.cancelAtPeriodEnd"
+      class="text-[10px] px-2 py-0.5 rounded-full bg-amber-500/15 text-amber-400 border border-amber-500/20 font-medium"
+    >
+      {{ t("payment.cancelsAtEnd") || "Cancels at period end" }}
+    </span>
+  </div>
+  
+  <p
+    v-if="subscription?.currentPeriodEnd"
+    class="text-xs theme-muted mt-1.5"
+  >
+    <template v-if="subscription.cancelAtPeriodEnd">
+      {{ t("payment.accessUntil") || "Access until" }}
+    </template>
+    <template v-else>
+      {{ t("payment.renewsOn") || "Renews on" }}
+    </template>
+    {{ formatDate(subscription.currentPeriodEnd) }}
+  </p>
+</div>
           <div
             v-if="subscription?.card"
             class="flex items-center gap-3 px-4 py-3 rounded-xl theme-card theme-border"
@@ -284,32 +291,47 @@
           </ul>
 
           <button
-            @click="subscribe(plan.key)"
-            :disabled="checkoutLoading === plan.key"
-            class="w-full py-2.5 rounded-xl text-sm font-medium transition-all disabled:opacity-50 bg-blue-600 text-white hover:bg-blue-500"
-          >
-            <svg
-              v-if="checkoutLoading === plan.key"
-              class="w-4 h-4 animate-spin inline mr-2"
-              fill="none"
-              viewBox="0 0 24 24"
-            >
-              <circle
-                class="opacity-25"
-                cx="12"
-                cy="12"
-                r="10"
-                stroke="currentColor"
-                stroke-width="4"
-              />
-              <path
-                class="opacity-75"
-                fill="currentColor"
-                d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"
-              />
-            </svg>
-            {{ plan.cta }}
-          </button>
+  @click="subscribe(plan.key)"
+  :disabled="currentPlan === plan.key || checkoutLoading === plan.key"
+  class="w-full py-2.5 rounded-xl text-sm font-medium transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+  :class="[
+    currentPlan === plan.key && plan.key !== 'free'
+      ? 'bg-green-600/20 text-green-400 border border-green-500/30'
+      : 'bg-blue-600 text-white hover:bg-blue-500'
+  ]"
+>
+  <svg
+    v-if="checkoutLoading === plan.key"
+    class="w-4 h-4 animate-spin inline mr-2"
+    fill="none"
+    viewBox="0 0 24 24"
+  >
+    <circle
+      class="opacity-25"
+      cx="12"
+      cy="12"
+      r="10"
+      stroke="currentColor"
+      stroke-width="4"
+    />
+    <path
+      class="opacity-75"
+      fill="currentColor"
+      d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"
+    />
+  </svg>
+  
+  <!-- ✅ عرض نص مختلف حسب الحالة -->
+  <template v-if="currentPlan === plan.key && plan.key !== 'free'">
+    ✓ {{ t("pricing.currentPlan") || "Current Plan" }}
+  </template>
+  <template v-else-if="plan.key === 'free' && currentPlan !== 'free'">
+    {{ t("pricing.downgrade") || "Downgrade" }}
+  </template>
+  <template v-else>
+    {{ plan.cta }}
+  </template>
+</button>
         </div>
       </div>
 
@@ -526,8 +548,8 @@ async function loadStatus() {
       usage.value = usageData.usage;
       limits.value = usageData.limits;
     }
-  } catch {
-    /* silent */
+  } catch (err) {
+    console.error("Failed to load status:", err);
   }
 }
 

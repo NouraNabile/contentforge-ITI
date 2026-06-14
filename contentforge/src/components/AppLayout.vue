@@ -801,6 +801,8 @@
         </div>
       </Transition>
     </Teleport>
+     <!-- ✅ أضف هذا في النهاية -->
+    <LimitModal />
   </div>
 </template>
 
@@ -812,6 +814,7 @@ import { useTheme } from "../composables/useTheme.js";
 import { useLang } from "../composables/useLang.js";
 import { useAuthStore } from "../stores/authStore";
 import api from "../api/client";
+import LimitModal from './LimitModal.vue'
 import { useCalendarStore } from "../stores/calendarStore";
 
 const route = useRoute();

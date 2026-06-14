@@ -307,7 +307,8 @@
     "noResults": "No results found",
     "saving": "Saving...",
     "updating": "Updating...",
-    "done": "Done"
+    "done": "Done",
+    "backToDashboard": "Back to Dashboard"
   },
   "connections": {
     "title": "Connections",
@@ -789,6 +790,10 @@
     "perYear": "/year",
     "wasPrice": "was ${price}",
     "bottomNote": "All plans include Arabic dialect support, cultural trend injection, and a free trial. No credit card required to start.",
+    "currentPlan": "Current Plan",
+    "downgrade": "Downgrade to Free",
+    "cancelsAtEnd": "Cancels at period end",
+    "accessUntil": "Access until",
     "plans": {
       "free": {
         "name": "Free",
@@ -1097,7 +1102,13 @@
     "usageStats": "Usage Statistics",
     "aiImagesUsed": "AI Images Generated",
     "postsGenerated": "Posts Generated",
-    "calendarsCreated": "Calendars Created"
+    "calendarsCreated": "Calendars Created",
+    "confirming": "Confirming Payment...",
+    "confirmingMsg": "Please wait while we verify your payment.",
+    "errorTitle": "Payment Confirmation Failed",
+    "noSession": "No session ID found",
+    "confirmError": "Failed to confirm payment",
+    "yourNewPlan": "Your New Plan"
   },
   "contact": {
     "badge": "Get in touch",
@@ -1479,5 +1490,10 @@
     "lockedFeature3": "Smart transitions & editing",
     "lockedFeature4": "Voice & music synchronisation",
     "upgradeBtn": "Upgrade to Enterprise"
+  },
+  "limitModal": {
+    "infoMessage": "Upgrade your plan or resubscribe to continue using all features without limits.",
+    "upgradePlan": "Upgrade Plan",
+    "resubscribe": "Resubscribe"
   }
 }

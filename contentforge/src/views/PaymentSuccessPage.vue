@@ -35,33 +35,87 @@
 
       <div class="theme-card theme-border rounded-2xl sm:rounded-3xl p-6 sm:p-10 text-center shadow-2xl shadow-black/40 space-y-7">
 
-        <div class="relative mx-auto w-fit">
-          <div class="w-20 h-20 sm:w-24 sm:h-24 rounded-full bg-green-500/10 border border-green-500/25 flex items-center justify-center mx-auto">
-            <svg class="w-10 h-10 sm:w-12 sm:h-12 text-green-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
-            </svg>
+        <!-- Loading State -->
+        <div v-if="loading" class="space-y-6">
+          <div class="relative mx-auto w-fit">
+            <div class="w-20 h-20 sm:w-24 sm:h-24 rounded-full bg-blue-500/10 border border-blue-500/25 flex items-center justify-center mx-auto">
+              <svg class="w-10 h-10 sm:w-12 sm:h-12 text-blue-400 animate-spin" fill="none" viewBox="0 0 24 24">
+                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" />
+                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+              </svg>
+            </div>
           </div>
-          <div class="absolute inset-0 rounded-full border border-green-500/20 animate-ping"></div>
+          <div class="space-y-2">
+            <h1 class="text-2xl sm:text-3xl font-bold theme-text">{{ t('payment.confirming') || 'Confirming Payment...' }}</h1>
+            <p class="text-sm sm:text-base theme-muted leading-relaxed max-w-sm mx-auto">
+              {{ t('payment.confirmingMsg') || 'Please wait while we verify your payment.' }}
+            </p>
+          </div>
         </div>
 
-        <div class="space-y-2">
-          <h1 class="text-2xl sm:text-3xl font-bold theme-text">{{ t('payment.successTitle') }}</h1>
-          <p class="text-sm sm:text-base theme-muted leading-relaxed max-w-sm mx-auto">{{ t('payment.successMsg') }}</p>
-        </div>        
+        <!-- Error State -->
+        <div v-else-if="error" class="space-y-6">
+          <div class="relative mx-auto w-fit">
+            <div class="w-20 h-20 sm:w-24 sm:h-24 rounded-full bg-rose-500/10 border border-rose-500/25 flex items-center justify-center mx-auto">
+              <svg class="w-10 h-10 sm:w-12 sm:h-12 text-rose-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </div>
+          </div>
+          <div class="space-y-2">
+            <h1 class="text-2xl sm:text-3xl font-bold theme-text">{{ t('payment.errorTitle') || 'Payment Confirmation Failed' }}</h1>
+            <p class="text-sm sm:text-base theme-muted leading-relaxed max-w-sm mx-auto">{{ error }}</p>
+          </div>
+          <div class="flex flex-col gap-3">
+            <button @click="retryConfirm"
+              class="w-full px-6 py-3 rounded-xl bg-blue-600 text-white text-sm font-semibold hover:bg-blue-500 transition-all duration-200">
+              {{ t('common.retry') || 'Retry' }}
+            </button>
+            <button @click="goBack"
+              class="w-full px-6 py-3 rounded-xl theme-card theme-border theme-sub text-sm font-semibold hover:theme-text transition-all duration-200">
+              {{ t('common.backToDashboard') || 'Back to Dashboard' }}
+            </button>
+          </div>
+        </div>
 
-        <div class="flex flex-col">
-  <button @click="goBack"
-    class="w-full px-6 py-3 rounded-xl bg-blue-600 text-white text-sm font-semibold hover:bg-blue-500 transition-all duration-200 hover:shadow-lg hover:shadow-blue-500/25">
-    {{ t('common.done') || 'Done' }}
-  </button>
-</div>
+        <!-- Success State -->
+        <div v-else class="space-y-6">
+          <div class="relative mx-auto w-fit">
+            <div class="w-20 h-20 sm:w-24 sm:h-24 rounded-full bg-green-500/10 border border-green-500/25 flex items-center justify-center mx-auto">
+              <svg class="w-10 h-10 sm:w-12 sm:h-12 text-green-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+              </svg>
+            </div>
+            <div class="absolute inset-0 rounded-full border border-green-500/20 animate-ping"></div>
+          </div>
 
-        <p class="text-xs theme-muted">
-          {{ t('payment.needHelp') }}
-          <button @click="router.push('/contact')" class="text-blue-400 hover:text-blue-300 transition-colors underline underline-offset-2 ms-1">
-            {{ t('payment.contactSupport') }}
-          </button>
-        </p>
+          <div class="space-y-2">
+            <h1 class="text-2xl sm:text-3xl font-bold theme-text">{{ t('payment.successTitle') }}</h1>
+            <p class="text-sm sm:text-base theme-muted leading-relaxed max-w-sm mx-auto">{{ t('payment.successMsg') }}</p>
+            
+            <!-- ✅ عرض الخطة الجديدة -->
+            <div v-if="newPlan" class="mt-4 p-3 rounded-xl bg-blue-500/10 border border-blue-500/20">
+              <p class="text-xs text-blue-400 font-medium uppercase tracking-wider mb-1">
+                {{ t('payment.yourNewPlan') || 'Your New Plan' }}
+              </p>
+              <p class="text-lg font-bold theme-text capitalize">{{ newPlan }}</p>
+            </div>
+          </div>        
+
+          <div class="flex flex-col">
+            <button @click="goBack"
+              class="w-full px-6 py-3 rounded-xl bg-blue-600 text-white text-sm font-semibold hover:bg-blue-500 transition-all duration-200 hover:shadow-lg hover:shadow-blue-500/25">
+              {{ t('common.done') || 'Done' }}
+            </button>
+          </div>
+
+          <p class="text-xs theme-muted">
+            {{ t('payment.needHelp') }}
+            <button @click="router.push('/contact')" class="text-blue-400 hover:text-blue-300 transition-colors underline underline-offset-2 ms-1">
+              {{ t('payment.contactSupport') }}
+            </button>
+          </p>
+        </div>
 
       </div>
     </div>
@@ -69,42 +123,70 @@
 </template>
 
 <script setup>
-import { onMounted } from 'vue'
-import { useRouter } from 'vue-router'
-import { useI18n }   from 'vue-i18n'
+import { ref, onMounted } from 'vue'
+import { useRouter, useRoute } from 'vue-router'
+import { useI18n } from 'vue-i18n'
 import { useAuthStore } from '../stores/authStore'
 import { useTheme } from '../composables/useTheme.js'
 import { useLang } from '../composables/useLang.js'
 import paymentApi from '../api/paymentApi'
+import authApi from '../api/authApi'
 
 const { t, locale } = useI18n()
-const router    = useRouter()
+const router = useRouter()
+const route = useRoute()
 const authStore = useAuthStore()
 const { isDark, toggle: toggleTheme } = useTheme()
 const { switchLang } = useLang()
 
+const loading = ref(true)
+const error = ref('')
+const newPlan = ref('')
 
 const goBack = () => {
   router.push('/dashboard')
 }
 
-// ── Refresh User Profile Data ──
-onMounted(async () => {
-  try {
-    const data = await paymentApi.getStatus()
-    
-    if (authStore.user) {
-      // تحديث الـ plan في الـ store
-      authStore.user = { ...authStore.user, plan: data.plan }
-      localStorage.setItem('cf_user', JSON.stringify(authStore.user))
-      
-      // ✅ استخدم authApi.getProfile() مباشرة
-      const freshUser = await authApi.getProfile()
-      authStore.user = freshUser
-      localStorage.setItem('cf_user', JSON.stringify(freshUser))
-    }
-  } catch { 
-    /* silent */ 
+// ✅ دالة تأكيد الدفع
+async function confirmPayment() {
+  const sessionId = route.query.session_id
+  
+  if (!sessionId) {
+    error.value = t('payment.noSession') || 'No session ID found'
+    loading.value = false
+    return
   }
+
+  loading.value = true
+  error.value = ''
+
+  try {
+    // 1️⃣ استدعاء paymentApi.confirmPayment لتحديث الـ Plan في الـ Backend
+    const result = await paymentApi.confirmPayment(sessionId)
+    
+    if (result.success) {
+      newPlan.value = result.plan
+    }
+
+    // 2️⃣ تحديث بيانات المستخدم في الـ Auth Store باستخدام authApi.getProfile()
+    const freshUser = await authApi.getProfile()
+    authStore.user = freshUser
+    localStorage.setItem('cf_user', JSON.stringify(freshUser))
+    
+    loading.value = false
+  } catch (err) {
+    console.error('Payment confirmation error:', err)
+    error.value = err.message || t('payment.confirmError') || 'Failed to confirm payment'
+    loading.value = false
+  }
+}
+
+function retryConfirm() {
+  confirmPayment()
+}
+
+// ── Refresh User Profile Data ──
+onMounted(() => {
+  confirmPayment()
 })
 </script>

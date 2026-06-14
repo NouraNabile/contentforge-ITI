@@ -18,4 +18,8 @@ export default {
   async getStatus() {
     return await api.get('/payment/status')
   },
+
+  async confirmPayment(sessionId) {
+    return await api.get(`/payment/confirm?session_id=${sessionId}`)
+  }
 }

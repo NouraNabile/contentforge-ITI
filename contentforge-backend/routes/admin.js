@@ -567,8 +567,8 @@ router.put("/users/:id", adminOnly, async (req, res) => {
       prioritySupport: false,
     },
     pro: {
-      maxAiImagesPerMonth: 30, // بناءً على تقدير منطقي لـ "1 image per post"
-      maxPostsPerCalendar: 15,
+      maxAiImagesPerMonth: 10, // بناءً على تقدير منطقي لـ "1 image per post"
+      maxPostsPerCalendar: 20,
       maxCalendarsPerMonth: 5,
       maxBrands: 3,
       advancedAnalytics: true, // "Advanced Top Posts performance analytics"
@@ -577,9 +577,9 @@ router.put("/users/:id", adminOnly, async (req, res) => {
       prioritySupport: false,
     },
     enterprise: {
-      maxAiImagesPerMonth: 100, // حد أعلى للـ Enterprise
-      maxPostsPerCalendar: 30,
-      maxCalendarsPerMonth: 20,
+      maxAiImagesPerMonth: 20, // حد أعلى للـ Enterprise
+      maxPostsPerCalendar: 35,
+      maxCalendarsPerMonth: 15,
       maxBrands: 10,
       advancedAnalytics: true, // "Comprehensive"
       multiDialectSupport: true, // "Comprehensive"

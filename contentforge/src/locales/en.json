@@ -8,7 +8,7 @@
     "nav": {
       "calendar": "Calendar",
       "drafts": "Posts Manager",
-      "branding": "Brand Vault",
+      "": "Brand Vault",
       "chat": "AI Chat",
       "connections": "Connections",
       "payment": "Billing",
@@ -586,6 +586,11 @@
     "scrollHint": "Swipe to compare"
   },
   "branding": {
+    "aiDetectedColors": "AI Detected Colors",
+    "fromLogo": "from your logo",
+    "colorsAutoAdded": "Colors auto-detected from logo!",
+    "colorsDetected": "Logo colors detected - click to add them",
+    "colorAdded": "Color added!",
     "platformsActive": "Active",
     "platformsComingSoon": "Coming Soon",
     "soon": "Soon",

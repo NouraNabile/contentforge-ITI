@@ -586,6 +586,11 @@
     "backToDashboard": "العودة إلى لوحة التحكم"
   },
   "branding": {
+    "aiDetectedColors": "ألوان مكتشفة بالذكاء الاصطناعي",
+    "fromLogo": "من شعارك",
+    "colorsAutoAdded": "تم اكتشاف الألوان تلقائياً من الشعار!",
+    "colorsDetected": "تم اكتشاف ألوان الشعار - اضغط لإضافتها",
+    "colorAdded": "تم إضافة اللون!",
     "platformsActive": "نشط",
     "platformsComingSoon": "قريباً",
     "soon": "قريباً",

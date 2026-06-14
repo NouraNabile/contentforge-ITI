@@ -388,6 +388,7 @@
     }
   },
   "dashboard": {
+    "caption": "Caption",
     "deleteSuccess": "Calendar deleted successfully",
     "resetSuccess": "Calendar reset successfully",
     "unsupportedPlatform": "Only Instagram and Facebook are supported",

@@ -365,6 +365,7 @@
     }
   },
   "dashboard": {
+    "caption": "الوصف",
     "deleteSuccess": "تم حذف التقويم بنجاح",
     "resetSuccess": "تمت إعادة تعيين التقويم بنجاح",
     "postAdded": "تمت إضافة المنشور بنجاح",

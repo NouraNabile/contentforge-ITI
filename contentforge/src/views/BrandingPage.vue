@@ -38,7 +38,6 @@
               : 'theme-sub hover:theme-text',
           ]"
         >
-          <!-- 🔒 لوجو القفل -->
           <svg
             v-if="tab.locked"
             class="w-3.5 h-3.5 text-amber-400"
@@ -56,7 +55,6 @@
 
           {{ t(tab.labelKey) }}
 
-          <!-- Badge PRO -->
           <span
             v-if="tab.locked"
             class="text-[9px] px-1.5 py-0.5 rounded-full bg-amber-500/20 text-amber-400 border border-amber-500/30 font-bold"
@@ -187,6 +185,32 @@
                   {{ t("common.add") }}
                 </button>
               </div>
+
+              <!-- AI Detected Colors from Logo -->
+              <div v-if="detectedColors.length" class="mt-3 pt-3 border-t border-theme">
+                <div class="flex items-center gap-2 mb-2">
+                  <span class="text-xs font-medium text-teal-400">{{ t("branding.aiDetectedColors") || "AI Detected Colors" }}</span>
+                  <span class="text-[10px] theme-muted">{{ t("branding.fromLogo") || "from your logo" }}</span>
+                </div>
+                <div class="flex flex-wrap gap-2">
+                  <button
+                    v-for="(color, i) in detectedColors"
+                    :key="i"
+                    @click="addDetectedColor(color)"
+                    class="flex items-center gap-2 px-2.5 py-1.5 rounded-lg border transition-all hover:scale-105 active:scale-95"
+                    :class="brand.colors.includes(color) ? 'border-teal-500/40 bg-teal-500/10 opacity-50 cursor-default' : 'border-theme theme-card hover:border-teal-500/40'"
+                    :disabled="brand.colors.includes(color)"
+                  >
+                    <div
+                      class="w-4 h-4 rounded-full border border-white/10 shrink-0"
+                      :style="`background:${color}`"
+                    ></div>
+                    <span class="text-xs theme-sub font-mono">{{ color }}</span>
+                    <span v-if="brand.colors.includes(color)" class="text-[10px] text-teal-400">✓</span>
+                    <span v-else class="text-[10px] theme-muted">+</span>
+                  </button>
+                </div>
+              </div>
             </div>
             <div>
               <label class="text-xs theme-sub mb-1.5 block">{{
@@ -213,6 +237,7 @@
                   :src="brand.logoPreview"
                   alt="Brand Logo"
                   class="max-h-28 max-w-full object-contain p-3"
+                  ref="logoImg"
                 />
                 <button
                   @click="removeLogo"
@@ -238,7 +263,7 @@
               <input
                 ref="logoInput"
                 type="file"
-                accept="image/png,image/svg+xml"
+                accept="image/png,image/svg+xml,image/jpeg,image/jpg,image/webp"
                 class="hidden"
                 @change="handleLogo"
               />
@@ -767,7 +792,7 @@
                       <path
                         stroke-linecap="round"
                         stroke-linejoin="round"
-                        d="M19.5 12c0-1.232-.046-2.453-.138-3.662a4.006 4.006 0 00-3.7-3.7 48.656 48.656 0 00-7.324 0 4.006 4.006 0 00-3.7 3.7c-.017.22-.032.441-.046.662M19.5 12l3-3m-3 3l-3-3m-12 3c0 1.232.046 2.453.138 3.662a4.006 4.006 0 003.7 3.7 48.656 48.656 0 007.324 0 4.006 4.006 0 003.7-3.7c.017-.22.032-.441.046-.662M4.5 12l-3 3m3-3l3 3"
+                        d="M19.5 12c0-1.232-.046-2.453-.138-3.662a4.006 4.006 0 00-3.7-3.7 48.656 48.656 0 00-7.324 0 4.006 4.006 0 00-3.7 3.7c-.017.22.032.441.046-.662M19.5 12l3-3m-3 3l-3-3m-12 3c0 1.232.046 2.453.138 3.662a4.006 4.006 0 003.7 3.7 48.656 48.656 0 007.324 0 4.006 4.006 0 003.7-3.7c.017-.22.032-.441.046-.662M4.5 12l-3 3m3-3l3 3"
                       />
                     </svg>
                     {{ t("branding.statShares") }}
@@ -1014,7 +1039,7 @@
                     <label
                       class="text-[11px] theme-muted mb-1 block font-medium"
                       >{{ t("branding.tpContent") }}</label
-                    >
+                      >
                     <textarea
                       v-model="newPost.content"
                       rows="3"
@@ -1115,7 +1140,6 @@
     </div>
   </AppLayout>
 </template>
-
 <script setup>
 import AppLayout from "../components/AppLayout.vue";
 import { ref, computed, onMounted } from "vue";
@@ -1128,7 +1152,7 @@ const { t, locale } = useI18n();
 const toasts = ref([]);
 const authStore = useAuthStore();
 
-// ✅ Check if user is on Free plan
+// Check if user is on Free plan
 const isFreePlan = computed(() => {
   const plan = authStore.user?.plan || "free";
   return plan === "free" || plan === "";
@@ -1151,7 +1175,7 @@ const tabs = computed(() => [
   {
     key: "Top Posts",
     labelKey: "branding.tabPosts",
-    locked: isFreePlan.value, // 🔒 مقفول للـ Free users
+    locked: isFreePlan.value,
   },
 ]);
 
@@ -1181,6 +1205,173 @@ const brand = ref({
   platforms: [],
   logoPreview: null,
 });
+
+// AI Detected colors from logo
+const detectedColors = ref([]);
+const extractingColors = ref(false);
+
+/**
+ * Extract dominant colors from an image using canvas
+ * Pure JavaScript - no external libraries needed
+ * Uses color quantization and frequency analysis
+ */
+function extractColorsFromImage(imageSrc) {
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    img.crossOrigin = "anonymous";
+
+    img.onload = () => {
+      try {
+        const canvas = document.createElement('canvas');
+        const ctx = canvas.getContext('2d');
+
+        // Resize to max 150px for performance while keeping aspect ratio
+        const maxSize = 150;
+        let width = img.naturalWidth;
+        let height = img.naturalHeight;
+
+        if (width > height) {
+          if (width > maxSize) {
+            height *= maxSize / width;
+            width = maxSize;
+          }
+        } else {
+          if (height > maxSize) {
+            width *= maxSize / height;
+            height = maxSize;
+          }
+        }
+
+        canvas.width = Math.floor(width);
+        canvas.height = Math.floor(height);
+        ctx.drawImage(img, 0, 0, width, height);
+
+        const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+        const data = imageData.data;
+        const colorMap = new Map();
+
+        // Sample every 4th pixel for performance (step = 4)
+        const step = 4;
+
+        for (let i = 0; i < data.length; i += step * 4) {
+          const r = data[i];
+          const g = data[i + 1];
+          const b = data[i + 2];
+          const a = data[i + 3];
+
+          // Skip transparent pixels
+          if (a < 128) continue;
+
+          // Skip near-white and near-black (background colors)
+          const brightness = (r + g + b) / 3;
+          if (brightness > 245 || brightness < 15) continue;
+
+          // Skip low saturation colors (grays)
+          const max = Math.max(r, g, b);
+          const min = Math.min(r, g, b);
+          const saturation = max === 0 ? 0 : (max - min) / max;
+          if (saturation < 0.15) continue;
+
+          // Quantize colors to reduce similar colors (round to nearest 24)
+          const qr = Math.round(r / 24) * 24;
+          const qg = Math.round(g / 24) * 24;
+          const qb = Math.round(b / 24) * 24;
+
+          // Clamp to valid RGB range
+          const cr = Math.min(255, Math.max(0, qr));
+          const cg = Math.min(255, Math.max(0, qg));
+          const cb = Math.min(255, Math.max(0, qb));
+
+          const hex = `#${cr.toString(16).padStart(2, '0')}${cg.toString(16).padStart(2, '0')}${cb.toString(16).padStart(2, '0')}`.toUpperCase();
+
+          colorMap.set(hex, (colorMap.get(hex) || 0) + 1);
+        }
+
+        // Sort by frequency and get top 6 colors
+        const sortedColors = Array.from(colorMap.entries())
+          .sort((a, b) => b[1] - a[1])
+          .slice(0, 6)
+          .map(([color]) => color);
+
+        resolve(sortedColors);
+      } catch (err) {
+        reject(err);
+      }
+    };
+
+    img.onerror = () => reject(new Error('Failed to load image'));
+    img.src = imageSrc;
+  });
+}
+
+async function handleLogo(e) {
+  const file = e.target.files[0];
+  if (!file) return;
+  if (file.size > 2 * 1024 * 1024) {
+    showToast(t("branding.logoSizeError"), 'warning');
+    e.target.value = "";
+    return;
+  }
+
+  const reader = new FileReader();
+  reader.onload = async (ev) => {
+    brand.value.logoPreview = ev.target.result;
+
+    // Extract colors from logo automatically
+    try {
+      extractingColors.value = true;
+      const colors = await extractColorsFromImage(ev.target.result);
+      detectedColors.value = colors;
+
+      if (colors.length > 0) {
+        // Auto-add first 2 colors if brand colors are empty
+        if (brand.value.colors.length === 0) {
+          colors.slice(0, 2).forEach(c => {
+            if (!brand.value.colors.includes(c)) {
+              brand.value.colors.push(c);
+            }
+          });
+          showToast(t("branding.colorsAutoAdded") || "Colors auto-detected from logo!", 'success');
+        } else {
+          showToast(t("branding.colorsDetected") || "Logo colors detected - click to add them", 'success');
+        }
+      }
+    } catch (err) {
+      console.error("Color extraction failed:", err);
+      // Silently fail - colors are optional
+    } finally {
+      extractingColors.value = false;
+    }
+  };
+  reader.readAsDataURL(file);
+  e.target.value = "";
+}
+
+function addDetectedColor(color) {
+  if (!brand.value.colors.includes(color)) {
+    brand.value.colors.push(color);
+    showToast(t("branding.colorAdded") || "Color added!", 'success');
+  }
+}
+
+function removeLogo() {
+  brand.value.logoPreview = null;
+  detectedColors.value = [];
+}
+
+function addColor() {
+  if (newColorHex.value) {
+    brand.value.colors.push(newColorHex.value);
+  }
+}
+function toggleDialect(d) {
+  const i = brand.value.dialects.indexOf(d);
+  i === -1 ? brand.value.dialects.push(d) : brand.value.dialects.splice(i, 1);
+}
+function toggleItem(arr, item) {
+  const i = arr.indexOf(item);
+  i === -1 ? arr.push(item) : arr.splice(i, 1);
+}
 
 const platformOptions = [
   {
@@ -1270,20 +1461,6 @@ const newPost = ref({
   date: "",
   stats: { likes: 0, comments: 0, shares: 0 },
 });
-
-function addColor() {
-  if (newColorHex.value) {
-    brand.value.colors.push(newColorHex.value);
-  }
-}
-function toggleDialect(d) {
-  const i = brand.value.dialects.indexOf(d);
-  i === -1 ? brand.value.dialects.push(d) : brand.value.dialects.splice(i, 1);
-}
-function toggleItem(arr, item) {
-  const i = arr.indexOf(item);
-  i === -1 ? arr.push(item) : arr.splice(i, 1);
-}
 
 async function loadTopPosts() {
   if (!currentBrandId.value) return;
@@ -1487,7 +1664,6 @@ async function uploadPdf(file) {
   uploadingPdf.value = true;
   pdfMsg.value = null;
   try {
-    // If no brand exists yet, auto-save it first before uploading
     if (!currentBrandId.value) {
       pdfMsg.value = {
         type: "info",
@@ -1513,26 +1689,6 @@ async function uploadPdf(file) {
 function removePdf() {
   uploadedPdfName.value = null;
   pdfMsg.value = null;
-}
-
-function handleLogo(e) {
-  const file = e.target.files[0];
-  if (!file) return;
-  if (file.size > 2 * 1024 * 1024) {
-    showToast(t("branding.logoSizeError"), 'warning');
-    e.target.value = "";
-    return;
-  }
-  const reader = new FileReader();
-  reader.onload = (ev) => {
-    brand.value.logoPreview = ev.target.result;
-  };
-  reader.readAsDataURL(file);
-  e.target.value = "";
-}
-
-function removeLogo() {
-  brand.value.logoPreview = null;
 }
 
 function getPlatformKey(platformName) {

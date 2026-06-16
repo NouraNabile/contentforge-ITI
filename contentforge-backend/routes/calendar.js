@@ -16,108 +16,131 @@ const {
 const { retrieveRelevantChunks } = require("../services/embeddingService");
 
 // POST /api/calendar/generate
-router.post("/generate", protect, checkCalendarPostsLimit, checkCalendarLimit, async (req, res) => {
-  const { brandId, brief, dialect, platforms, startDate, endDate, duration } =
-    req.body;
+router.post(
+  "/generate",
+  protect,
+  checkCalendarLimit,
+  checkCalendarPostsLimit,
+  async (req, res) => {
+    const { brandId, brief, dialect, platforms, startDate, endDate, duration } =
+      req.body;
 
-  console.log(req.body);
+    console.log(req.body);
 
-  if (!brandId || !brief)
-    return res.status(400).json({ message: "brandId and brief are required" });
+    if (!brandId || !brief)
+      return res
+        .status(400)
+        .json({ message: "brandId and brief are required" });
 
-  const brand = await Brand.findById(brandId);
-  if (!brand) return res.status(404).json({ message: "Brand not found" });
+    const brand = await Brand.findById(brandId);
+    if (!brand) return res.status(404).json({ message: "Brand not found" });
 
-  // 1. Retrieve relevant RAG chunks
-  const chunks = await retrieveRelevantChunks(brandId, brief);
+    // 1. Retrieve relevant RAG chunks
+    const chunks = await retrieveRelevantChunks(brandId, brief);
 
-  // 1b. Fetch top posts if the brand has any (not required)
-  const { TopPost } = require("../models");
-  const topPosts = await TopPost.find({ brand: brandId })
-    .sort("-stats.engagementRate")
-    .limit(5);
+    // 1b. Fetch top posts
+    const { TopPost } = require("../models");
+    const topPosts = await TopPost.find({ brand: brandId })
+      .sort("-stats.engagementRate")
+      .limit(5);
 
-  // 2. Live trends (hardcoded for demo — replace with trendService scraper)
-  // const trends = ['#رمضان_كريم', '#قهوة_الصباح', 'Cold brew Egypt 2026', '#سحور']
-  const trendDocs = await Trend.find({
-    region: brand.region || "EG",
-  })
-    .sort({ velocity: -1 })
-    .limit(10);
+    // 2. Live trends
+    const trendDocs = await Trend.find({
+      region: brand.region || "EG",
+    })
+      .sort({ velocity: -1 })
+      .limit(10);
 
-  const trends = trendDocs.map((t) => t.tag);
+    const trends = trendDocs.map((t) => t.tag);
 
-  if (!trends.length) {
-    return res.status(400).json({
-      message: "No trends available. Seed trends first.",
-    });
-  }
-
-  // 3. Call Gemini to generate posts JSON
-  let postsData;
-  try {
-    postsData = await generateCalendar({
-      brief,
-      brand,
-      trends,
-      dialect: dialect || brand.dialects[0] || "Egyptian Arabic",
-      platforms: platforms || brand.platforms,
-      brandContext: chunks.join("\n\n"),
-      topPosts,
-      startDate,
-      endDate,
-      duration,
-    });
-  } catch (err) {
-    return res.status(503).json({
-      message:
-        "AI service is temporarily busy. Please try again in a few moments.",
-    });
-  }
-
-  // 4. Create calendar document
-  const calendar = await Calendar.create({
-    brand: brandId,
-    user: req.user._id,
-    title: brief.slice(0, 60),
-    brief,
-    dialect,
-    platforms: platforms || brand.platforms,
-    startDate: startDate ? new Date(startDate) : new Date(),
-    endDate: endDate
-      ? new Date(endDate)
-      : new Date(Date.now() + 14 * 24 * 60 * 60 * 1000),
-    trendsUsed: trends,
-    status: "ready",
-  });
-
-  // 5. Save each post
-  const posts = await Post.insertMany(
-    postsData.map((p) => ({ ...p, brand: brandId, calendar: calendar._id })),
-  );
-
-  // 6. Link posts to calendar
-  calendar.posts = posts.map((p) => p._id);
-  await calendar.save();
-
-  try {
-    await OriginalCalendar.create({
-      calendarId: calendar._id,
-      originalCalendarData: calendar.toObject(),
-      originalPostsData: posts.map((p) => p.toObject()),
-    });
-
-    for (const post of posts) {
-      await incrementUsage("postsGenerated")(req, res, () => {});
+    if (!trends.length) {
+      return res.status(400).json({
+        message: "No trends available. Seed trends first.",
+      });
     }
-    await incrementUsage("calendarsCreated")(req, res, () => {});
 
-  } catch (err) {
-    console.error("Failed to snapshot original calendar state:", err);
-  }
+    // 3. Call Gemini to generate posts JSON
+    let postsData;
+    try {
+      postsData = await generateCalendar({
+        brief,
+        brand,
+        trends,
+        dialect: dialect || brand.dialects[0] || "Egyptian Arabic",
+        platforms: platforms || brand.platforms,
+        brandContext: chunks.join("\n\n"),
+        topPosts,
+        startDate,
+        endDate,
+        duration,
+      });
+    } catch (err) {
+      return res.status(503).json({
+        message:
+          "AI service is temporarily busy. Please try again in a few moments.",
+      });
+    }
 
-  res.json({ calendar, posts });
-});
+    // ✅ التحقق الثاني: بعد AI generation، نتأكد إن العدد الفعلي مش أكبر من المتبقي
+    const actualPostsCount = postsData.length;
+    if (actualPostsCount > req.remainingPosts) {
+      return res.status(403).json({
+        message: `AI generated ${actualPostsCount} posts, but you only have ${req.remainingPosts} remaining. Please try a shorter duration.`,
+        required: actualPostsCount,
+        remaining: req.remainingPosts,
+        reason: "posts_limit_exceeded",
+      });
+    }
+
+    // 4. Create calendar document
+    const calendar = await Calendar.create({
+      brand: brandId,
+      user: req.user._id,
+      title: brief.slice(0, 60),
+      brief,
+      dialect,
+      platforms: platforms || brand.platforms,
+      startDate: startDate ? new Date(startDate) : new Date(),
+      endDate: endDate
+        ? new Date(endDate)
+        : new Date(Date.now() + 14 * 24 * 60 * 60 * 1000),
+      trendsUsed: trends,
+      status: "ready",
+    });
+
+    // 5. Save each post
+    const posts = await Post.insertMany(
+      postsData.map((p) => ({ ...p, brand: brandId, calendar: calendar._id })),
+    );
+
+    // 6. Link posts to calendar
+    calendar.posts = posts.map((p) => p._id);
+    await calendar.save();
+
+    // 7. ✅ تحديث الـ usage دفعة واحدة (بدلاً من loop)
+    try {
+      await OriginalCalendar.create({
+        calendarId: calendar._id,
+        originalCalendarData: calendar.toObject(),
+        originalPostsData: posts.map((p) => p.toObject()),
+      });
+
+      // ✅ تحديث الـ usage دفعة واحدة
+      await User.findByIdAndUpdate(req.user._id, {
+        $inc: {
+          "usage.postsGenerated": actualPostsCount,
+          "usage.calendarsCreated": 1,
+        },
+      });
+
+      console.log(`✅ Updated usage: +${actualPostsCount} posts, +1 calendar`);
+    } catch (err) {
+      console.error("Failed to snapshot/update usage:", err);
+    }
+
+    res.json({ calendar, posts });
+  },
+);
 
 // GET /api/calendar/brand/:brandId — all calendars for a brand
 router.get("/brand/:brandId", protect, async (req, res) => {

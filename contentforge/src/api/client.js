@@ -49,20 +49,49 @@ api.interceptors.response.use(
     if (status === 403) {
       const currentPath = window.location.pathname;
 
+      // ✅ حالة 1: Trial Expired → توجيه إجباري (مش modal!)
+      // لأن المستخدم لم يعد قادراً على استخدام الموقع أصلاً
       if (reason === "trial_expired") {
-        if (currentPath !== "/trial-expired") {
+        if (currentPath !== "/trial-expired" && currentPath !== "/payment") {
           window.location.href = "/trial-expired";
         }
-      } else if (reason === "feature_locked") {
-        if (currentPath !== "/payment") {
-          alert(message);
-          window.location.href = upgradeUrl || "/payment";
-        }
-      } else {
-        if (currentPath !== "/trial-expired") {
-          window.location.href = "/trial-expired";
-        }
+        return Promise.reject({ status, message, reason });
       }
+
+      // ✅ باقي الحالات → Modal (المستخدم لسه يقدر يستخدم الموقع)
+      const modalTypeMap = {
+        feature_locked: { type: "feature_locked", title: "Feature Locked" },
+        posts_limit_exceeded: {
+          type: "posts_limit",
+          title: "Posts Limit Reached",
+        },
+        calendar_limit_exceeded: {
+          type: "calendar_limit",
+          title: "Calendar Limit Reached",
+        },
+        brands_limit_exceeded: {
+          type: "brands_limit",
+          title: "Brands Limit Reached",
+        },
+      };
+
+      const modalConfig = modalTypeMap[reason] || {
+        type: "general",
+        title: "Access Denied",
+      };
+
+      window.dispatchEvent(
+        new CustomEvent("show-limit-modal", {
+          detail: {
+            type: modalConfig.type,
+            title: modalConfig.title,
+            message: message,
+            reason: reason,
+          },
+        }),
+      );
+
+      return Promise.reject({ status, message, reason });
     }
 
     if (status === 429) {

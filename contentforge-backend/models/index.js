@@ -60,6 +60,7 @@ const userSchema = new mongoose.Schema(
       enum: ["free", "pro", "enterprise", ""],
       default: "free",
     },
+      // warningSentAt: { type: Date, default: null },
     subscriptionType: {
       type: String,
       enum: ["monthly", "yearly", "none"],

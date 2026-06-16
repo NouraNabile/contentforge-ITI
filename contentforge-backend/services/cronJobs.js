@@ -20,11 +20,14 @@ async function checkAndSendExpiryWarnings() {
     threeDaysFromNowEnd.setHours(23, 59, 59, 999); // آخر اليوم بعد 3 أيام
 
     // 3. التعديل السحري: ندور في الـ DB بموجب حقل planEndsAt الجديد
+    //on_Test_Moode
     const usersToWarn = await User.find({
-      plan: 'free',                     // بنجيب باقات الفري اللي في التجربة حالياً
+      // plan: 'free',                     // بنجيب باقات الفري اللي في التجربة حالياً
       isBlocked: { $ne: true },
       'deletionRequest.isDeleted': { $ne: true }, // متوافق مع كائن الـ Soft Delete الجديد
-      planEndsAt: { $gte: threeDaysFromNowStart, $lte: threeDaysFromNowEnd } // 🌟 التعديل هنا
+      planEndsAt: { $gte: now, $lte: threeDaysFromNowEnd }, // 🌟 التعديل هنا
+      isAdmin: { $ne: true },
+      // warningSentAt: null
     });
 
     if (usersToWarn.length === 0) {
@@ -37,8 +40,12 @@ async function checkAndSendExpiryWarnings() {
     // 4. نلف عليهم ونبعت لكل واحد الإيميل التنبيهي
     for (const user of usersToWarn) {
       // باصينا الحقل الجديد planEndsAt للدالة عشان يتبعت التاريخ صح جوه الإيميل
-      await sendTrialExpiryWarningEmail(user.email, user.name, user.planEndsAt)
+        console.log(`📧 بيبعت لـ: ${user.email}`) // ← أضيفي السطر ده
+
+    await sendTrialExpiryWarningEmail(user.email, user.name, user.planEndsAt)
         .catch(err => console.error(`خطأ أثناء الإرسال لـ ${user.email}:`, err.message));
+        user.warningSentAt = new Date();
+        await user.save();
     }
 
     console.log(`[Cron Job] تم إنهاء إرسال التحذيرات بنجاح.`);

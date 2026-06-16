@@ -91,7 +91,7 @@ router.post("/register", async (req, res) => {
     if (await User.findOne({ email }))
       return res.status(400).json({ message: "Email already registered" });
 
-    if (blockByPhone && (await User.findOne({ phone })))
+    if (PlatformSettings.blockByPhone && (await User.findOne({ phone })))
       return res
         .status(400)
         .json({ message: "This phone has already been used for a trial." });

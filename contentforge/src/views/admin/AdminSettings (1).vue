@@ -196,7 +196,6 @@ const originalSettings = ref({})
 
 const settings = ref({
   trialDays: 14,
-  blockByPhone: true,
   otpExpiryMinutes: 10,
   sendExpiryWarning: false,
 })
@@ -205,9 +204,13 @@ const settings = ref({
 onMounted(async () => {
   try {
     const data = await adminApi.getSettings()
-    settings.value = { ...settings.value, ...data.settings }
-        originalSettings.value = { ...settings.value }  // ← السطر ده ناقص
-
+    const s = data.settings
+    settings.value = {
+      trialDays: Number(s.trialDays) || 14,
+      otpExpiryMinutes: Number(s.otpExpiryMinutes) || 10,
+      sendExpiryWarning: Boolean(s.sendExpiryWarning),
+    }
+    originalSettings.value = { ...settings.value }
   } catch (err) {
     console.error('Failed to load settings:', err)
   } finally {
@@ -226,7 +229,7 @@ async function save() {
     await adminApi.saveSettings(cur)
     results.push('✓ تم حفظ الإعدادات')
 
-    if (cur.sendExpiryWarning) {
+    if (cur.sendExpiryWarning && !orig.sendExpiryWarning) {
       const res = await adminApi.triggerExpiryWarnings()
       results.push(`✓ ${res?.message || 'تم إرسال التحذيرات'}`)
     }

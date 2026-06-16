@@ -163,7 +163,7 @@ router.get("/settings", adminOnly, async (req, res) => {
 //         });
 
 //     if (trialDaysChanged) {
-//       const trialUsers = await User.find({ isTrial: true, plan: "free", isAdmin: { $ne: true } });
+//       const trialUsers = await User.find({ isTrial: true, plan: "free" });
 
 //       await Promise.all(
 //         trialUsers.map(async (user) => {
@@ -245,7 +245,7 @@ router.put("/settings", adminOnly, async (req, res) => {
 
     // 2. تحديث الـ Trials
     if (trialDaysChanged) {
-      const trialUsers = await User.find({ isTrial: true, plan: "free", isAdmin: { $ne: true } });
+      const trialUsers = await User.find({ isTrial: true, plan: "free" });
       await Promise.all(
         trialUsers.map(async (user) => {
           const start = new Date(user.createdAt);
@@ -253,13 +253,23 @@ router.put("/settings", adminOnly, async (req, res) => {
           newEnd.setDate(newEnd.getDate() + trialDays);
           user.planEndsAt = newEnd;
           await user.save();
+          
+          sendTrialUpdateEmail(user.email, user.name, trialDays, newEnd).catch(err => console.error(err.message));
+          // ابحثي عن الجزء الخاص بـ sendTrialUpdateEmail في كودك واستبدلي سطر الإرسال بـ:
 
-          try {
-            await sendTrialUpdateEmail(user.email, user.name, trialDays, newEnd);
-          } catch (err) {
-            console.error(`Failed to send trial update email to ${user.email}:`, err.message);
-          }
-
+// try {
+//   // 1. تحقق سريع من وجود إيميل
+//   if (user.email && user.email.includes('@')) {
+//     await sendTrialUpdateEmail(user.email, user.name, trialDays, newEnd);
+//     console.log(`تم الإرسال بنجاح إلى: ${user.email}`);
+//   } else {
+//     console.warn(`إيميل غير صالح، تم تخطيه: ${user.email}`);
+//   }
+// } catch (err) {
+//   // هذا الـ catch سيمنع النظام من الانهيار (Crash) إذا فشل الإرسال
+//   console.error(`فشل إرسال الإيميل إلى ${user.email}:`, err.message);
+// }
+          
           try {
             await createNotification({
               recipientId: user._id,
@@ -276,43 +286,19 @@ router.put("/settings", adminOnly, async (req, res) => {
     }
 
     // 3. الإشعارات العامة
-    // try {
-    //   const allUsers = await User.find({ isAdmin: { $ne: true }, "deletionRequest.isDeleted": { $ne: true } });
-    //   for (const u of allUsers) {
-    //     await createNotification({
-    //       recipientId: u._id,
-    //       recipientRole: "user",
-    //       type: "admin_settings_changed",
-    //       title: "Platform Settings Updated",
-    //       message: "The platform settings have been updated.",
-    //     });
-    //   }
-    // } catch (err) { console.error(err.message); }
-
     try {
-  const allUsers = await User.find({ 
-    isAdmin: { $ne: true }, 
-    "deletionRequest.isDeleted": { $ne: true } ,
-    isTrial: true,
-     plan: "free"
-  });
+      const allUsers = await User.find({ isAdmin: { $ne: true }, "deletionRequest.isDeleted": { $ne: true } });
+      for (const u of allUsers) {
+        await createNotification({
+          recipientId: u._id,
+          recipientRole: "user",
+          type: "admin_settings_changed",
+          title: "Platform Settings Updated",
+          message: "The platform settings have been updated.",
+        });
+      }
+    } catch (err) { console.error(err.message); }
 
-  // بدلاً من await داخل الـ loop، نستخدم Promise.all لترسل الإشعارات دفعة واحدة
-  // ونضعها داخل دالة لا تعطل الـ API
-  Promise.all(allUsers.map(u => 
-    createNotification({
-      recipientId: u._id,
-      recipientRole: "user",
-      type: "admin_settings_changed",
-      title: "Platform Settings Updated",
-      message: "The platform settings have been updated.",
-    }).catch(err => console.error("فشل إشعار مستخدم:", err.message))
-  ));
-
-  // نرد على المستخدم فوراً دون انتظار انتهاء كل الإشعارات
-} catch (err) { 
-  console.error("خطأ في جلب المستخدمين:", err.message); 
-}
     res.json({ message: "Settings saved", updatedUsers });
   } catch (err) {
     res.status(500).json({ message: err.message });
@@ -594,7 +580,7 @@ router.post('/trigger-expiry-warnings', adminOnly, async (req, res) => {
 //         .status(400)
 //         .json({ message: "trialDays must be between 1 and 90" });
 
-//     const trialUsers = await User.find({ isTrial: true, plan: "free", isAdmin: { $ne: true } });
+//     const trialUsers = await User.find({ isTrial: true, plan: "free" });
 
 //     await Promise.all(
 //       trialUsers.map(async (user) => {
